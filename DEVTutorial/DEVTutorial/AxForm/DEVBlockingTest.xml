@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVBlockingTest</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVBlockingTest extends FormRun 
+{
+
+
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>FillTable</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            ;
+            DEVBlockingTestTable::fillTable();
+
+            DEVBlockingTestTable_ds.research(false);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>UpdateRowSelectButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            Num                         updateRow1 = int2Str(RowNumber1Int.value());
+            Num                         updateRow2 = int2Str(RowNumber2Int.value());
+            DEVBlockingTestTable        blockingTableLocal;
+            ;
+            ttsbegin;
+
+            while select forupdate blockingTableLocal
+                where blockingTableLocal.Field2 == updateRow1 &&
+                      blockingTableLocal.Field3 == updateRow2
+            {   
+                blockingTableLocal.Field4 += "u1";
+                blockingTableLocal.update();
+            }
+            Box::okCancel("Select forupdate has been done", DialogButton::Ok);
+    
+            ttsabort; 
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>UpdateRecordSetButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            Num                         updateRow1 = int2Str(RowNumber1Int.value());
+            Num                         updateRow2 = int2Str(RowNumber2Int.value());
+            DEVBlockingTestTable        blockingTableLocal;
+            ;
+            ttsbegin;
+    
+            update_recordset blockingTableLocal
+                setting Field4 = "u1"
+                where blockingTableLocal.Field2 == updateRow1
+                 &&   blockingTableLocal.Field3 == updateRow2
+                    ;
+        
+            Box::okCancel(strFmt("update_recordset has been done. Rows: %1", blockingTableLocal.RowCount()), DialogButton::Ok);
+    
+            ttsabort;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>UpdateRecordSetButton2</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            Num                         updateRow1 = int2Str(RowNumber1Int.value());
+            Num                         updateRow2 = int2Str(RowNumber2Int.value());
+            DEVBlockingTestTable        blockingTableLocal;
+            ;
+            ttsbegin;
+            
+            update_recordset blockingTableLocal
+                setting Field3 = "u1"
+                where blockingTableLocal.Field2 == updateRow1
+                 &&   blockingTableLocal.Field4 == updateRow2
+                    ;
+    
+            Box::okCancel(strFmt("update_recordset has been done. Rows: %1", blockingTableLocal.RowCount()), DialogButton::Ok);
+            
+            ttsabort;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DeleteRecordSetButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            Num                         updateRow1 = int2Str(RowNumber1Int.value());
+            Num                         updateRow2 = int2Str(RowNumber2Int.value());
+            DEVBlockingTestTable        blockingTableLocal;
+            ;
+            ttsbegin;
+            delete_from blockingTableLocal
+                where blockingTableLocal.Field2 == updateRow1
+                 &&   blockingTableLocal.Field3 == updateRow2
+                    ;
+            
+            Box::okCancel(strFmt("delete_from has been done. Rows: %1", blockingTableLocal.RowCount()), DialogButton::Ok);
+            
+            ttsabort;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>DEVBlockingTestTable</Name>
+			<Table>DEVBlockingTestTable</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Field1</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Field2</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Field3</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">Blocking test</Caption>
+		<DataSource xmlns="">DEVBlockingTestTable</DataSource>
+		<Pattern xmlns="">SimpleList</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<Style xmlns="">SimpleList</Style>
+		<TitleDataSource xmlns="">DEVBlockingTestTable</TitleDataSource>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>MainActionPane</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>FillTable</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Fill table</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>UpdateRowSelectButton</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>select forupdate update</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>UpdateRecordSetButton</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>update_recordset update 1</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>UpdateRecordSetButton2</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>update_recordset update 2</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>DeleteRecordSetButton</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>delete_from</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<Pattern>CustomAndQuickFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilter</Name>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+									<Value>MainGrid</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormIntegerControl">
+						<Name>RowNumber1Int</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>Integer</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>Row number 1</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormIntegerControl">
+						<Name>RowNumber2Int</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>Integer</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>Row number 2</Label>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>MainGrid</Name>
+				<Type>Grid</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>Overview</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>Overview_Field1</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>Field1</DataField>
+								<DataSource>DEVBlockingTestTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>Overview_Field2</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>Field2</DataField>
+								<DataSource>DEVBlockingTestTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>Overview_Field3</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>Field3</DataField>
+								<DataSource>DEVBlockingTestTable</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataGroup>Overview</DataGroup>
+						<DataSource>DEVBlockingTestTable</DataSource>
+					</AxFormControl>
+				</Controls>
+				<DataSource>DEVBlockingTestTable</DataSource>
+				<Style>Tabular</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

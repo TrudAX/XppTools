@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVBlockingTestTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVBlockingTestTable extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>fillTable</Name>
+				<Source><![CDATA[
+    static void fillTable()
+    {
+        DEVBlockingTestTable        blockingTestTable;
+
+        ttsbegin;
+        delete_from blockingTestTable; 
+        
+        for(int i = 0; i <= 2000; i++)
+        {
+            blockingTestTable.Field1 = strFmt("%1", i);
+            blockingTestTable.Field2 = strFmt("%1", i div 10);//i div 10);
+            blockingTestTable.Field3 = strFmt("%1", (i mod 10) div 3);
+            blockingTestTable.insert();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Blocking test</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>Field1</TitleField1>
+	<TitleField2>Field2</TitleField2>
+	<PrimaryIndex>Field1Idx</PrimaryIndex>
+	<ReplacementKey>Field1Idx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Field1</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Field1</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Field2</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Field3</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Field4</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Field1</Name>
+			<ExtendedDataType>Num</ExtendedDataType>
+			<Label>Field1</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Field2</Name>
+			<ExtendedDataType>Num</ExtendedDataType>
+			<Label>Field2</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Field3</Name>
+			<ExtendedDataType>Num</ExtendedDataType>
+			<Label>Field3</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Field4</Name>
+			<ExtendedDataType>Num</ExtendedDataType>
+			<Label>Field4</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>Field1Idx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Field1</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>Field2Idx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Field2</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>
