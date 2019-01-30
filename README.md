@@ -3,19 +3,19 @@
 Useful X++ code samples
 
 Navigation
- - [DevTools](#devtools)
- - [DevGlobal](#devglobal)
- - [DevTutorial](#devtutorial)
+ - [DEVTools](#devtools)
+ - [DEVGlobal](#devglobal)
+ - [DEVTutorial](#devtutorial)
 
-## DevTools
-
-**[⬆ back to top](#XppTools)**
-
-## DevGlobal
+## DEVTools
 
 **[⬆ back to top](#XppTools)**
 
-## DevTutorial
+## DEVGlobal
+
+**[⬆ back to top](#XppTools)**
+
+## DEVTutorial
 
 - [Blocking in D365FO](https://denistrunin.com/understanding-sql-blocking/)
 
