@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SysRecordInfo.DEVExtension</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlkft3ijjd1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormButtonControl">
+				<Name>DEVDevRecordInfo</Name>
+				<HelpText>Show fields list</HelpText>
+				<Skip>Yes</Skip>
+				<Type>Button</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Text>Fields list</Text>
+			</FormControl>
+			<Parent>ShowFieldsInfoGroup</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

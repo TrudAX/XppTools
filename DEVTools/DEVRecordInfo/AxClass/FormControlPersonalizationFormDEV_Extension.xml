@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>FormControlPersonalizationFormDEV_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(formstr(FormControlPersonalization))]
+final class FormControlPersonalizationFormDEV_Extension
+{       
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DEVDevRecordInfo_OnClicked</Name>
+				<Source><![CDATA[
+    [FormControlEventHandler(formControlStr(FormControlPersonalization, DEVDevRecordInfo), FormControlEventType::Clicked)]
+    public void DEVDevRecordInfo_OnClicked(FormControl sender, FormControlEventArgs e)
+    {
+        Args    argsLocal = new Args();
+        //if (argsLocal && argsLocal.dataset() && argsLocal.record())
+        if (personalizedControl && personalizedControl.dataSourceObject())
+        {
+            MenuFunction        mf;
+            ;
+            mf = new MenuFunction(menuItemDisplayStr(DEVDevRecordInfo), MenuItemType::Display);
+            if (personalizedControl.fieldBinding() && personalizedControl.fieldBinding().fieldId())
+            {
+                int fieldExtLocal = fieldId2Ext(personalizedControl.fieldBinding().fieldId(),   
+                                               personalizedControl.fieldBinding().fieldArrayIndex());
+                argsLocal.parm(int2str(fieldExtLocal));
+            }            
+            argsLocal.caller(sender.formRun());
+            
+            argsLocal.record(personalizedControl.dataSourceObject().cursor());
+            
+            mf.run(argsLocal);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

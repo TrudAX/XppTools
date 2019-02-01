@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SysRecordInfoFormDEV_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(formstr(SysRecordInfo))]
+final class SysRecordInfoFormDEV_Extension
+{    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DEVDevRecordInfo_OnClicked</Name>
+				<Source><![CDATA[
+    [FormControlEventHandler(formControlStr(SysRecordInfo, DEVDevRecordInfo), FormControlEventType::Clicked)]
+    public void DEVDevRecordInfo_OnClicked(FormControl sender, FormControlEventArgs e)
+    {
+        Args    argsLocal = new Args();
+        if (common.RecId)
+        {
+            MenuFunction        mf;
+            ;
+            mf = new MenuFunction(menuItemDisplayStr(DEVDevRecordInfo), MenuItemType::Display);
+            //int fieldExtLocal = fieldId2Ext(personalizedControl.fieldBinding().fieldId(),
+            //                               personalizedControl.fieldBinding().fieldArrayIndex());
+            //argsLocal.parm(int2str(fieldExtLocal));
+            argsLocal.caller(sender.formRun());            
+            argsLocal.record(common);            
+            mf.run(argsLocal);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

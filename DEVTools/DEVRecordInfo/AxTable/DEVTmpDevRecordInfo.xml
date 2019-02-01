@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTmpDevRecordInfo</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVTmpDevRecordInfo extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>statusDifferent</Name>
+				<Source><![CDATA[
+    //BP Deviation documented
+    display ImageRes statusDifferent()
+    {
+        #resappl
+        #resource
+    
+        return this.Different ? #ImageWarning : #RES_AM_GRAY;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>typeImage</Name>
+				<Source><![CDATA[
+    //BP Deviation documented
+    display ImageRes typeImage()
+    {
+        return DEVTmpDevRecordInfo::type2Resource(this.FieldType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>type2Resource</Name>
+				<Source><![CDATA[
+    //ImageListAppl_AOT::type2Resource(this.FieldType);
+    static int type2Resource(Types type, boolean parent = false)
+    {
+        #ResAppl
+        switch (type)
+        {
+            case Types::RString:
+            case Types::String:
+            case Types::VarString:
+                return #ImageEDTString;
+            case Types::Integer:
+            case Types::Int64:
+                return #ImageEDTInteger;
+            case Types::Real:
+                return #ImageEDTReal;
+            case Types::Date:
+                return #ImageEDTDate;
+            case Types::Enum:
+                return #ImageEDTEnum;
+            case Types::UtcDateTime:
+                return #ImageEDTDateTime;
+            case Types::Time:
+                return #ImageEDTTime;
+            case Types::Guid:
+                return #ImageEDTGuid;
+            case Types::Container:
+                return #ImageEDTContainer;
+            case Types::Record:
+                return (parent?#ImageTables:#ImageTable);
+            case Types::Class:
+                return (parent?#ImageClasses:#ImageClass);
+            case Types::UserType:
+            case Types::BLOB:
+            case Types::void:
+            case Types::AnyType:
+            case Types::VarArg:
+                return #ImageEDT;
+        }
+        return #ImageAxapta;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Record info</Label>
+	<TitleField1>FieldName</TitleField1>
+	<TitleField2>FieldLabel</TitleField2>
+	<ClusteredIndex></ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
+	<PrimaryIndex></PrimaryIndex>
+	<TableType>InMemory</TableType>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>FieldName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FieldLabel</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FieldValue</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FieldValue2</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Different</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Values are different</HelpText>
+			<Label>Different</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldEnumType</Name>
+			<ExtendedDataType>IdentifierName</ExtendedDataType>
+			<HelpText>Enumeration</HelpText>
+			<Label>Enumeration</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldExtType</Name>
+			<ExtendedDataType>IdentifierName</ExtendedDataType>
+			<HelpText>Extended data type</HelpText>
+			<Label>@GLS105112</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>FieldId</Name>
+			<ExtendedDataType>FieldId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldLabel</Name>
+			<ExtendedDataType>FieldLabel</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldName</Name>
+			<ExtendedDataType>FieldName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>FieldType</Name>
+			<HelpText>Field type</HelpText>
+			<Label>@SYS9792</Label>
+			<EnumType>Types</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldValue</Name>
+			<ExtendedDataType>DEVDevFieldValue</ExtendedDataType>
+			<HelpText>Field value</HelpText>
+			<Label>@SYS71361</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FieldValue2</Name>
+			<ExtendedDataType>DEVDevFieldValue</ExtendedDataType>
+			<HelpText>Field value 2</HelpText>
+			<Label>Value 2</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Id</Name>
+			<ExtendedDataType>Line</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>IdIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Id</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>NameIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>FieldName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

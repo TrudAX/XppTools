@@ -1,0 +1,1522 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVDevRecordInfo</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVDevRecordInfo extends FormRun
+{
+    //D365 initial dev, trud, 29.03.2018
+    #define.current("<Current record>")
+
+    DEVTmpDevRecordInfo    tmpSysRecordInfoLocal;
+    boolean                 compareMode;
+    boolean                 typesMode;
+    Map                     recordMap;
+    Common                  record;
+    SysDictTable            dictTable;
+    boolean                 inSaveLoadGeneralSettings;
+    FieldId                 callerFieldId;
+
+    public const int        contextMenuItemFilter = 1;
+
+    #define.NotRetrieved("<not availiable>")
+
+    #define.CurrentVersion(6)
+    #localmacro.CurrentList
+        compareMode,
+        typesMode
+    #endmacro
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>appendRecord2Map</Name>
+				<Source><![CDATA[
+    void appendRecord2Map(str _recordName, Common _record)
+    {
+        boolean replace = recordMap.exists(_recordName);
+    
+        recordMap.insert(_recordName, buf2Con(_record));
+    
+        if (! replace)
+        {
+            RecordName1.add(_recordName);
+            RecordName2.add(_recordName);
+        }
+        element.setupForm();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildGridData</Name>
+				<Source><![CDATA[
+    void buildGridData(boolean  _retriveAllFields = false)
+    {
+        DictField               dictField;
+        TableId                 rootTableId;
+        FieldId                 fieldId;
+        int                     fieldCnt;
+        int                     i;
+        int                     j;
+        int                     arraySize;
+        Common                  record1;
+        Common                  record2;
+        Common                  recordSelected;
+        int                     curNum;
+    
+        boolean                 getFieldValue;
+        boolean                 getFieldValue2;
+        ;
+
+        record1 = dictTable.makeRecord();
+        record2 = dictTable.makeRecord();
+    
+        record1 = con2Buf(recordMap.lookup(RecordName1.getText(RecordName1.selection())));
+        record2 = con2Buf(recordMap.lookup(RecordName2.getText(RecordName2.selection())));
+    
+        if (_retriveAllFields)
+        {
+            if (record1.RecId)
+            {
+                recordSelected = dictTable.makeRecord();
+                select firstOnly recordSelected
+                    where recordSelected.RecId == record1.RecId;
+    
+                record1 = recordSelected;
+            }
+    
+            if (record2.RecId)
+            {
+                recordSelected = dictTable.makeRecord();
+                select firstOnly recordSelected
+                    where recordSelected.RecId == record2.RecId;
+    
+                record2 = recordSelected;
+            }
+        }
+    
+        delete_from TmpDevRecordInfo;
+    
+        fieldCnt = dictTable.fieldCnt(TableScope::IncludeBaseTables);
+    
+        element.design().caption(strfmt("%1 - %2", dictTable.name(), dictTable.label()));
+    
+        for (i = 1; i <= fieldCnt; i++)
+        {
+            fieldId     = dictTable.fieldCnt2Id(i, TableScope::IncludeBaseTables);
+            dictField   = new DictField(dictTable.id(), fieldId);
+    
+            if(dictField.isSystem())
+            {
+                //System fields are only stored on the root table, so get the information from there.
+                rootTableId = SysDictTable::getRootTable(dictTable.id());
+                dictField = new DictField(rootTableId, fieldId);
+            }
+    
+            arraySize = dictField.arraySize();
+            for (j = 1; j <= arraySize; j++)
+            {
+                if (dictField.isSql())
+                {
+                    getFieldValue   = true;
+                    getFieldValue2  = true;
+    
+                    TmpDevRecordInfo.clear();
+                    TmpDevRecordInfo.FieldName  = dictField.name(DbBackEnd::Native, j) + (arraySize > 1 ? strFmt('[%1]', j) : "");
+                    TmpDevRecordInfo.FieldLabel = dictField.label(j);
+                    TmpDevRecordInfo.FieldType  = dictField.baseType();
+    
+                    if (dictField.typeId())
+                    {
+                        TmpDevRecordInfo.FieldExtType  = new DictType(dictField.typeId()).name();
+                    }
+    
+                    if (dictField.enumId())
+                    {
+                        TmpDevRecordInfo.FieldEnumType = new DictEnum(dictField.enumId()).name();
+                    }
+    
+                    if (!record1.isFieldDataRetrieved(dictField.name(), j))
+                    {
+                        TmpDevRecordInfo.FieldValue  = #NotRetrieved;
+                        //getFieldValue                = false; trud - doesn't work for the new records
+                    }
+    
+                    if (!record2.isFieldDataRetrieved(dictField.name(), j))
+                    {
+                        TmpDevRecordInfo.FieldValue2 = #NotRetrieved;
+                        //getFieldValue2               = false;
+                    }
+    
+                    switch (dictField.baseType())
+                    {
+                        case Types::Container:
+                            if (getFieldValue)
+                            {  
+                                TmpDevRecordInfo.FieldValue  = '<Binary data>';
+                            }
+                            if (getFieldValue2)
+                            {
+                                TmpDevRecordInfo.FieldValue2 = '<Binary data>';
+                            }
+                            break;
+                        case Types::Enum:
+                            if (getFieldValue)
+                            {
+                                TmpDevRecordInfo.FieldValue  = strfmt('%1 (%2)', record1.(fieldid2ext(fieldId, j)), enum2int(record1.(fieldid2ext(fieldId, j))));
+                            }
+                            if (getFieldValue2)
+                            {
+                                TmpDevRecordInfo.FieldValue2 = strfmt('%1 (%2)', record2.(fieldid2ext(fieldId, j)), enum2int(record2.(fieldid2ext(fieldId, j))));
+                            }
+                            break;
+                        case Types::Time:
+                            if (getFieldValue)
+                            {
+                                TmpDevRecordInfo.FieldValue  = time2str(record1.(fieldid2ext(fieldId, j)), 1, 1);
+                            }
+                            if (getFieldValue2)
+                            {
+                                TmpDevRecordInfo.FieldValue2 = time2str(record2.(fieldid2ext(fieldId, j)), 1, 1);
+                            }
+                            break;
+                        case Types::UtcDateTime:
+                            if (getFieldValue)
+                            {
+                                TmpDevRecordInfo.FieldValue  = DateTimeUtil::toStr(record1.(fieldid2ext(fieldId, j)));
+                            }
+                            if (getFieldValue2)
+                            {
+                                TmpDevRecordInfo.FieldValue2 = DateTimeUtil::toStr(record2.(fieldid2ext(fieldId, j)));
+                            }
+                            break;
+    
+                        default:
+                            if (confind([identifierstr(RelationType)], dictField.name()) && dictField.isSystem())
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                if (getFieldValue)
+                                {
+                                    TmpDevRecordInfo.FieldValue  = strfmt('%1', record1.(fieldid2ext(fieldId, j)));
+                                }
+                                if (getFieldValue2)
+                                {
+                                    TmpDevRecordInfo.FieldValue2 = strfmt('%1', record2.(fieldid2ext(fieldId, j)));
+                                }
+                            }
+                    }
+    
+                    TmpDevRecordInfo.FieldId   = fieldid2ext(fieldId, j);
+                    TmpDevRecordInfo.Different = TmpDevRecordInfo.FieldValue != TmpDevRecordInfo.FieldValue2;
+                    curNum++;
+                    TmpDevRecordInfo.Id = curNum;
+                    TmpDevRecordInfo.insert();
+                }
+            }
+        }
+        TmpDevRecordInfo_DS.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>changeValue</Name>
+				<Source><![CDATA[
+    void changeValue(boolean    _rawChange = false)
+    {
+        Common                  recordLocal;
+        Args                    args = element.args();
+        FormObjectSet           dS;
+    
+        FieldId                 fieldId;
+        DictField               dictField;
+        //ExtendedTypeId          extendedTypeId;
+        IdentifierName          extendedTypeName;
+        TableId                 rootTableId;
+    
+        Dialog                                      dialog = new Dialog("Change value");
+        DialogField             df ;
+        DialogField             dfUseDoUpdate;
+        boolean                 isUseDoUpdate;
+        ;
+        recordLocal    = args.record();
+    
+        if (recordLocal.TableId == tablenum(InventDim))
+        {
+            throw error("InventDim changing isn't allowed");
+        }
+    
+        fieldId   = fieldname2id(recordLocal.TableId, tmpDevRecordInfo.FieldName);
+        dictField = new DictField(recordLocal.TableId, fieldId);
+    
+        if (dictField.baseType() == Types::Container)
+        {
+            this.showContainerValues();
+            return;
+        }
+    
+        if(dictField.isSystem())
+        {
+            //System fields are only stored on the root table, so get the information from there.
+            rootTableId = SysDictTable::getRootTable(recordLocal.TableId);
+            dictField = new DictField(rootTableId, fieldId);
+        }
+    
+        dfUseDoUpdate = dialog.addFieldValue(extendedTypeStr(NoYesId), false, "Ignore Update", "Perform update without update call");
+    
+        if (dictField.typeId())
+        {
+            extendedTypeName = extendedTypeId2name(dictField.typeId());
+            //dialog do not support dimensions
+            if (dictField.baseType() == Types::Int64)
+            {                
+                DictType dictType    = new DictType(dictField.typeId());
+                if (dictType.getControlClass())
+                {
+                    extendedTypeName = extendedTypeStr(RefRecId);
+                }
+            }
+        }
+        else
+        {
+            switch(dictField.baseType())
+            {
+                case Types::String:
+                case Types::RString:
+                case Types::VarString:
+                    extendedTypeName = extendedTypeStr(String255);
+                    break;    
+                case Types::Integer:
+                    extendedTypeName = extendedTypeStr(Integer);
+                    break;    
+                case Types::Int64:
+                    extendedTypeName = extendedTypeStr(RefRecId);
+                    break;
+                case Types::Real:
+                    extendedTypeName = extendedTypeStr(RealBase);
+                    break;
+                case Types::UtcDateTime:
+                    extendedTypeName = extendedTypeStr(TransDateTime);
+                    break;
+                case Types::Date:
+                    extendedTypeName = extendedTypeStr(TransDate);
+                    break;
+                case Types::Enum:
+                    extendedTypeName = enumId2Name(dictField.enumId());
+                    break;
+            }
+        }
+    
+        if (!extendedTypeName)
+        {
+            throw error(strFmt("Can't find a EDT for field %1", tmpDevRecordInfo.FieldName));
+        }
+        df = dialog.addFieldValue(extendedTypeName, recordLocal.(dictField.id()));
+        df.label(fieldId2pname(recordLocal.TableId, dictField.id()));
+
+    
+        if (dialog.run())
+        {
+            recordLocal.(dictField.id()) = df.value();
+            isUseDoUpdate   = dfUseDoUpdate.value();
+    
+            ttsBegin;
+    
+            if (recordLocal.RecId)
+            {
+                if (isUseDoUpdate)
+                {
+                    recordLocal.doUpdate();
+                }
+                else
+                {
+                    recordLocal.update();
+                }
+            }
+    
+            ttsCommit;
+
+            TmpDevRecordInfo.FieldValue = strFmt('%1', recordLocal.(dictField.id()));
+            TmpDevRecordInfo.update();
+            TmpDevRecordInfo_ds.refresh();
+    
+            dS = FormDataUtil::getFormDataSource(recordLocal);
+            dS.reread();
+            dS.refresh();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>changeValueDim</Name>
+				<Source><![CDATA[
+    void changeValueDim()
+    {
+        //need to be updated to 365
+        /*
+        Common                  recordLocal;
+        Args                    args = element.args();
+        Object                  dS;
+    
+        FieldId                 fieldId;
+        DictField               dictField;
+        TableId                 rootTableId;
+    
+        boolean                                     isUseDoUpdate;
+    
+        DEVDevRecordInfoChangeDim                  devRecordInfoChangeDim;
+        AxdDimensionPattern                         dimensionPattern;
+        ;
+        recordLocal    = args.record();
+    
+        if (recordLocal.TableId == tablenum(InventDim))
+        {
+            throw error("InventDim changing isn't allowed");
+        }
+    
+        fieldId   = fieldname2id(recordLocal.TableId, tmpDevRecordInfo.FieldName);
+        dictField = new DictField(recordLocal.TableId, fieldId);
+    
+        if(dictField.isSystem())
+        {
+            //System fields are only stored on the root table, so get the information from there.
+            rootTableId = SysDictTable::getRootTable(recordLocal.TableId);
+            dictField = new DictField(rootTableId, fieldId);
+        }
+    
+        devRecordInfoChangeDim = new DEVDevRecordInfoChangeDim();
+    
+        dimensionPattern = AxdDimensionUtil::getDimensionPattern(dictField.typeId());
+    
+        switch (dimensionPattern)
+        {
+            case AxdDimensionPattern::DimensionAttributeValueSet:
+                devRecordInfoChangeDim.parmDimensionDefault(recordLocal.(dictField.id()));
+                break;
+    
+            case AxdDimensionPattern::MultiTypeAccount:
+                devRecordInfoChangeDim.parmMainAccountRecId(MainAccount::findByMainAccountId(LedgerDimensionFacade::getMainAccountFromLedgerDimension(recordLocal.(dictField.id()))).recId);
+                devRecordInfoChangeDim.parmDimensionDefault(LedgerDimensionFacade::getDefaultDimensionFromLedgerDimension(recordLocal.(dictField.id())));
+                break;
+    
+            case AxdDimensionPattern::MultiTypeDefaultAccount:
+            case AxdDimensionPattern::DefaultAccount:
+                devRecordInfoChangeDim.parmMainAccountRecId(MainAccount::findByMainAccountId(LedgerDimensionFacade::getMainAccountFromLedgerDimension(recordLocal.(dictField.id()))).RecId);
+                break;
+    
+            default:
+                throw error(strFmt("The Type of analytics %1 for the field %2 isn't supported",
+                    enum2int(AxdDimensionUtil::getDimensionPattern(dictField.typeId())),
+                    dictField.name()));
+        }
+    
+        if (devRecordInfoChangeDim.prompt())
+        {
+            switch (dimensionPattern)
+            {
+                case AxdDimensionPattern::DimensionAttributeValueSet:
+                    recordLocal.(dictField.id()) = devRecordInfoChangeDim.parmDimensionDefault();
+                    break;
+    
+                case AxdDimensionPattern::DefaultAccount:
+                    recordLocal.(dictField.id()) = LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(MainAccount::find(devRecordInfoChangeDim.parmMainAccountRecId()).MainAccountId);
+                    break;
+    
+                default:
+                    throw error(error::wrongUseOfFunction(funcName()));
+            }
+    
+            isUseDoUpdate = devRecordInfoChangeDim.parmUseDoUpdate();
+            recordLocal.skipDatabaseLog(isUseDoUpdate);
+    
+            if (recordLocal.RecId)
+            {
+                if (isUseDoUpdate)
+                {
+                    recordLocal.doUpdate();
+                }
+                else
+                {
+                    recordLocal.update();
+                }
+            }
+    
+            tmpSysRecordInfoLocal.data(TmpDevRecordInfo);
+            tmpSysRecordInfoLocal.FieldValue = this.getDimValueStr(recordLocal.(dictField.id()));
+            tmpSysRecordInfoLocal.update();
+            tmpSysRecordInfoLocal.data(TmpDevRecordInfo);
+    
+            TmpDevRecordInfo_ds.executeQuery();
+            TmpDevRecordInfo_ds.findRecord(tmpSysRecordInfoLocal);
+    
+            dS = FormDataUtil::getFormDataSource(recordLocal);
+            dS.reread();
+            dS.refresh();
+        }
+        */
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>close</Name>
+				<Source><![CDATA[
+    public void close()
+    {
+        ;
+        inSaveLoadGeneralSettings = false;
+        xSysLastValue::saveLast(this);
+    
+        inSaveLoadGeneralSettings = true;
+        xSysLastValue::saveLast(this);
+        FormRun     callerFormRun = element.args().caller();
+        super();
+
+        if (callerFormRun)
+        {
+            callerFormRun.close();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteRecord</Name>
+				<Source><![CDATA[
+    void deleteRecord()
+    {
+        Dialog                  dialog = new Dialog("@SYS87910");
+        DialogField             dfUseDoDelete;
+    
+        Common                  recordLocal = element.args().record();
+        FormObjectSet           dS;
+        ;
+    
+        if (recordLocal.TableId == tablenum(InventDim))
+        {
+            throw error("InventDim changing isn't allowed");
+        }
+    
+        dfUseDoDelete = dialog.addFieldValue(extendedTypeStr(NoYesId), false, "Ignore delete?", "Do not call delete method");
+        
+        if (dialog.run())
+        {
+            if (dfUseDoDelete.value())
+            {
+                recordLocal.doDelete();
+            }
+            else
+            {
+                recordLocal.delete();
+            }
+            dS = FormDataUtil::getFormDataSource(recordLocal);
+            dS.research();
+    
+            element.close();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        Args                    args;
+        ;
+    
+        super();
+        args = element.args();
+
+        if (! (args && args.dataset()))
+        {
+            throw error(strfmt("Form %1 is called with wrong parameters", element.form().design().caption()));
+        }
+    
+        record    = args.record();
+        if (record.RecId && ! record.isFieldDataRetrieved('RecId') && FormDataUtil::getFormDataSource(record))
+        {
+            FormDataUtil::getFormDataSource(record).reread();
+            FormDataUtil::getFormDataSource(record).refresh();
+        }
+        else
+        {
+            FormDataUtil::getFormDataSource(record).refresh();
+        }
+        dictTable = new SysDictTable(record.TableId);
+    
+        Grid.autoSizeColumns(false);
+    
+        callerFieldId = str2int(args.parm());
+    
+        element.design().caption(strfmt("%1 %2", dictTable.name(), dictTable.label()));
+    
+        xSysLastValue::getLast(this);
+        inSaveLoadGeneralSettings = true;
+        xSysLastValue::getLast(this);
+    
+        element.setupForm();
+    
+        tmpSysRecordInfoLocal.setTmpData(TmpDevRecordInfo);
+        tmpSysRecordInfoLocal.clear();
+        select tmpSysRecordInfoLocal
+            where tmpSysRecordInfoLocal.FieldId == callerFieldId;
+    
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    void initParmDefault()
+    {
+        if (! inSaveLoadGeneralSettings)
+        {
+            this.removeAllRecords();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueDataAreaId</Name>
+				<Source><![CDATA[
+    public dataAreaId lastValueDataAreaId()
+    {
+        return curExt();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueDesignName</Name>
+				<Source><![CDATA[
+    public identifiername lastValueDesignName()
+    {
+        return inSaveLoadGeneralSettings ? "General settings" : dictTable.name();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueElementName</Name>
+				<Source><![CDATA[
+    public identifiername lastValueElementName()
+    {
+        return this.name();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueType</Name>
+				<Source><![CDATA[
+    public UtilElementType lastValueType()
+    {
+        return UtilElementType::Form;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastValueUserId</Name>
+				<Source><![CDATA[
+    public userId lastValueUserId()
+    {
+        return curUserId();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ledgerDimensionEDT</Name>
+				<Source><![CDATA[
+    public container ledgerDimensionEDT()
+    {
+        return [extendedTypeNum(DimensionDynamicAccount),
+                extendedTypeNum(LedgerDimensionDefaultAccount)];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        container ret;
+    
+        if (inSaveLoadGeneralSettings)
+        {
+            ret = [#CurrentVersion, #CurrentList];
+        }
+        else
+        {
+            recordMap.remove(#current);
+            ret = [#CurrentVersion, recordMap.pack()];
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeAllRecords</Name>
+				<Source><![CDATA[
+    void removeAllRecords()
+    {
+        recordMap = new Map(Types::String, Types::Container);
+        element.appendRecord2Map(#current, record);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeRecordFromMap</Name>
+				<Source><![CDATA[
+    void removeRecordFromMap(str _recordName)
+    {
+        recordMap.remove(_recordName);
+        RecordName1.delete(_recordName);
+        RecordName2.delete(_recordName);
+        RecordName1.selection(0);
+        RecordName2.selection(0);
+        element.setupForm();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+    
+        super();
+        TmpDevRecordInfo_ds.research();
+        TmpDevRecordInfo_ds.positionToRecordByValue(fieldNum(DEVTmpDevRecordInfo, FieldId), int2str(callerFieldId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>saveRecord</Name>
+				<Source><![CDATA[
+    void saveRecord()
+    {
+        str             currentRecord   = RecordName1.getText(RecordName1.selection());
+        Dialog          dialog          = new Dialog("Record saving");
+        DialogField     fieldRecordName = dialog.addFieldValue(extendedTypeStr(Description), currentRecord);
+    
+        if (dialog.run())
+        {
+            if (! fieldRecordName.value())
+            {
+                throw error("Record name is not specified");
+            }
+    
+            element.appendRecord2Map(fieldRecordName.value(), con2Buf(recordMap.lookup(currentRecord)));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setupForm</Name>
+				<Source><![CDATA[
+    void setupForm(boolean  _rebuild            = true,
+                   boolean  _retriveAllFields   = false)
+    {
+        FieldId    currentFieldId;
+        ;
+        ButtonDelete.enabled(RecordName1.getText(RecordName1.selection()) != #current);
+        AdvancedControl.optionValue(compareMode);
+        FieldValue2.visible(compareMode);
+        TmpDevRecordInfo_Different.visible(compareMode);
+    
+        if (_rebuild)
+        {
+            currentFieldId = TmpDevRecordInfo.FieldId;
+            element.buildGridData(_retriveAllFields);
+            if (currentFieldId)
+            {
+                TmpDevRecordInfo_ds.positionToRecordByValue(fieldNum(DEVTmpDevRecordInfo, FieldId), int2str(currentFieldId));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showContainerValues</Name>
+				<Source><![CDATA[
+    void showContainerValues()
+    {
+        Common                  recordLocal;
+        Common                  record2View;
+        Args                    args = element.args();
+    
+        FieldId                 fieldId;
+        ;
+        recordLocal     = args.record();
+        record2View     = dictTable.makeRecord();
+    
+        select firstOnly record2View
+            where record2View.RecId == recordLocal.RecId;
+    
+        fieldId         = fieldname2id(record2View.TableId, tmpDevRecordInfo.FieldName);
+    
+        SysUtil::conView(record2View.(fieldId), fieldId2pname(record2View.TableId, fieldId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container packedClass)
+    {
+        int             version     = runbase::getVersion(packedClass);
+        container       packedMap;
+        MapIterator     mapIterator;
+        switch (version)
+        {
+            case #CurrentVersion:
+                if (inSaveLoadGeneralSettings)
+                {
+                    [version, #CurrentList] = packedClass;
+                }
+                else
+                {
+                    [version, packedMap] = packedClass;
+                    recordMap   = Map::create(packedMap);
+                    element.appendRecord2Map(#current, record);
+    
+                    mapIterator = new MapIterator(recordMap);
+                    while (mapIterator.more())
+                    {
+                        if (mapIterator.key() != #current)
+                        {
+                            RecordName1.add(mapIterator.key());
+                            RecordName2.add(mapIterator.key());
+                        }
+                        mapIterator.next();
+                    }
+                }
+                return true;
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>TmpDevRecordInfo</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int                     ret;
+            Common                  recordLocal = element.args().record();
+            FieldId                 fieldId;
+            DictField               dictField;
+            ;
+            ret = super();
+        
+            fieldId   = fieldname2id(recordLocal.TableId, tmpDevRecordInfo.FieldName);
+            dictField = new DictField(recordLocal.TableId, fieldId);
+        
+            ChangeValueButton.enabled(    recordLocal.isFieldDataRetrieved(dictField.name())
+                                       || dictField.baseType() == Types::Container);
+        
+            //ChangeValueButton.text(dictField.baseType() == Types::Container ? "@SYS68333" : "@SYS302622");
+        
+            //ChangeDimValueButton.visible(false); 
+            /*
+            ChangeDimValueButton.visible(AxdDimensionUtil::getDimensionPattern(dictField.typeId()) != AxdDimensionPattern::None);
+            */
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>displayOption</Name>
+						<Source><![CDATA[
+        public void displayOption(Common _codeUpgradeRecord, FormRowDisplayOption _options)
+        {
+            DEVTmpDevRecordInfo recordLocal = _codeUpgradeRecord as DEVTmpDevRecordInfo;
+            if (recordLocal.Different)
+            {
+                _options.backColor(WinApi::RGB2int(173,216,230));
+            }
+        
+            super(recordLocal, _options);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>ChangeValueButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            ;
+            element.changeValue();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ChangeDimValueButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            ;
+            element.changeValueDim();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DeleteRecordButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            ;
+            element.deleteRecord();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>Refresh</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            element.setupForm(true, false);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RetrieveAllFields</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            element.setupForm(true, true);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AdvancedControl</Name>
+				<Type>Group</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            compareMode = ! compareMode;
+            element.setupForm(false);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RecordName1</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>selectionChange</Name>
+						<Source><![CDATA[
+        public int selectionChange()
+        {
+            int ret = super();
+            element.setupForm();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RecordName2</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>selectionChange</Name>
+						<Source><![CDATA[
+        public int selectionChange()
+        {
+            int ret = super();
+            element.setupForm();
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ButtonSave</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            element.saveRecord();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ButtonDelete</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            str currentRecord = RecordName1.getText(RecordName1.selection());
+        
+            if (Box::yesNo(strfmt("Delete '%1'?", currentRecord), DialogButton::No) == DialogButton::Yes)
+            {
+                element.removeRecordFromMap(currentRecord);
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ButtonDeleteAll</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            if (Box::yesNo(strfmt("@SYS100114"), DialogButton::No) == DialogButton::Yes)
+            {
+                element.removeAllRecords();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TmpDevRecordInfo</Name>
+			<Table>DEVTmpDevRecordInfo</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Different</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldEnumType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldExtType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldLabel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldValue</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldValue2</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Id</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<Index>IdIdx</Index>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">Show all fields</Caption>
+		<DataSource xmlns="">TmpDevRecordInfo</DataSource>
+		<HeightMode xmlns="">Column</HeightMode>
+		<Pattern xmlns="">Custom</Pattern>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<TitleDataSource xmlns="">TmpDevRecordInfo</TitleDataSource>
+		<WidthMode xmlns="">Column</WidthMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane_ButtonGroup</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ButtonGroup</Name>
+						<ElementPosition>1610612734</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ButtonGroup</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ChangeValueButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>745654042</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Change value</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ChangeDimValueButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1322293168</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<Visible>No</Visible>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Change value</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>DeleteRecordButton</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Delete record</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>Refresh</Name>
+								<ElementPosition>1789569704</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@SYS113222</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>RetrieveAllFields</Name>
+								<ElementPosition>1968526675</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Load all fields</Text>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>AdvancedControl</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<ElementPosition>715827882</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<HeightMode>Auto</HeightMode>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>RecordName1</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>536870910</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<HelpText>First record to compare</HelpText>
+						<Type>ComboBox</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ComboType>List</ComboType>
+						<Label>Record 1</Label>
+						<LabelAlignment>Right</LabelAlignment>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>RecordName2</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1610612730</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<HelpText>Second record to compare</HelpText>
+						<Type>ComboBox</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ComboType>List</ComboType>
+						<Label>Record 2</Label>
+						<LabelAlignment>Right</LabelAlignment>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonControl">
+						<Name>ButtonSave</Name>
+						<ElementPosition>805306365</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<HelpText>Save to compare</HelpText>
+						<Skip>Yes</Skip>
+						<Type>Button</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<BackStyle>Transparent</BackStyle>
+						<Border>SingleLine</Border>
+						<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+						<NormalImage>Save</NormalImage>
+						<Text>@SYS55796</Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonControl">
+						<Name>ButtonDelete</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1073741820</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<HelpText>Delete record from the list of comparison</HelpText>
+						<Skip>Yes</Skip>
+						<Type>Button</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<BackStyle>Transparent</BackStyle>
+						<Border>SingleLine</Border>
+						<Text>@SYS21354</Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonControl">
+						<Name>ButtonDeleteAll</Name>
+						<ElementPosition>1342177275</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<HelpText>Delete all compare list</HelpText>
+						<Skip>Yes</Skip>
+						<Type>Button</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<BackStyle>Transparent</BackStyle>
+						<Border>SingleLine</Border>
+						<Text>@SYS3947</Text>
+					</AxFormControl>
+				</Controls>
+				<Columns>10</Columns>
+				<Caption>Compare</Caption>
+				<FrameOptionButton>Hide</FrameOptionButton>
+				<OptionValue>0</OptionValue>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>Group_</Name>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>Group1</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>Group</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>Grid</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Grid</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>TmpDevRecordInfo_Different</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Different</DataField>
+										<DataSource>TmpDevRecordInfo</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FieldName</Name>
+										<ElementPosition>920350134</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FieldName</DataField>
+										<DataSource>TmpDevRecordInfo</DataSource>
+										<LabelAlignment>Right</LabelAlignment>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FieldLabel</Name>
+										<ElementPosition>1227133512</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FieldLabel</DataField>
+										<DataSource>TmpDevRecordInfo</DataSource>
+										<LabelAlignment>Right</LabelAlignment>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FieldValue</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1533916890</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FieldValue</DataField>
+										<DataSource>TmpDevRecordInfo</DataSource>
+										<LabelAlignment>Right</LabelAlignment>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FieldValue2</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<ElementPosition>1840700268</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FieldValue2</DataField>
+										<DataSource>TmpDevRecordInfo</DataSource>
+										<LabelAlignment>Right</LabelAlignment>
+									</AxFormControl>
+								</Controls>
+								<DataSource>TmpDevRecordInfo</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>TypesGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>FieldType</Name>
+										<ElementPosition>858993458</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>ComboBox</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FieldType</DataField>
+										<DataSource>TmpDevRecordInfo</DataSource>
+										<LabelAlignment>Right</LabelAlignment>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FieldExtType</Name>
+										<ElementPosition>1288490187</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FieldExtType</DataField>
+										<DataSource>TmpDevRecordInfo</DataSource>
+										<LabelAlignment>Right</LabelAlignment>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FieldEnumType</Name>
+										<ElementPosition>1717986916</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>String</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FieldEnumType</DataField>
+										<DataSource>TmpDevRecordInfo</DataSource>
+										<LabelAlignment>Right</LabelAlignment>
+									</AxFormControl>
+								</Controls>
+								<Columns>4</Columns>
+							</AxFormControl>
+						</Controls>
+						<FrameType>None</FrameType>
+					</AxFormControl>
+				</Controls>
+				<Columns>2</Columns>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

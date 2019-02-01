@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>FormControlPersonalization.DEVExtension</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControl4ofvyipb1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormButtonControl">
+				<Name>DEVDevRecordInfo</Name>
+				<Type>Button</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Text>Fields list</Text>
+			</FormControl>
+			<Parent>CommitGroup</Parent>
+			<PositionType>AfterItem</PositionType>
+			<PreviousSibling>OK</PreviousSibling>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>
