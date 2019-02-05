@@ -166,13 +166,30 @@ public class DEVDevRecordInfo extends FormRun
                             }
                             break;
                         case Types::Enum:
+                            DictEnum  dictEnum;
+                            str       enumDetails;
+                            if (dictField.enumId())
+                            {
+                                dictEnum = new DictEnum(dictField.enumId());
+                            }
                             if (getFieldValue)
                             {
-                                TmpDevRecordInfo.FieldValue  = strfmt('%1 (%2)', record1.(fieldid2ext(fieldId, j)), enum2int(record1.(fieldid2ext(fieldId, j))));
+                                enumDetails = "";
+                                if (dictEnum)
+                                {
+                                    enumDetails = strFmt(" - %1", dictEnum.value2Symbol(enum2int(record1.(fieldid2ext(fieldId, j)))));
+                                }
+                                
+                                TmpDevRecordInfo.FieldValue  = strfmt('%1 (%2%3)', record1.(fieldid2ext(fieldId, j)), enum2int(record1.(fieldid2ext(fieldId, j))), enumDetails);
                             }
                             if (getFieldValue2)
                             {
-                                TmpDevRecordInfo.FieldValue2 = strfmt('%1 (%2)', record2.(fieldid2ext(fieldId, j)), enum2int(record2.(fieldid2ext(fieldId, j))));
+                                enumDetails = "";
+                                if (dictEnum)
+                                {
+                                    enumDetails = strFmt(" - %1", dictEnum.value2Symbol(enum2int(record2.(fieldid2ext(fieldId, j)))));
+                                }
+                                TmpDevRecordInfo.FieldValue2 = strfmt('%1 (%2%3)', record2.(fieldid2ext(fieldId, j)), enum2int(record2.(fieldid2ext(fieldId, j))), enumDetails);
                             }
                             break;
                         case Types::Time:
@@ -186,13 +203,17 @@ public class DEVDevRecordInfo extends FormRun
                             }
                             break;
                         case Types::UtcDateTime:
+                            TransDateTime   transDateTime;
                             if (getFieldValue)
                             {
-                                TmpDevRecordInfo.FieldValue  = DateTimeUtil::toStr(record1.(fieldid2ext(fieldId, j)));
+                                transDateTime = record1.(fieldid2ext(fieldId, j));
+                                
+                                TmpDevRecordInfo.FieldValue  = strFmt('%1 (%2)', transDateTime, DateTimeUtil::applyTimeZoneOffset(transDateTime, DateTimeUtil::getUserPreferredTimeZone()));//DateTimeUtil::toStr();
                             }
                             if (getFieldValue2)
                             {
-                                TmpDevRecordInfo.FieldValue2 = DateTimeUtil::toStr(record2.(fieldid2ext(fieldId, j)));
+                                transDateTime = record2.(fieldid2ext(fieldId, j));
+                                TmpDevRecordInfo.FieldValue2 = strFmt('%1 (%2)', transDateTime, DateTimeUtil::applyTimeZoneOffset(transDateTime, DateTimeUtil::getUserPreferredTimeZone()));
                             }
                             break;
     
@@ -251,7 +272,7 @@ public class DEVDevRecordInfo extends FormRun
     
         if (recordLocal.TableId == tablenum(InventDim))
         {
-            throw error("InventDim changing isn't allowed");
+            throw error("InventDim change isn't allowed");
         }
     
         fieldId   = fieldname2id(recordLocal.TableId, tmpDevRecordInfo.FieldName);
@@ -270,7 +291,7 @@ public class DEVDevRecordInfo extends FormRun
             dictField = new DictField(rootTableId, fieldId);
         }
     
-        dfUseDoUpdate = dialog.addFieldValue(extendedTypeStr(NoYesId), false, "Ignore Update", "Perform update without update call");
+        dfUseDoUpdate = dialog.addFieldValue(extendedTypeStr(NoYesId), false, "Ignore Update", "Perform update using doUpdate() method call");
     
         if (dictField.typeId())
         {
@@ -357,86 +378,97 @@ public class DEVDevRecordInfo extends FormRun
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>getDimensionPattern</Name>
+				<Source><![CDATA[
+    public ClassName getDimensionPattern(ExtendedTypeId _typeId)
+    {
+        DictType dictType;
+
+        if (_typeId == 0)
+        {
+            return '';
+        }
+
+        switch (extendedTypeId2name(_typeId))
+        {
+            case extendedTypeStr(LedgerDimensionValueSet):
+                return classstr(LedgerDimensionEntryController);
+
+            case extendedTypeStr(LedgerDefaultDimensionValueSet):
+                return classstr(LedgerDefaultDimensionEntryController);
+
+            case '':
+                return '';
+
+            default:
+                dictType = new SysDictType(_typeId);
+                return this.getDimensionPattern(dictType.extend());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>changeValueDim</Name>
 				<Source><![CDATA[
     void changeValueDim()
     {
-        //need to be updated to 365
-        /*
         Common                  recordLocal;
         Args                    args = element.args();
-        Object                  dS;
+        FormObjectSet           dS;
     
         FieldId                 fieldId;
         DictField               dictField;
+        //ExtendedTypeId          extendedTypeId;
+        IdentifierName          extendedTypeName;
         TableId                 rootTableId;
     
-        boolean                                     isUseDoUpdate;
-    
-        DEVDevRecordInfoChangeDim                  devRecordInfoChangeDim;
-        AxdDimensionPattern                         dimensionPattern;
+        Dialog                  dialog = new Dialog("Change value");
+        DialogField             dfUseDoUpdate;
+        boolean                 isUseDoUpdate;
+
+        RefRecId                dimValue;
         ;
         recordLocal    = args.record();
-    
-        if (recordLocal.TableId == tablenum(InventDim))
-        {
-            throw error("InventDim changing isn't allowed");
-        }
-    
+        
         fieldId   = fieldname2id(recordLocal.TableId, tmpDevRecordInfo.FieldName);
         dictField = new DictField(recordLocal.TableId, fieldId);
     
-        if(dictField.isSystem())
+        if (dictField.baseType() != Types::Int64)
         {
-            //System fields are only stored on the root table, so get the information from there.
-            rootTableId = SysDictTable::getRootTable(recordLocal.TableId);
-            dictField = new DictField(rootTableId, fieldId);
+            return;
         }
-    
-        devRecordInfoChangeDim = new DEVDevRecordInfoChangeDim();
-    
-        dimensionPattern = AxdDimensionUtil::getDimensionPattern(dictField.typeId());
-    
-        switch (dimensionPattern)
+        dimValue = recordLocal.(dictField.id());
+
+        ClassName dimClass = this.getDimensionPattern(dictField.typeId());
+        if (! dimClass)
         {
-            case AxdDimensionPattern::DimensionAttributeValueSet:
-                devRecordInfoChangeDim.parmDimensionDefault(recordLocal.(dictField.id()));
-                break;
-    
-            case AxdDimensionPattern::MultiTypeAccount:
-                devRecordInfoChangeDim.parmMainAccountRecId(MainAccount::findByMainAccountId(LedgerDimensionFacade::getMainAccountFromLedgerDimension(recordLocal.(dictField.id()))).recId);
-                devRecordInfoChangeDim.parmDimensionDefault(LedgerDimensionFacade::getDefaultDimensionFromLedgerDimension(recordLocal.(dictField.id())));
-                break;
-    
-            case AxdDimensionPattern::MultiTypeDefaultAccount:
-            case AxdDimensionPattern::DefaultAccount:
-                devRecordInfoChangeDim.parmMainAccountRecId(MainAccount::findByMainAccountId(LedgerDimensionFacade::getMainAccountFromLedgerDimension(recordLocal.(dictField.id()))).RecId);
-                break;
-    
-            default:
-                throw error(strFmt("The Type of analytics %1 for the field %2 isn't supported",
-                    enum2int(AxdDimensionUtil::getDimensionPattern(dictField.typeId())),
-                    dictField.name()));
+            return;
         }
-    
-        if (devRecordInfoChangeDim.prompt())
+
+
+        dfUseDoUpdate = dialog.addFieldValue(extendedTypeStr(NoYesId), false, "Ignore Update", "Perform update using doUpdate() method call");
+
+        DialogField           df;
+        DimensionEntryControl dimensionEntryValues;
+        df = DimensionEntryControlBuild::addToDialog(dialog, dimClass);
+               
+        //df.label(fieldId2pname(recordLocal.TableId, dictField.id()));
+
+        dialog.doRun();
+        dimensionEntryValues = df.control();
+        dimensionEntryValues.parmNonActiveValueErrorTolerance(ErrorTolerance::Error);
+        dimensionEntryValues.parmDisplayValues(true);
+        dimensionEntryValues.reactivate();
+        dimensionEntryValues.loadAttributeValueSet(dimValue);
+        dialog.wait();
+        //if (dialog.run())
+        if (dialog.closedOk())
         {
-            switch (dimensionPattern)
-            {
-                case AxdDimensionPattern::DimensionAttributeValueSet:
-                    recordLocal.(dictField.id()) = devRecordInfoChangeDim.parmDimensionDefault();
-                    break;
+            recordLocal.(dictField.id()) = dimensionEntryValues.saveAttributeValueSet();
+            isUseDoUpdate   = dfUseDoUpdate.value();
     
-                case AxdDimensionPattern::DefaultAccount:
-                    recordLocal.(dictField.id()) = LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(MainAccount::find(devRecordInfoChangeDim.parmMainAccountRecId()).MainAccountId);
-                    break;
-    
-                default:
-                    throw error(error::wrongUseOfFunction(funcName()));
-            }
-    
-            isUseDoUpdate = devRecordInfoChangeDim.parmUseDoUpdate();
-            recordLocal.skipDatabaseLog(isUseDoUpdate);
+            ttsBegin;
     
             if (recordLocal.RecId)
             {
@@ -450,19 +482,16 @@ public class DEVDevRecordInfo extends FormRun
                 }
             }
     
-            tmpSysRecordInfoLocal.data(TmpDevRecordInfo);
-            tmpSysRecordInfoLocal.FieldValue = this.getDimValueStr(recordLocal.(dictField.id()));
-            tmpSysRecordInfoLocal.update();
-            tmpSysRecordInfoLocal.data(TmpDevRecordInfo);
-    
-            TmpDevRecordInfo_ds.executeQuery();
-            TmpDevRecordInfo_ds.findRecord(tmpSysRecordInfoLocal);
+            ttsCommit;
+
+            TmpDevRecordInfo.FieldValue = strFmt('%1', recordLocal.(dictField.id()));
+            TmpDevRecordInfo.update();
+            TmpDevRecordInfo_ds.refresh();
     
             dS = FormDataUtil::getFormDataSource(recordLocal);
             dS.reread();
             dS.refresh();
         }
-        */
     }
 
 ]]></Source>
@@ -506,7 +535,7 @@ public class DEVDevRecordInfo extends FormRun
             throw error("InventDim changing isn't allowed");
         }
     
-        dfUseDoDelete = dialog.addFieldValue(extendedTypeStr(NoYesId), false, "Ignore delete?", "Do not call delete method");
+        dfUseDoDelete = dialog.addFieldValue(extendedTypeStr(NoYesId), false, "Ignore delete?", "Do not call logic in delete() method(use doDelete())");
         
         if (dialog.run())
         {
@@ -717,7 +746,7 @@ public class DEVDevRecordInfo extends FormRun
     void saveRecord()
     {
         str             currentRecord   = RecordName1.getText(RecordName1.selection());
-        Dialog          dialog          = new Dialog("Record saving");
+        Dialog          dialog          = new Dialog("Save current record");
         DialogField     fieldRecordName = dialog.addFieldValue(extendedTypeStr(Description), currentRecord);
     
         if (dialog.run())
@@ -847,7 +876,7 @@ public class DEVDevRecordInfo extends FormRun
         
             //ChangeValueButton.text(dictField.baseType() == Types::Container ? "@SYS68333" : "@SYS302622");
         
-            //ChangeDimValueButton.visible(false); 
+            ChangeDimValueButton.visible(dictField.baseType() == Types::Int64);
             /*
             ChangeDimValueButton.visible(AxdDimensionUtil::getDimensionPattern(dictField.typeId()) != AxdDimensionPattern::None);
             */
@@ -1178,11 +1207,10 @@ public class DEVDevRecordInfo extends FormRun
 								<HeightMode>Auto</HeightMode>
 								<Type>Button</Type>
 								<VerticalSpacing>-1</VerticalSpacing>
-								<Visible>No</Visible>
 								<WidthMode>Auto</WidthMode>
 								<FormControlExtension
 									i:nil="true" />
-								<Text>Change value</Text>
+								<Text>Change value Dim</Text>
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormButtonControl">

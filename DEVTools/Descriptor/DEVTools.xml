@@ -26,6 +26,7 @@
 		<d2p1:string>Personnel</d2p1:string>
 		<d2p1:string>PersonnelCore</d2p1:string>
 		<d2p1:string>SourceDocumentation</d2p1:string>
+		<d2p1:string>SourceDocumentationTypes</d2p1:string>
 		<d2p1:string>Subledger</d2p1:string>
 		<d2p1:string>UnitOfMeasure</d2p1:string>
 	</ModuleReferences>
