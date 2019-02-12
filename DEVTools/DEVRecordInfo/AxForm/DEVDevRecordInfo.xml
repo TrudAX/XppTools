@@ -732,10 +732,20 @@ public class DEVDevRecordInfo extends FormRun
 				<Source><![CDATA[
     public void run()
     {
-    
+        DEVTmpDevRecordInfo  loc;
+
         super();
+        
         TmpDevRecordInfo_ds.research();
-        TmpDevRecordInfo_ds.positionToRecordByValue(fieldNum(DEVTmpDevRecordInfo, FieldId), int2str(callerFieldId));
+        loc.setTmpData(TmpDevRecordInfo);
+        select firstonly loc
+            where loc.FieldId == callerFieldId;
+        if (loc.RecId)
+        {
+            TmpDevRecordInfo_ds.findRecord(loc);
+            //TmpDevRecordInfo_ds.positionToRecord(loc);
+        }
+        //TmpDevRecordInfo_ds.positionToRecordByValue(fieldNum(DEVTmpDevRecordInfo, FieldId), int2str(callerFieldId));
     }
 
 ]]></Source>
@@ -1147,10 +1157,13 @@ public class DEVDevRecordInfo extends FormRun
 				</AxFormDataSourceField>
 			</Fields>
 			<ReferencedDataSources />
+			<LinkType>Active</LinkType>
+			<MaxRecordsToLoad>2000</MaxRecordsToLoad>
 			<AllowCreate>No</AllowCreate>
 			<AllowDelete>No</AllowDelete>
 			<AllowEdit>No</AllowEdit>
 			<Index>IdIdx</Index>
+			<InsertIfEmpty>No</InsertIfEmpty>
 			<DataSourceLinks />
 			<DerivedDataSources />
 		</AxFormDataSource>
