@@ -15,7 +15,7 @@ It contains user X++ tools, with the additional application functionality. Each 
 
 ### Fields list 
 
-Fields list form is an extended version of the standard Show all fields form with the additions features such as displaying all fields the  extended information, compare and editing features
+Fields list form is an extended version of the standard Show all fields form with the additional features such as displaying all fields with the extended information, comparing and editing
 
 [Fields list form](https://denistrunin.com/xpptools-fieldslist/)
 
