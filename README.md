@@ -13,11 +13,11 @@ Prefix DEV is used for all created objects.
 
 It contains user X++ tools, with the additional application functionality. Each tool is located in the separate sub-model.
 
-### Fields list 
+### -Fields list 
 
 Fields list form is an extended version of the standard Show all fields form with the additional features such as displaying all fields with the extended information, comparing and editing
 
-[Fields list form](https://denistrunin.com/xpptools-fieldslist/)
+Full description: [Fields list form](https://denistrunin.com/xpptools-fieldslist/). Sub-model name: DEVRecordInfo
 
 ![](assets/fieldslistEx.png)
 
@@ -33,7 +33,7 @@ Fields list form is an extended version of the standard Show all fields form wit
 
 Various X++ examples, that can be used to test something or used as a template. Elements can reference to DEVGlobal model objects
 
-### Blocking in D365FO
+### -Blocking in D365FO
 
 Form **DEVBlockingTest**, table **DEVBlockingTestTable**(to test SQL blocking issues)
 
