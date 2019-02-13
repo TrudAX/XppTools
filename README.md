@@ -15,7 +15,7 @@ User X++ utilities, providing additional application functionality. Each tool lo
 
 ### Fields list 
 
-Fields list form is an extended version of the standard Show all fields form with the additions features such as displaying all fields the the extended information, compare and editing features
+Fields list form is an extended version of the standard Show all fields form with the additions features such as displaying all fields the  extended information, compare and editing features
 
 [Fields list form](https://denistrunin.com/xpptools-fieldslist/)
 
@@ -31,7 +31,7 @@ Fields list form is an extended version of the standard Show all fields form wit
 
 ## DEVTutorial model
 
-Various X++ examples, that can be used to test something or used as a template. Elements can references to DEVGlobal model objects
+Various X++ examples, that can be used to test something or used as a template. Elements can reference to DEVGlobal model objects
 
 ### Blocking in D365FO
 
@@ -53,7 +53,7 @@ Form **DEVBlockingTest**, table **DEVBlockingTestTable** to test SQL blocking is
 
 ![](assets/CopyFolderToLocal.png)
 
-If you want to contribute - change the objects using Visual Studio in the **DEVTools** model , copy the changed elements(xml files) back into the Temp folder and create GitHub pull request from this Temp folder.
+If you want to contribute - change the objects using Visual Studio in the **DEVTools** model, copy the changed elements(xml files) back into the Temp folder and create GitHub pull request from this Temp folder.
 
 ## Contribution
 
