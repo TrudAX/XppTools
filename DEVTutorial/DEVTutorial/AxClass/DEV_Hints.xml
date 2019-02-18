@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_Hints</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+//various code snippets
+class DEV_Hints
+{        
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    { 
+       /*
+1. 
+Markup form filter based on call from View detail
+[ExtensionOf(formstr(MarkupTable))]
+final class MarkupTableFormPLT_Extension
+{
+    protected void initializeFromCallerTable()
+    {
+        next initializeFromCallerTable();
+        Query q;
+        switch (this.args().dataset())
+        {
+            case tableNum(SalesParameters):
+                markupModule    = MarkupModuleType::Cust;
+                q = MarkupTable_ds.query();
+                q.addQueryFilter(q.dataSourceTable(tableNum(MarkupTable)), fieldStr(MarkupTable, ModuleType)).value(SysQuery::value(markupModule));
+                break;
+        }
+    }
+
+
+
+       */
+              
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
