@@ -394,14 +394,14 @@ class DEV
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>isQueryHasRecord</Name>
+				<Name>queryHasRecord</Name>
 				<Source><![CDATA[
     /*
     //----------------------------------------------------------------------
     validateWrite()
     
     if (this.DEVConditionJourLineNum &&
-            ! DEV::isQueryHasRecord(this.DEVlookupRentConditionJourLineNumQuery( this.DEVConditionJourLineNum)))
+            ! DEV::queryHasRecord(this.DEVlookupRentConditionJourLineNumQuery( this.DEVConditionJourLineNum)))
         {
             ret = checkFailed(strfmt("incorrect value in field %1",
                             fieldid2pname(tablenum(PurchLine),
@@ -443,7 +443,7 @@ class DEV
     //----------------------------------------------------------------------
     */
     
-    static boolean isQueryHasRecord(Query  _q)
+    static boolean queryHasRecord(Query  _q)
     {
         QueryRun    qr = new QueryRun(_q);
         boolean     res;
