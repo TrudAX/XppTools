@@ -3,9 +3,9 @@
 Useful X++ code samples
 
 This repository contains 3 D365FO models:
- - [DEVTools](#devtools)    - User X++ utilities, providing additional application functionality. 
- - [DEVCommon](#devcommon)   - X++ code, that can be shared between different projects.
- - [DEVTutorial](#devtutorial) - Various X++ examples, that can be used to test something or used as a template.
+ - [DEVTools](#devtools-model)    - User X++ utilities, providing additional application functionality. 
+ - [DEVCommon](#devcommon-model)   - X++ code, that can be shared between different projects.
+ - [DEVTutorial](#devtutorial-model) - Various X++ examples, that can be used to test something or used as a template.
 
 Prefix DEV is used for all created objects.
 
