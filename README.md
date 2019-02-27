@@ -25,7 +25,8 @@ Full description: [Fields list form](https://denistrunin.com/xpptools-fieldslist
 
 ## DEVCommon model
 
---
+### -DEV class. 
+Collection of [global methods](https://denistrunin.com/xpptools-devglobal/)
 
 **[⬆ back to top](#XppTools)**
 
