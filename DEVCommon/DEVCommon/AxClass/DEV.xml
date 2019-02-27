@@ -1,0 +1,690 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEV
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>buf2Buf</Name>
+				<Source><![CDATA[
+    static void buf2Buf(Common _dest, Common _source, container _fieldsToExclude = conNull())
+    {
+        DictTable   dictDest    = new DictTable(_dest.TableId);
+        DictTable   dictSource  = new DictTable(_source.TableId);
+        int         i;
+        int         sourceId;
+        FieldId     fieldId;
+        ;
+    
+        for (i = 1; i <= dictDest.fieldCnt(); i++)
+        {
+            fieldId = dictDest.fieldCnt2Id(i);
+            if (! conFind(_fieldsToExclude, fieldId))
+            {
+                if (! dictDest.fieldObject(fieldId).isSystem())
+                {
+                    sourceId = dictSource.fieldName2Id(dictDest.fieldName(fieldId));
+                    if (sourceId)
+                    {
+                        _dest.(fieldId) = _source.(sourceId);
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buf2BufMerge</Name>
+				<Source><![CDATA[
+    static void buf2BufMerge(Common _dest, Common _source)
+    {
+        DictTable   dictDest    = new DictTable(_dest.TableId);
+        DictTable   dictSource  = new DictTable(_source.TableId);
+        int         i;
+        int         sourceId;
+        FieldId     fieldId;
+        ;
+    
+        for (i = 1; i <= dictDest.fieldCnt(); i++)
+        {
+            fieldId = dictDest.fieldCnt2Id(i);
+            if (! dictDest.fieldObject(fieldId).isSystem())
+            {
+                sourceId = dictSource.fieldName2Id(dictDest.fieldName(fieldId));
+                if (sourceId && ! _dest.(dictDest.fieldCnt2Id(i)))
+                {
+                    _dest.(fieldId) = _source.(sourceId);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canBeConverted</Name>
+				<Source><![CDATA[
+    public static boolean canBeConverted(
+        UnitOfMeasureSymbol     _fromUnitOfMeasure,
+        UnitOfMeasureSymbol     _toUnitOfMeasure,
+        ItemId                  _ItemId)
+    {
+        return UnitofMeasureConverter::canBeConverted(UnitOfMeasure::unitOfMeasureIdBySymbol(_fromUnitOfMeasure),
+                                                        UnitOfMeasure::unitOfMeasureIdBySymbol(_toUnitOfMeasure),
+                                                        InventTable::itemProduct(_itemId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertQty</Name>
+				<Source><![CDATA[
+    public static real convertQty(
+        real                    _value,
+        UnitOfMeasureSymbol     _fromUnitOfMeasure,
+        UnitOfMeasureSymbol     _toUnitOfMeasure,
+        ItemId                  _ItemId,
+        NoYes                   _roundAbsoluteValue = true,
+        boolean                 _errorMessage = true  )
+    {
+        return UnitOfMeasureConverter::convert(_value,
+                                            UnitOfMeasure:: unitOfMeasureIdBySymbol(_fromUnitOfMeasure),
+                                            UnitOfMeasure:: unitOfMeasureIdBySymbol(_toUnitOfMeasure),
+                                            _roundAbsoluteValue, InventTable::itemProduct(_ItemId), _roundAbsoluteValue ,
+                                            _errorMessage ? false : true );
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qty</Name>
+				<Source><![CDATA[
+    static Qty qty(Qty  _qty, UnitOfMeasureSymbol  _unit)
+    {
+        return decRound(_qty, UnitOfMeasure::unitOfMeasureDecimalPrecision(
+                UnitOfMeasure::unitOfMeasureIdBySymbol(_unit)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cObject</Name>
+				<Source><![CDATA[
+    static Object cObject(Object  _obj)
+    {
+        return _obj;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>copyRanges</Name>
+				<Source><![CDATA[
+    static void copyRanges(QueryBuildDataSource _qbdsTarget, QueryBuildDataSource _qbdsSource)
+    {
+        int     idx;
+        ;
+    
+        for (idx = 1; idx <= _qbdsSource.rangeCount(); idx++)
+        {
+            _qbdsTarget.addRange(_qbdsSource.range(idx).field()).value(_qbdsSource.range(idx).value());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>countTotalQuick</Name>
+				<Source><![CDATA[
+    static Integer countTotalQuick(QueryRun _queryRun)
+    {
+        container               queryPack = _queryRun.pack();
+        Query                   countQuery;
+        QueryRun                countQueryRun;
+        QueryBuildDataSource    qbds;
+        QueryBuildFieldList     qbfl;
+        Common                  common;
+        Integer                 counter;
+        Integer                 loops;
+        int                     i;
+        ;
+        countQueryRun   = new QueryRun(queryPack);
+        countQuery      = countQueryRun.query();
+        for (i = 1; i <= countQuery.dataSourceCount(); i++)
+        {
+            qbds            = countQuery.dataSourceNo(i);
+            qbds.update(false);
+            qbds.sortClear();
+            qbfl = qbds.fields();
+            qbfl.dynamic(false);
+            qbfl.clearFieldList();
+            qbds.addSelectionField(FieldNum(Common,recId),SelectionField::COUNT);
+        }
+    
+        countQueryRun   = new QueryRun(countQuery);
+    
+        while (countQueryRun.next())
+        {
+            common  = countQueryRun.get(countQuery.dataSourceNo(1).table());
+            counter += any2Int(common.recId);
+            loops++;
+        }
+    
+        return counter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>datasourceRangesAsText</Name>
+				<Source><![CDATA[
+    static Notes datasourceRangesAsText(QueryBuildDataSource _sourceDS)
+    {
+        int                     rangeId;
+        QueryBuildRange         qbr;
+        str                     ret;
+        ;
+    
+        for (rangeId = 1; rangeId <= _sourceDS.rangeCount(); rangeId ++)
+        {
+            qbr = _sourceDS.range(rangeId);
+    
+            if (qbr.value() && qbr.status() != RangeStatus::Hidden)
+            {
+                if (ret)
+                {
+                    ret += '; ';
+                }
+                ret += strFmt('%1 = %2', fieldid2pname(_sourceDS.table(), qbr.field()), qbr.value());
+            }
+        }
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>date2DateTime</Name>
+				<Source><![CDATA[
+    static utcDateTime date2DateTime(TransDate _date, boolean _isEndOfDay = false)
+    {
+        return DateTimeUtil::newDateTime(_date, _isEndOfDay ? timeMax() : 0, DateTimeUtil::getUserPreferredTimeZone());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dateTime2Date</Name>
+				<Source><![CDATA[
+    static date dateTime2Date(utcDateTime _dateTime)
+    {
+        return DateTimeUtil::date(DateTimeUtil::applyTimeZoneOffset(_dateTime,
+                                                                    DateTimeUtil::getUserPreferredTimeZone()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dsAllowEditExceptFields</Name>
+				<Source><![CDATA[
+    static void dsAllowEditExceptFields(FormDataSource _formDataSource, boolean _allowEdit, container _fieldListExclude=connull())
+    {
+        FormDataObject  fdo;
+        FormObjectSet   fos;
+        DictTable       dictTable = new DictTable(_formDataSource.table());
+        DictField       dictField;
+        int             fieldCount = dictTable.fieldCnt();
+        int             i;
+        int             j;
+        ;
+    
+        fos = _formDataSource;
+    
+        for (i = 1; i <= fieldCount; i++)
+        {
+            dictField = new DictField(dictTable.id(), dictTable.fieldCnt2Id(i));
+            if (! confind(_fieldListExclude, dictField.id())
+                    && ! dictField.isSystem())
+            {
+                for (j = 1; j <= dictField.arraySize(); j++)
+                {
+                    fdo = fos.object(fieldId2ext(dictField.id(), j));
+                    if (! confind(_fieldListExclude, fieldId2ext(dictField.id(), j)))
+                    {
+                        if (fdo)
+                        {
+                            fdo.allowEdit(_allowEdit);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dsGetDisabledFields</Name>
+				<Source><![CDATA[
+    static container dsGetDisabledFields(FormDataSource _formDataSource)
+    {
+        FormDataObject  fdo;
+        FormObjectSet   fos;
+        DictTable       dictTable = new DictTable(_formDataSource.table());
+        DictField       dictField;
+        int             fieldCount = dictTable.fieldCnt();
+        int             i;
+        container       res;
+        int             j;
+        ;
+    
+        fos = _formDataSource;
+    
+        for (i = 1; i <= fieldCount; i++)
+        {
+            dictField = new DictField(dictTable.id(), dictTable.fieldCnt2Id(i));
+            if (! dictField.isSystem() && dictField.allowEdit())
+            {
+                for (j = 1; j <= dictField.arraySize(); j++)
+                {
+                    fdo = fos.object(fieldId2ext(dictField.id(), j));
+                    if (! fdo.allowEdit())
+                    {
+                        res += fieldId2ext(dictField.id(), j);
+                    }
+                }
+    
+    
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dsRefresh</Name>
+				<Source><![CDATA[
+    static void dsRefresh(Common  _record)
+    {
+        FormDataSource  formDataSource = FormDataUtil::getFormDataSource(_record);
+        ;
+    
+        if (formDataSource)
+        {
+            formDataSource.reread();
+            formDataSource.refresh();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dsResearch</Name>
+				<Source><![CDATA[
+    static void dsResearch(Common _record, NoYes _savePosition = NoYes::Yes)
+    {
+        FormDataSource  formDataSource = FormDataUtil::getFormDataSource(_record);
+        ;
+    
+        if (formDataSource)
+        {
+            formDataSource.research(_savePosition);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dsExecuteQuery</Name>
+				<Source><![CDATA[
+    static void dsExecuteQuery(Common _record, NoYes _savePosition = NoYes::Yes)
+    {
+        FormDataSource  formDataSource = FormDataUtil::getFormDataSource(_record);
+        Common          record;
+        DictTable       dt = new DictTable(_record.TableId);
+        ;
+    
+        if (formDataSource)
+        {
+            if (_savePosition)
+            {
+                record = dt.makeRecord();
+                record.data(_record);
+            }
+            formDataSource.executeQuery();
+            if (_savePosition)
+            {
+                formDataSource.positionToRecord(record);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFormRunFromFormArgs</Name>
+				<Source><![CDATA[
+    static Object getFormRunFromFormArgs(FormRun  _element, IdentifierName _formName)
+    {
+        Object      res;
+        FormRun     formRun;
+        ;
+        if (_element && _element.args() && _element.args().caller() &&
+            SysDictClass::isEqualOrSuperclass(classidget(_element.args().caller()), classnum(FormRun)))
+    
+        {
+            formRun = _element.args().caller();
+            if (formRun.name() == _formName)
+            {
+                res = formRun;
+            }
+        }
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isQueryHasRecord</Name>
+				<Source><![CDATA[
+    /*
+    //----------------------------------------------------------------------
+    validateWrite()
+    
+    if (this.DEVConditionJourLineNum &&
+            ! DEV::isQueryHasRecord(this.DEVlookupRentConditionJourLineNumQuery( this.DEVConditionJourLineNum)))
+        {
+            ret = checkFailed(strfmt("incorrect value in field %1",
+                            fieldid2pname(tablenum(PurchLine),
+                            fieldnum(PurchLine, ItemId))));
+        }
+    //----------------------------------------------------------------------
+    Query DEVlookupRentConditionJourLineNumQuery(Num  _commersionConditionCode = '')
+    {
+        Query                   query           = new Query();
+        QueryBuildDataSource    qbds, qbds2;
+        ;
+    
+        qbds = query.addDataSource(tablenum(DEVRentConditionJournalLine));
+        qbds.addRange(fieldnum(DEVRentConditionJournalLine, RentConditionJourLineNum)).value(_commersionConditionCode);
+    
+        qbds.fetchMode(QueryFetchMode::One2One);
+    
+        qbds = qbds.addDataSource(tablenum(DEVRentConditionContract));
+        qbds.relations(true);
+        qbds.fetchMode(QueryFetchMode::One2One);
+        qbds.joinMode(JoinMode::ExistsJoin);
+    
+        return query;
+    }
+    //----------------------------------------------------------------------
+    boolean DEVlookupRentConditionJourLineNum(FormControl _formControl)
+    {
+        SysTableLookup          sysTableLookup  = SysTableLookup::newParameters(tablenum(DEVRentConditionJournalLine), _formControl);
+        Query                   query           = this.DEVlookupRentConditionJourLineNumQuery();
+        ;
+    
+    
+        sysTableLookup.parmQuery(query);
+        sysTableLookup.DEVaddAutoLookupFields(identifierstr(AutoLookup), fieldnum(DEVRentConditionJournalLine, RentConditionJourLineNum));
+        sysTableLookup.performFormLookup();
+    
+        return true;
+    }
+    //----------------------------------------------------------------------
+    */
+    
+    static boolean isQueryHasRecord(Query  _q)
+    {
+        QueryRun    qr = new QueryRun(_q);
+        boolean     res;
+        ;
+        if (qr.next())
+        {
+            res = true;
+        }
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isUserInRole</Name>
+				<Source><![CDATA[
+    static boolean isUserInRole(Description  _roleName)
+    {
+        boolean                 res;
+        SecurityUserRole        securityUserRole;
+        SecurityRole            securityRole;
+        ;
+        select RecId from securityUserRole
+            where  securityUserRole.User    == curUserId()
+            join RecId from securityRole
+                where  securityRole.RecId == securityUserRole.SecurityRole
+                    && (   securityRole.AotName == _roleName
+                    )    ;
+        if (securityUserRole.RecId)
+        {
+            res = true;
+        }
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>purchTableConfirm</Name>
+				<Source><![CDATA[
+    static void  purchTableConfirm(PurchTable  _purchTable)
+    {
+        PurchFormLetter                 purchFormLetter;
+        if (_purchTable.RecId &&
+            _purchTable.DocumentState == VersioningDocumentState::Approved)
+        {
+            purchFormLetter = purchFormLetter::construct(DocumentStatus::PurchaseOrder);
+            purchFormLetter.update(_purchTable,'');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runButtonWithRecord</Name>
+				<Source><![CDATA[
+    static void runButtonWithRecord(FormFunctionButtonControl _button, Common _record,
+                                               Object _obj = null)
+    {
+        MenuFunction        mf;
+        Args                argsLocal = new Args();
+        ;
+        mf = new MenuFunction(_button.menuItemName(), _button.menuItemType());
+        argsLocal.caller(_button.formRun());
+        //argsLocal.applyRecordAsDynalink(true);
+        argsLocal.copyCallerQuery(false);
+        argsLocal.record(_record);
+        if (_obj)
+        {
+            argsLocal.object(_obj);
+        }
+        mf.run(argsLocal);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateCondition</Name>
+				<Source><![CDATA[
+    static boolean validateCondition(anytype _condition, str _message, boolean _isThrowError = false)
+    {
+        boolean  res = true;
+        ;
+    
+        if (! _condition)
+        {
+            if (_isThrowError)
+            {
+                throw error(_message);
+            }
+            else
+            {
+                res = checkFailed(_message);
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateCursorIsNotEmpty</Name>
+				<Source><![CDATA[
+    static void validateCursorIsNotEmpty(Common  _common, str _someText = '')
+    {
+        if (! _common.RecId)
+        {
+            if (_someText)
+            {
+                error(_someText);
+            }
+            throw error(StrFmt("@SYS102242", TableId2Name(_common.TableId)));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateCursorField</Name>
+				<Source><![CDATA[
+    static boolean validateCursorField(Common _table, fieldId _fieldId, boolean _isThrow = true)
+    {
+        boolean res = true;
+        ;
+        if (! _table.(_fieldId))
+        {
+            if (_isThrow)
+            {
+                throw error(strFmt("@SYS84753", fieldId2pname(_table.TableId, _fieldId)  ));
+            }
+            else
+            {
+                res = checkFailed(strFmt("@SYS84753", fieldId2pname(_table.TableId, _fieldId)  ));
+            }
+        }
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWriteRecordCheck</Name>
+				<Source><![CDATA[
+    static void validateWriteRecordCheck(Common _record)
+    {
+        if (! _record.validateWrite())
+        {
+            throw error(strFmt("Failed to write %1 table", tableId2pname(_record.TableId)));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>systemdateget</Name>
+				<Source><![CDATA[
+    static TransDate systemdateget()
+    {
+        return DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dateStartWk</Name>
+				<Source><![CDATA[
+    static TransDate  dateStartWk(TransDate _transDate)
+    {
+        return DateTimeUtil::getStartOfWeekDate(new Session().preferredLocale(), _transDate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dateStartYr</Name>
+				<Source><![CDATA[
+    static TransDate  dateStartYr(TransDate _transDate)
+    {
+        return DateTimeUtil::getStartOfYearDate(new Session().preferredLocale(), _transDate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mergeInventDim</Name>
+				<Source><![CDATA[
+    public static InventDim mergeInventDim(
+        InventDimGroupSetup         _dimGroupSetup,
+        InventDim                   _fromInventDim,
+        InventDim                   _addedDim)
+    {
+        InventDimGroupFieldSetupEnumerator  fieldSetupEnumerator    = _dimGroupSetup.getFieldSetupEnumerator();
+        InventDimGroupFieldSetup            fieldSetup;
+        FieldId                             inventDimFieldId;
+
+        InventDim               resDim;
+
+        // Fields might not have been selected on the specified buffers, or might have been updated since selection
+        _fromInventDim.checkInvalidFieldAccess(false);
+        _addedDim.checkInvalidFieldAccess(false);
+        resDim.checkInvalidFieldAccess(false);
+        resDim.data(_fromInventDim);
+
+        while (fieldSetupEnumerator.moveNext())
+        {
+            fieldSetup = fieldSetupEnumerator.current();
+            if (fieldSetup.isActive())
+            {
+                inventDimFieldId = fieldSetup.dimFieldId();
+                if (! resDim.(inventDimFieldId) &&  _addedDim.(inventDimFieldId))
+                {
+                    resDim.(inventDimFieldId) =  _addedDim.(inventDimFieldId);
+                }
+            }
+        }
+        return resDim;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>w</Name>
+				<Source><![CDATA[
+    static void w(anytype _i, str _addition = '')
+    {
+        ;
+        if (_addition)
+        {
+            info(StrFmt('%1, %2', _i, _addition));
+        }
+        else
+        {
+            info(StrFmt('%1',_i));
+        }        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
