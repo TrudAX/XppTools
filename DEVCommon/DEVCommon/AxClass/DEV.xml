@@ -142,6 +142,7 @@ class DEV
 			<Method>
 				<Name>countTotalQuick</Name>
 				<Source><![CDATA[
+    //can be replaced by QueryRun::getQueryRowCount(_queryRun.query(), intMax());
     static Integer countTotalQuick(QueryRun _queryRun)
     {
         container               queryPack = _queryRun.pack();
