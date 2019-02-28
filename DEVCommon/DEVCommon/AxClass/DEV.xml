@@ -11,7 +11,7 @@ class DEV
 			<Method>
 				<Name>buf2Buf</Name>
 				<Source><![CDATA[
-    static void buf2Buf(Common _dest, Common _source, container _fieldsToExclude = conNull())
+    public static void buf2Buf(Common _dest, Common _source, container _fieldsToExclude = conNull())
     {
         DictTable   dictDest    = new DictTable(_dest.TableId);
         DictTable   dictSource  = new DictTable(_source.TableId);
@@ -42,7 +42,7 @@ class DEV
 			<Method>
 				<Name>buf2BufMerge</Name>
 				<Source><![CDATA[
-    static void buf2BufMerge(Common _dest, Common _source)
+    public static void buf2BufMerge(Common _dest, Common _source)
     {
         DictTable   dictDest    = new DictTable(_dest.TableId);
         DictTable   dictSource  = new DictTable(_source.TableId);
@@ -105,7 +105,7 @@ class DEV
 			<Method>
 				<Name>qty</Name>
 				<Source><![CDATA[
-    static Qty qty(Qty  _qty, UnitOfMeasureSymbol  _unit)
+    public static Qty qty(Qty  _qty, UnitOfMeasureSymbol  _unit)
     {
         return decRound(_qty, UnitOfMeasure::unitOfMeasureDecimalPrecision(
                 UnitOfMeasure::unitOfMeasureIdBySymbol(_unit)));
@@ -116,7 +116,7 @@ class DEV
 			<Method>
 				<Name>cObject</Name>
 				<Source><![CDATA[
-    static Object cObject(Object  _obj)
+    public static Object cObject(Object  _obj)
     {
         return _obj;
     }
@@ -126,7 +126,7 @@ class DEV
 			<Method>
 				<Name>copyRanges</Name>
 				<Source><![CDATA[
-    static void copyRanges(QueryBuildDataSource _qbdsTarget, QueryBuildDataSource _qbdsSource)
+    public static void copyRanges(QueryBuildDataSource _qbdsTarget, QueryBuildDataSource _qbdsSource)
     {
         int     idx;
         ;
@@ -143,7 +143,7 @@ class DEV
 				<Name>countTotalQuick</Name>
 				<Source><![CDATA[
     //can be replaced by QueryRun::getQueryRowCount(_queryRun.query(), intMax());
-    static Integer countTotalQuick(QueryRun _queryRun)
+    public static Integer countTotalQuick(QueryRun _queryRun)
     {
         container               queryPack = _queryRun.pack();
         Query                   countQuery;
@@ -185,7 +185,7 @@ class DEV
 			<Method>
 				<Name>datasourceRangesAsText</Name>
 				<Source><![CDATA[
-    static Notes datasourceRangesAsText(QueryBuildDataSource _sourceDS)
+    public static Notes datasourceRangesAsText(QueryBuildDataSource _sourceDS)
     {
         int                     rangeId;
         QueryBuildRange         qbr;
@@ -214,7 +214,7 @@ class DEV
 			<Method>
 				<Name>date2DateTime</Name>
 				<Source><![CDATA[
-    static utcDateTime date2DateTime(TransDate _date, boolean _isEndOfDay = false)
+    public static utcDateTime date2DateTime(TransDate _date, boolean _isEndOfDay = false)
     {
         return DateTimeUtil::newDateTime(_date, _isEndOfDay ? timeMax() : 0, DateTimeUtil::getUserPreferredTimeZone());
     }
@@ -224,7 +224,7 @@ class DEV
 			<Method>
 				<Name>dateTime2Date</Name>
 				<Source><![CDATA[
-    static date dateTime2Date(utcDateTime _dateTime)
+    public static date dateTime2Date(utcDateTime _dateTime)
     {
         return DateTimeUtil::date(DateTimeUtil::applyTimeZoneOffset(_dateTime,
                                                                     DateTimeUtil::getUserPreferredTimeZone()));
@@ -235,7 +235,7 @@ class DEV
 			<Method>
 				<Name>dsAllowEditExceptFields</Name>
 				<Source><![CDATA[
-    static void dsAllowEditExceptFields(FormDataSource _formDataSource, boolean _allowEdit, container _fieldListExclude=connull())
+    public static void dsAllowEditExceptFields(FormDataSource _formDataSource, boolean _allowEdit, container _fieldListExclude=connull())
     {
         FormDataObject  fdo;
         FormObjectSet   fos;
@@ -274,7 +274,7 @@ class DEV
 			<Method>
 				<Name>dsGetDisabledFields</Name>
 				<Source><![CDATA[
-    static container dsGetDisabledFields(FormDataSource _formDataSource)
+    public static container dsGetDisabledFields(FormDataSource _formDataSource)
     {
         FormDataObject  fdo;
         FormObjectSet   fos;
@@ -313,7 +313,7 @@ class DEV
 			<Method>
 				<Name>dsRefresh</Name>
 				<Source><![CDATA[
-    static void dsRefresh(Common  _record)
+    public static void dsRefresh(Common  _record)
     {
         FormDataSource  formDataSource = FormDataUtil::getFormDataSource(_record);
         ;
@@ -330,7 +330,7 @@ class DEV
 			<Method>
 				<Name>dsResearch</Name>
 				<Source><![CDATA[
-    static void dsResearch(Common _record, NoYes _savePosition = NoYes::Yes)
+    public static void dsResearch(Common _record, NoYes _savePosition = NoYes::Yes)
     {
         FormDataSource  formDataSource = FormDataUtil::getFormDataSource(_record);
         ;
@@ -346,7 +346,7 @@ class DEV
 			<Method>
 				<Name>dsExecuteQuery</Name>
 				<Source><![CDATA[
-    static void dsExecuteQuery(Common _record, NoYes _savePosition = NoYes::Yes)
+    public static void dsExecuteQuery(Common _record, NoYes _savePosition = NoYes::Yes)
     {
         FormDataSource  formDataSource = FormDataUtil::getFormDataSource(_record);
         Common          record;
@@ -373,7 +373,7 @@ class DEV
 			<Method>
 				<Name>getFormRunFromFormArgs</Name>
 				<Source><![CDATA[
-    static Object getFormRunFromFormArgs(FormRun  _element, IdentifierName _formName)
+    public static Object getFormRunFromFormArgs(FormRun  _element, IdentifierName _formName)
     {
         Object      res;
         FormRun     formRun;
@@ -444,7 +444,7 @@ class DEV
     //----------------------------------------------------------------------
     */
     
-    static boolean queryHasRecord(Query  _q)
+    public static boolean queryHasRecord(Query  _q)
     {
         QueryRun    qr = new QueryRun(_q);
         boolean     res;
@@ -462,7 +462,7 @@ class DEV
 			<Method>
 				<Name>isUserInRole</Name>
 				<Source><![CDATA[
-    static boolean isUserInRole(Description  _roleName)
+    public static boolean isUserInRole(Description  _roleName)
     {
         boolean                 res;
         SecurityUserRole        securityUserRole;
@@ -487,7 +487,7 @@ class DEV
 			<Method>
 				<Name>purchTableConfirm</Name>
 				<Source><![CDATA[
-    static void  purchTableConfirm(PurchTable  _purchTable)
+    public static void  purchTableConfirm(PurchTable  _purchTable)
     {
         PurchFormLetter                 purchFormLetter;
         if (_purchTable.RecId &&
@@ -503,7 +503,7 @@ class DEV
 			<Method>
 				<Name>runButtonWithRecord</Name>
 				<Source><![CDATA[
-    static void runButtonWithRecord(FormFunctionButtonControl _button, Common _record,
+    public static void runButtonWithRecord(FormFunctionButtonControl _button, Common _record,
                                                Object _obj = null)
     {
         MenuFunction        mf;
@@ -526,7 +526,7 @@ class DEV
 			<Method>
 				<Name>validateCondition</Name>
 				<Source><![CDATA[
-    static boolean validateCondition(anytype _condition, str _message, boolean _isThrowError = false)
+    public static boolean validateCondition(anytype _condition, str _message, boolean _isThrowError = false)
     {
         boolean  res = true;
         ;
@@ -550,7 +550,7 @@ class DEV
 			<Method>
 				<Name>validateCursorIsNotEmpty</Name>
 				<Source><![CDATA[
-    static void validateCursorIsNotEmpty(Common  _common, str _someText = '')
+    public static void validateCursorIsNotEmpty(Common  _common, str _someText = '')
     {
         if (! _common.RecId)
         {
@@ -567,7 +567,7 @@ class DEV
 			<Method>
 				<Name>validateCursorField</Name>
 				<Source><![CDATA[
-    static boolean validateCursorField(Common _table, fieldId _fieldId, boolean _isThrow = true)
+    public static boolean validateCursorField(Common _table, fieldId _fieldId, boolean _isThrow = true)
     {
         boolean res = true;
         ;
@@ -591,7 +591,7 @@ class DEV
 			<Method>
 				<Name>validateWriteRecordCheck</Name>
 				<Source><![CDATA[
-    static void validateWriteRecordCheck(Common _record)
+    public static void validateWriteRecordCheck(Common _record)
     {
         if (! _record.validateWrite())
         {
@@ -604,7 +604,7 @@ class DEV
 			<Method>
 				<Name>systemdateget</Name>
 				<Source><![CDATA[
-    static TransDate systemdateget()
+    public static TransDate systemdateget()
     {
         return DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
     }
@@ -614,7 +614,7 @@ class DEV
 			<Method>
 				<Name>dateStartWk</Name>
 				<Source><![CDATA[
-    static TransDate  dateStartWk(TransDate _transDate)
+    public static TransDate  dateStartWk(TransDate _transDate)
     {
         return DateTimeUtil::getStartOfWeekDate(new Session().preferredLocale(), _transDate);
     }
@@ -624,7 +624,7 @@ class DEV
 			<Method>
 				<Name>dateStartYr</Name>
 				<Source><![CDATA[
-    static TransDate  dateStartYr(TransDate _transDate)
+    public static TransDate  dateStartYr(TransDate _transDate)
     {
         return DateTimeUtil::getStartOfYearDate(new Session().preferredLocale(), _transDate);
     }
@@ -671,7 +671,7 @@ class DEV
 			<Method>
 				<Name>w</Name>
 				<Source><![CDATA[
-    static void w(anytype _i, str _addition = '')
+    public static void w(anytype _i, str _addition = '')
     {
         ;
         if (_addition)
@@ -682,6 +682,16 @@ class DEV
         {
             info(StrFmt('%1',_i));
         }        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nz</Name>
+				<Source><![CDATA[
+    public static anytype nz(anytype _value, anytype _nonZeroValue)
+    {
+        return (_value && true) ? _value : _nonZeroValue;
     }
 
 ]]></Source>
