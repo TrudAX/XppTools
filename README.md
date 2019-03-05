@@ -28,6 +28,9 @@ Full description: [Fields list form](https://denistrunin.com/xpptools-fieldslist
 ### -DEV class. 
 Collection of [global methods](https://denistrunin.com/xpptools-devglobal/)
 
+### -DEVDimensionHelper class. 
+Working with [Financial dimensions](https://denistrunin.com/xpptools-devfindim/)
+
 **[⬆ back to top](#XppTools)**
 
 ## DEVTutorial model
