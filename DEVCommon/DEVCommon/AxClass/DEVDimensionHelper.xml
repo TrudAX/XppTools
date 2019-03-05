@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDimensionHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+//https://github.com/TrudAX/XppTools#devcommon-model 
+class DEVDimensionHelper
+{
+    static const public Name BusinessUnit   = 'BusinessUnit';
+    static const public Name Department     = 'Department';
+    static const public Name CostCenter     = 'CostCenter';
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getValueByDefaultDimension</Name>
+				<Source><![CDATA[
+    //CREATE A NEW FINANCIAL DIMENSION
+    //https://docs.microsoft.com/en-us/dynamics365/unified-operations//dev-itpro/financial/dimensionable-entities
+
+    //FILTER VALUES
+    //SysQuery::addDimensionAttributeRange(
+
+    //EXTRACT VALUES
+    //--Value str from DefaultDimension
+    static DimensionValue getValueByDefaultDimension(DimensionDefault  _dimensionDefault, Name _dimensionName)
+    {
+        DimensionAttributeValueSetStorage  dimStorage;
+        DimensionValue                     res;
+
+        dimStorage = DimensionAttributeValueSetStorage::find(_dimensionDefault);
+        res = dimStorage.getDisplayValueByDimensionAttribute(DimensionAttribute::findByName(_dimensionName).RecId);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setValueToDefaultDimension</Name>
+				<Source><![CDATA[
+    //--DefaultAccount from LedgerDimension
+    //LedgerDefaultAccountHelper::getDefaultAccountFromLedgerDimension(
+
+    //--DefaultDimension from LedgerDimension
+    //LedgerDimensionFacade::getDefaultDimensionFromLedgerDimension(
+
+    //CREATE VALUES
+
+    //--DefaultAccount from MainAccount str
+    //LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(_mainAccountId);
+
+    //--DefaultAccount from MainAccount RecId
+    //LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountRecId(..
+
+    //--LedgerDimension from DefaultAccount and DefaultDimension
+    //LedgerDimensionFacade::serviceCreateLedgerDimension(
+
+    //--DefaultDimension from Value str
+    static DimensionDefault setValueToDefaultDimension(DimensionDefault _dimensionDefault,Name _dimensionName, DimensionValue  _newDimensionValue)
+    {
+        DimensionDefault                     res;
+
+        res = DEVDimensionHelper::setDefaultDimensionRecId(_dimensionDefault, DimensionAttribute::findByName(_dimensionName).RecId, _newDimensionValue);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDefaultDimensionRecId</Name>
+				<Source><![CDATA[
+    //--DefaultDimension merge with DefaultDimension
+    //DimensionDefaultFacade::serviceMergeDefaultDimensions
+
+    public static DimensionDefault setDefaultDimensionRecId(DimensionDefault _dimensionDefault,RefRecId _dimensionAttributeRecId, DimensionValue  _newDimensionValue)
+    {
+        DimensionAttributeValueSetStorage   dimStorage;
+        DimensionDefault                    newDimensionDefault = _dimensionDefault;
+        DimensionAttributeValue             dimensionAttributeValue;
+        if (_dimensionAttributeRecId)
+        {
+            dimStorage = DimensionAttributeValueSetStorage::find(_dimensionDefault);
+
+            if (_newDimensionValue)
+            {
+                dimensionAttributeValue = DimensionAttributeValue::findByDimensionAttributeAndValue(DimensionAttribute::find(_dimensionAttributeRecId), _newDimensionValue);
+                dimStorage.addItem(dimensionAttributeValue);
+            }
+            else
+            {
+                dimStorage.removeDimensionAttribute(_dimensionAttributeRecId);
+            }
+            newDimensionDefault = dimStorage.save();
+        }
+        return newDimensionDefault;
+    }
+
+    /*
+    SQL (used for the debug purposes)
+  //--SQL to get values for the DefaultDimension 
+    select  A.DisplayValue, c.NAME from dimensionAttributeValueSetItem A(nolock), dimensionAttributeValue B(nolock), DIMENSIONATTRIBUTE C(nolock)
+        where A.DimensionAttributeValueSet = 5637148326
+    and B.RecId = A.DimensionAttributeValue
+    and B.DimensionAttribute = C.RECID
+    order by c.RECID
+
+  //--SQL to get values for the LedgerDimension
+  select A.Ordinal, B.Levels , C.RecId, C.DisplayValue , D.RecId, D.DimensionAttribute,  dimAttrib.NAME, D.HashKey
+ from DimensionAttributeValueGroupCombination A(nolock), DimensionAttributeValueGroup B(nolock), DimensionAttributeLevelValue C(nolock), DimensionAttributeValue D(nolock), DIMENSIONATTRIBUTE dimAttrib
+                where A.DimensionAttributeValueCombination = 5637146102
+                and B.RecId = A.DimensionAttributeValueGroup
+                and C.DimensionAttributeValueGroup = B.RecId
+                and D.RecId = C.DimensionAttributeValue and
+                    D.IsDeleted = 0
+                    and dimAttrib.RECID = D.DimensionAttribute
+                    and a.PARTITION = 5637144576 and c.PARTITION = 5637144576
+
+    */
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
