@@ -25,6 +25,8 @@ Full description: [Fields list form](https://denistrunin.com/xpptools-fieldslist
 
 ## DEVCommon model
 
+Elements that can be shared between different projects
+
 ### -DEV class. 
 Collection of [global methods](https://denistrunin.com/xpptools-devglobal/)
 
@@ -35,7 +37,7 @@ Working with [Financial dimensions](https://denistrunin.com/xpptools-devfindim/)
 
 ## DEVTutorial model
 
-Various X++ examples, that can be used to test something or used as a template. Elements can reference to DEVGlobal model objects
+Various X++ examples, that can be used to test something or used as a template. Elements can reference to DEVCommon model objects
 
 ### -Blocking in D365FO
 
