@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TmpSysQueryDEVQueryFields_EventHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+//https://github.com/TrudAX/XppTools
+final static class TmpSysQueryDEVQueryFields_EventHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>TmpSysQuery_onInserting</Name>
+				<Source><![CDATA[
+    [DataEventHandler(tableStr(TmpSysQuery), DataEventType::Inserting)]
+    public static void TmpSysQuery_onInserting(Common sender, DataEventArgs e)
+    {
+        TmpSysQuery localTmpSysQuery = sender as TmpSysQuery;
+        if (localTmpSysQuery.Field_Id && localTmpSysQuery.Table_Id)
+        {
+            localTmpSysQuery.DEVFieldName = fieldId2Name(localTmpSysQuery.Table_Id, localTmpSysQuery.Field_Id);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
