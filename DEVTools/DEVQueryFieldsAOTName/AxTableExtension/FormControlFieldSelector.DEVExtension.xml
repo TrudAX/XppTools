@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-	<Name>TmpSysQuery.DEVExtension</Name>
-	<FieldGroupExtensions />
+	<Name>FormControlFieldSelector.DEVExtension</Name>
+	<FieldGroupExtensions>
+		<AxTableFieldGroupExtension>
+			<Name>AutoSummary</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DEVFieldName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroupExtension>
+	</FieldGroupExtensions>
 	<FieldGroups />
 	<FieldModifications />
 	<Fields>

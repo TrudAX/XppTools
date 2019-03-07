@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>FormControlFieldSelectorDEV_EventHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+//https://github.com/TrudAX/XppTools
+final static class FormControlFieldSelectorDEV_EventHandler
+{
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>FormControlFieldSelector_onInserting</Name>
+				<Source><![CDATA[
+    [DataEventHandler(tableStr(FormControlFieldSelector), DataEventType::Inserting)]
+    public static void FormControlFieldSelector_onInserting(Common sender, DataEventArgs e)
+    {
+        FormControlFieldSelector localFormControlFieldSelector = sender as FormControlFieldSelector;
+        if (localFormControlFieldSelector.FieldId && localFormControlFieldSelector.Table)
+        {
+            localFormControlFieldSelector.DEVFieldName = fieldId2Name(localFormControlFieldSelector.DataSourceTableId, localFormControlFieldSelector.FieldId);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
