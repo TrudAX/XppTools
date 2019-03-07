@@ -23,7 +23,7 @@ Full description: [Fields list form](https://denistrunin.com/xpptools-fieldslist
 
 ### -Display system field name in the query filter 
 
-This utility adds system field name in the standard query filter lookup and in "Personalize-Add columns" dialog. So you can search the field by Label(as standard) or by AOT name
+This utility adds system field name in the standard query filter lookup and in the "Personalize-Add columns" dialog. So you can search the field by Label(as standard) or by AOT name
 
 Full description: [Filter by AOT name](https://denistrunin.com/xpptools-queryfieldsAOTname/). Sub-model name: DEVQueryFieldsAOTName
 
