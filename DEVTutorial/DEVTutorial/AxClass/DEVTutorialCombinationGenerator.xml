@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialCombinationGenerator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVTutorialCombinationGenerator
+{
+    int  maxCountAr[];
+    int  curLevelPosAr[];
+
+    Map         levelPosMap;
+    container   dataCon;
+
+    int         curElement;
+    int         maxElements;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>setMaxElements</Name>
+				<Source><![CDATA[
+    void setMaxElements(int _maxElements)
+    {
+        maxElements = _maxElements;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurElement</Name>
+				<Source><![CDATA[
+    int getCurElement()
+    {
+        return curElement;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addLevel</Name>
+				<Source><![CDATA[
+    public void addLevel(str _levelName, container _levelData)
+    {
+        if (! levelPosMap)
+        {
+            levelPosMap    = new Map(Types::String, Types::Integer);
+        }
+        int curLevelPos = levelPosMap.elements() + 1;
+
+        maxCountAr[curLevelPos]    = conLen(_levelData);
+        curLevelPosAr[curLevelPos] = 1;
+
+        levelPosMap.insert(_levelName, curLevelPos);
+
+
+        dataCon += [_levelData];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>moveToNext</Name>
+				<Source><![CDATA[
+    public boolean moveToNext()
+    {
+        int i;
+
+        if (curElement > 0)
+        {
+            for (i = levelPosMap.elements(); i >= 1; i--)
+            {
+                if (curLevelPosAr[i] < maxCountAr[i])
+                {
+                    curLevelPosAr[i] = curLevelPosAr[i] + 1;
+                    break;
+                }
+                else
+                {
+                    curLevelPosAr[i] = 1;
+                }
+            }
+        }
+        curElement++;
+        return (curElement <= maxElements);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLevelValue</Name>
+				<Source><![CDATA[
+    public anyType getLevelValue(str _levelName)
+    {
+        int levelPos    = levelPosMap.lookup(_levelName);
+        int posInLevel  = curLevelPosAr[levelPos];
+
+        return conPeek(conPeek(dataCon, levelPos), posInLevel);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVTutorialCombinationGenerator   combinationGenerator = new DEVTutorialCombinationGenerator();
+
+        combinationGenerator.setMaxElements(10);
+        combinationGenerator.addLevel('ItemId', ['Item1', 'Item2', 'Item3']);
+        combinationGenerator.addLevel('DimId', ['Dim1', 'Dim2', 'Dim3', 'Dim4']);
+
+        while (combinationGenerator.moveToNext())
+        {
+            info(strFmt("element %1: %2, %3", combinationGenerator.getCurElement(), 
+                                              combinationGenerator.getLevelValue('ItemId'),
+                                              combinationGenerator.getLevelValue('DimId') ));
+        }
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
