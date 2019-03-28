@@ -283,13 +283,13 @@ class DEVTutorialCreateLedgerJournal
         combinationAccount.setMaxElements(_numCount);
         combinationAccountOffset.setMaxElements(_numCount);
 
-        combinationAccount.addLevel('Account',  ['50070', '62150', '62200']);
-        combinationAccount.addLevel('Site',     ['Wantirna', 'Langwarrin']);
-        combinationAccount.addLevel('Division', ['Production', 'Dispatch', 'Commercial', 'Select']);
+        combinationAccount.addLevel('Account',      ['600150', '600120', '600170','600155', '600180', '600181']);
+        combinationAccount.addLevel('BusinessUnit', ['001', '002', '003', '004', '005', '006', '069', '078', '081', '082']);
+        combinationAccount.addLevel('CostCenter',   ['007', '008', '009', '010', '011', '012', '013', '014', '015', '016', '017', '018', '019', '020', '021', '086']);
 
-        combinationAccountOffset.addLevel('Account', ['62110', '61100']);
-        combinationAccountOffset.addLevel('Site',     ['Wantirna', 'Langwarrin']);
-        combinationAccountOffset.addLevel('Division', ['Direct', 'Dispatch', 'Commercial', 'Select']);
+        combinationAccountOffset.addLevel('Account', ['200190']);
+        combinationAccountOffset.addLevel('BusinessUnit', ['001', '002', '003', '004', '005', '006', '069', '078', '081', '082']);
+        combinationAccountOffset.addLevel('CostCenter',   ['007', '008', '009', '010', '011', '012', '013', '014', '015', '016', '017', '018', '019', '020', '021', '086']);
 
 
         LedgerJournalTable      ledgerJournalTable;
@@ -304,7 +304,7 @@ class DEVTutorialCreateLedgerJournal
             {
                 ledgerJournalTable.clear();
                 ledgerJournalTable.initValue();
-                ledgerJournalTable.JournalName = "IDiv-Jnl-A";
+                ledgerJournalTable.JournalName = "GenJrn";
                 ledgerJournalTable.initFromLedgerJournalName();
                 ledgerJournalTable.JournalNum = JournalTableData::newTable(ledgerJournalTable).nextJournalId();
                 ledgerJournalTable.Name = strFmt("Combination %1, Date %2", _numCount, DEV::systemdateget());
@@ -321,15 +321,15 @@ class DEVTutorialCreateLedgerJournal
             ledgerJournalTrans.AccountType            = LedgerJournalACType::Ledger;
 
             DimensionDefault  dim;
-            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, 'Division', combinationAccount.getLevelValue('Division'));
-            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, 'Site',     combinationAccount.getLevelValue('Site'));
+            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, 'BusinessUnit', combinationAccount.getLevelValue('BusinessUnit'));
+            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, 'CostCenter',     combinationAccount.getLevelValue('CostCenter'));
             ledgerJournalTrans.LedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
                                               LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(combinationAccount.getLevelValue('Account')), dim);       
         
             ledgerJournalTrans.OffsetAccountType      = LedgerJournalACType::Ledger;
 
-            dim = DEVDimensionHelper::setValueToDefaultDimension(0,   'Division', combinationAccountOffset.getLevelValue('Division'));
-            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, 'Site',     combinationAccountOffset.getLevelValue('Site'));
+            dim = DEVDimensionHelper::setValueToDefaultDimension(0,   'BusinessUnit', combinationAccountOffset.getLevelValue('BusinessUnit'));
+            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, 'CostCenter',     combinationAccountOffset.getLevelValue('CostCenter'));
             ledgerJournalTrans.OffsetLedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
                                               LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(combinationAccountOffset.getLevelValue('Account')), dim);
         
