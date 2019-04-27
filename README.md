@@ -8,7 +8,7 @@ This repository contains 3 D365FO models:
   - [-Fields list](#-fields-list)
   - [-Display system field name in the query filter](#-display-system-field-name-in-the-query-filter)
 - [DEVCommon model](#devcommon-model): X++ code, that can be shared between different projects.
-  - [-DEV class](#-devhttpsgithubcomtrudaxxpptoolsblobmasterdevcommondevcommonaxclassdevxml-class)
+  - [-DEV class](#-dev-class)
   - [-DEVDimensionHelper class](#-devdimensionhelper-class)
 - [DEVTutorial model](#devtutorial-model): Various X++ examples, that can be used to test something or used as a template
   - [-Blocking in D365FO](#-blocking-in-d365fo)
