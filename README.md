@@ -7,7 +7,9 @@ This repository contains 3 D365FO models:
  - [DEVCommon](#devcommon-model)   - X++ code, that can be shared between different projects.
  - [DEVTutorial](#devtutorial-model) - Various X++ examples, that can be used to test something or used as a template.
 
-Prefix DEV is used for all created objects.
+[TOC]
+
+The DEV prefix is used for all objects.
 
 ## DEVTools model
 
@@ -36,10 +38,10 @@ Full description: [Filter by AOT name](https://denistrunin.com/xpptools-queryfie
 
 Elements that can be shared between different projects
 
-### -DEV class. 
+### -[DEV](https://github.com/TrudAX/XppTools/blob/master/DEVCommon/DEVCommon/AxClass/DEV.xml) class. 
 Collection of [global methods](https://denistrunin.com/xpptools-devglobal/)
 
-### -DEVDimensionHelper class. 
+### -[DEVDimensionHelper](https://github.com/TrudAX/XppTools/blob/master/DEVCommon/DEVCommon/AxClass/DEVDimensionHelper.xml) class. 
 Working with [Financial dimensions](https://denistrunin.com/xpptools-devfindim/)
 
 **[⬆ back to top](#XppTools)**
@@ -53,6 +55,12 @@ Various X++ examples, that can be used to test something or used as a template. 
 Form **DEVBlockingTest**, table **DEVBlockingTestTable**(to test SQL blocking issues)
 
 [Blocking in D365FO](https://denistrunin.com/understanding-sql-blocking/)
+
+### -Create ledger journals using X++
+
+Class **[DEVTutorialCreateLedgerJournal](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVTutorialCreateLedgerJournal.xml)** that demonstrates different methods for a ledger journal creation
+
+[Create ledger journals in D365FO using X++](https://denistrunin.com/xpptools-createledgerjournal/)
 
 **[⬆ back to top](#XppTools)**
 
