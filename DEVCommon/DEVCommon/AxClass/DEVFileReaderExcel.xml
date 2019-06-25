@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVFileReaderExcel</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using OfficeOpenXml.Table;
+
+class DEVFileReaderExcel extends DEVFileReaderBase
+{
+    ExcelWorksheet  excelWorksheet;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>openFile</Name>
+				<Source><![CDATA[
+    public void openFile(System.IO.Stream _stream)
+    {
+        this.initNewFile();
+
+        if (! _stream )
+        {
+            return;
+        }
+        ExcelPackage    package = new ExcelPackage(_stream);
+        
+        excelWorksheet = package.Workbook.Worksheets.get_Item(workShetNo ? workShetNo : 1);
+        if (! excelWorksheet)
+        {
+            throw error(strFmt("Failed to open Excel file"));
+        }
+        this.readExcelDataToCon();   
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readExcelDataToCon</Name>
+				<Source><![CDATA[
+    private void readExcelDataToCon()
+    {
+        int         i,j;
+        container   rowData;
+
+        for (i = 1; i <= excelWorksheet.Dimension.End.Row; i++)
+        {
+            rowData = conNull();
+            for (j = 1; j <= excelWorksheet.Dimension.End.Column; j++)
+            {
+                rowData += this.getExcelCellValueInternal(i, j);
+            }
+            excelDataCon += [rowData];
+            rowsCount++;
+        }
+        excelWorksheet = null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExcelCellValueInternal</Name>
+				<Source><![CDATA[
+    private anytype getExcelCellValueInternal(int _row, int _column)
+    {
+        anytype     res ;
+        str         typeName;
+
+        OfficeOpenXml.ExcelRange er = excelWorksheet.Cells.get_Item(_row, _column);
+        var val = er.get_Value();
+        if (! val)
+        {
+            res = '';
+        }
+        else
+        {
+            System.Type t= val.GetType();
+
+            typeName = t.Name;
+
+            str         typeString;
+            int64       typeInt;
+            real        typeReal;
+            utcdatetime typeDateTime;
+
+            switch (typeName)
+            {
+                case 'String' :
+                    typeString = val.ToString();
+                    res         = strLRTrim(typeString);
+                    break;
+
+                case 'DateTime' :
+                    typeDateTime = val;
+                    res = typeDateTime;
+                    break;
+                        
+                case 'Int32' :
+                case 'Int64' :
+                    typeInt = System.Convert::ToInt64(val);
+                    res = typeInt;
+                    break;
+
+                case 'Double' :
+                    typeReal = System.Convert::ToDouble(val);
+                    res = typeReal;
+                    break;
+
+                default :
+                    throw error(strFmt("Incorrect type %1 in row %2, column %3", typeName, _row, _column));
+            }
+
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

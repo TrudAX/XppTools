@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVFileReaderBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/*
+usage
+
+Stream   s;
+s = System.IO.File::OpenRead (@"C:\Temp\TestFile.csv");
+
+DEVFileReaderCSV   fileReader   = new DEVFileReaderCSV();
+fileReader.openCSVFile(s);
+fileReader.readHeaderRow();
+while (fileReader.readNextRow())
+{
+    info(strFmt("row: %1", fileReader.getCurRow()));
+       
+    info(strFmt("%1, %2, %3, %4",   fileReader.getStringByName("Str"),
+                            fileReader.getRealByName("Num"),
+                            fileReader.getDateByName("Date"),
+                            fileReader.getRealByName("Num2")
+                            ));
+}
+*/
+
+class DEVFileReaderBase
+{
+    container   excelDataCon;
+
+    int         curRow;
+    container   curRowData;
+    int         curRowColumnsCount;
+
+    int         rowsCount;
+    
+    int     updatedRecords;
+    int     insertedRecords;
+    int     skippedRecords;
+
+    Map  headerNamesMap;
+
+    Map  dimColumnsByPrefixMap;
+
+    int maxColToCheckData;
+
+    str   dateFormatStr;
+
+    str  inFieldDelimiter;
+    int  workShetNo;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>initNewFile</Name>
+				<Source><![CDATA[
+    public void initNewFile()
+    {
+        rowsCount    = 0;
+        excelDataCon = conNull();
+        
+        updatedRecords  = 0;
+        insertedRecords = 0;
+        skippedRecords  = 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInsertedRecords</Name>
+				<Source><![CDATA[
+    public int  getInsertedRecords()
+    {
+        return insertedRecords;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSkippedRecords</Name>
+				<Source><![CDATA[
+    public int  getSkippedRecords()
+    {
+        return skippedRecords;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getUpdatedRecords</Name>
+				<Source><![CDATA[
+    public int  getUpdatedRecords()
+    {
+        return updatedRecords;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>incInsertedOrUpdatedRecords</Name>
+				<Source><![CDATA[
+    public void incInsertedOrUpdatedRecords(RefRecId _refrecId)
+    {
+        if (_refrecId)
+        {
+            this.incUpdatedRecords();
+        }
+        else
+        {
+            this.incInsertedRecords();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>incInsertedRecords</Name>
+				<Source><![CDATA[
+    public void incInsertedRecords()
+    {
+        insertedRecords++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>incSkippedRecords</Name>
+				<Source><![CDATA[
+    public void incSkippedRecords()
+    {
+        skippedRecords++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>incUpdatedRecords</Name>
+				<Source><![CDATA[
+    public void incUpdatedRecords()
+    {
+        updatedRecords++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDateFormat</Name>
+				<Source><![CDATA[
+    public void setDateFormat(str  _dateFormatStr)
+    {
+        dateFormatStr = _dateFormatStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurRow</Name>
+				<Source><![CDATA[
+    public int getCurRow()
+    {
+        return curRow;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getColumnIdByName</Name>
+				<Source><![CDATA[
+    public int getColumnIdByName(str _name)
+    {
+        int columnPos;
+        ;
+
+        if (headerNamesMap)
+        {
+            if (! headerNamesMap.exists(_name))
+            {
+                throw error(strFmt("Column with the name %1 does not exist", _name));
+            }
+            columnPos = headerNamesMap.lookup(_name);
+        }
+        else
+        {
+            throw error("Header should be read");
+        }
+        
+
+        return columnPos;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStringByName</Name>
+				<Source><![CDATA[
+    public str getStringByName(str _name)
+    {
+        str res;
+        int columnPos;
+        ;
+
+        columnPos = this.getColumnIdByName(_name);
+        res = this.getStringByIndex(columnPos);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRealByName</Name>
+				<Source><![CDATA[
+    public real getRealByName(str _name)
+    {
+        real res;
+        int  columnPos;
+        ;
+        columnPos = this.getColumnIdByName(_name);
+        res = this.getRealByIndex(columnPos);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getIntByName</Name>
+				<Source><![CDATA[
+    public int64 getIntByName(str _name)
+    {
+        int64 res;
+        int   columnPos;
+        ;
+        columnPos = this.getColumnIdByName(_name);
+        res = this.getIntByIndex(columnPos);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDateByName</Name>
+				<Source><![CDATA[
+    public TransDate getDateByName(str _name)
+    {
+        TransDate res;
+        int       columnPos;
+        ;
+        columnPos = this.getColumnIdByName(_name);
+        res = this.getDateByIndex(columnPos);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDateTimeByName</Name>
+				<Source><![CDATA[
+    public TransDateTime getDateTimeByName(str _name)
+    {
+        TransDateTime res;
+        int           columnPos;
+        ;
+        columnPos = this.getColumnIdByName(_name);
+        res = this.getDateTimeByIndex(columnPos);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEnumByName</Name>
+				<Source><![CDATA[
+    public int getEnumByName(str _name, EnumId _enumId)
+    {
+        int           res;
+        int           columnPos;
+        ;
+
+        columnPos = this.getColumnIdByName(_name);
+        res = this.getEnumByPos(columnPos, _enumId);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStringByIndex</Name>
+				<Source><![CDATA[
+    public str getStringByIndex(int _columnNum)
+    {
+        str     res;
+        Types   curType;
+        ;
+        curType = typeOf(conPeek(curRowData, _columnNum));
+        if (curType == Types::String)
+        {
+            res = conPeek(curRowData, _columnNum);
+            res = strLRTrim(res);
+        }
+        else
+        {
+            res = System.Convert::ToString(CLRInterop::getObjectForAnyType(conPeek(curRowData, _columnNum)));
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRealByIndex</Name>
+				<Source><![CDATA[
+    public real getRealByIndex(int _columnNum)
+    {
+        real        res;
+        Types       curType;
+        anytype     dataVal = conPeek(curRowData, _columnNum);
+        ;
+        if (dataVal)
+        {
+            curType = typeOf(dataVal);
+            if (curType == Types::Real)
+            {
+                res = dataVal;
+            }
+            else
+            {
+                res = System.Convert::ToDecimal(dataVal);
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getIntByIndex</Name>
+				<Source><![CDATA[
+    public int64 getIntByIndex(int _columnNum)
+    {
+        int64       res;
+        Types       curType;
+        anytype     dataVal = conPeek(curRowData, _columnNum);
+        ;
+        if (dataVal)
+        {
+            curType = typeOf(dataVal);
+            if (curType == Types::Real || curType == Types::Integer || curType == Types::Int64)
+            {
+                res = dataVal;
+            }
+            else
+            {
+                res = System.Convert::ToInt64(dataVal);
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDateByIndex</Name>
+				<Source><![CDATA[
+    public TransDate getDateByIndex(int _columnNum)
+    {
+        TransDate   res;
+        Types       curType;
+        anytype     dataVal = conPeek(curRowData, _columnNum);
+        ;
+        if (dataVal)
+        {
+            curType = typeOf(dataVal);
+            if (curType == Types::Date )
+            {
+                res = dataVal;
+            }
+            else
+            {
+                if (curType == Types::Real)
+                {
+                    res = System.DateTime::FromOADate(dataVal);
+                }
+                else
+                {
+                    if (dateFormatStr)
+                    {
+                        res = System.DateTime::ParseExact(dataVal, dateFormatStr, System.Globalization.CultureInfo::get_InvariantCulture());
+                    }
+                    else
+                    {
+                        res = System.Convert::ToDateTime(dataVal);
+                    }
+                }
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDateTimeByIndex</Name>
+				<Source><![CDATA[
+    public TransDateTime getDateTimeByIndex(int _columnNum)
+    {
+        TransDateTime   res;
+        Types           curType;
+        anytype         dataVal = conPeek(curRowData, _columnNum);
+        ;
+        if (dataVal)
+        {
+            curType = typeOf(dataVal);
+            if (curType == Types::Date || curType == Types::UtcDateTime)
+            {
+                res = dataVal;
+            }
+            else
+            {
+                if (curType == Types::Real)
+                {
+                    res = System.DateTime::FromOADate(dataVal);
+                }
+                else
+                {
+                    res = System.Convert::ToDateTime(dataVal);
+                }
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEnumByPos</Name>
+				<Source><![CDATA[
+    public int getEnumByPos(int _columnNum, EnumId _enumId)
+    {
+        int         res;
+        anytype     dataVal = conPeek(curRowData, _columnNum);
+        DictEnum    dictEnum ;
+        str         typeString;
+        const int   EnumValueNotFound = 255;
+        ;
+        if (dataVal)
+        {
+            dictEnum    = new DictEnum(_enumId);
+
+            typeString = this.getStringByIndex(_columnNum);
+
+            res = DMFEntityBase::string2Enum(typeString, _enumId);
+
+            if (res && !dictEnum.value2Symbol(res))
+            {
+                res = EnumValueNotFound;
+            }
+
+            if (res == EnumValueNotFound)
+            {
+                throw error(strFmt("Enum %1 does not contain value '%2'(row %3, column %4)",
+                        dictEnum.name(), typeString, curRow, _columnNum));
+            }
+        }
+        else
+        {
+            res = 0;
+        }
+
+        
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readHeaderRow</Name>
+				<Source><![CDATA[
+    public boolean readHeaderRow()
+    {
+        boolean     res;
+        int         columnNum;
+
+        str         columnName;
+
+        this.readNextRow();
+
+        headerNamesMap = new Map(Types::String, Types::Integer);
+        
+        
+        for (columnNum = 1; columnNum <= curRowColumnsCount; columnNum++)
+        {
+            res = true;
+            if (typeOf(conPeek(curRowData, columnNum)) != Types::String)
+            {
+                throw error(strFmt("Column %1 for the header row %2 should have String type", columnNum, curRow));
+            }
+            columnName = conPeek(curRowData, columnNum);
+            columnName = strLRTrim(columnName);
+            if (headerNamesMap.exists(columnName))
+            {
+                throw error(strFmt("Column name %1 is the same in %2 and %3 columns ", columnName, columnNum, headerNamesMap.lookup(columnName)));
+            }
+            if (! columnName)
+            {
+                break;
+            }
+            headerNamesMap.insert(columnName, columnNum);
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isColumnExists</Name>
+				<Source><![CDATA[
+    public boolean  isColumnExists(str _columnName)
+    {
+        return headerNamesMap.exists(_columnName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readNextRow</Name>
+				<Source><![CDATA[
+    public boolean readNextRow()
+    {
+        boolean  res;
+        
+        curRow++;
+
+
+        if (! maxColToCheckData)
+        {
+            maxColToCheckData = 3;//3 first columns should have at least one value
+        }
+
+        curRowData = conPeek(excelDataCon, curRow);
+
+        curRowColumnsCount = conLen(curRowData);
+
+        for(int i = 1; i <= min(curRowColumnsCount, maxColToCheckData); i++)
+        {
+            if (conPeek(curRowData, i))
+            {
+                res = true;
+                break;
+            }
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRowsCount</Name>
+				<Source><![CDATA[
+    public int getRowsCount()
+    {
+        return rowsCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurRowColumnsCount</Name>
+				<Source><![CDATA[
+    public int getCurRowColumnsCount()
+    {
+        return curRowColumnsCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>openFile</Name>
+				<Source><![CDATA[
+    public void openFile(System.IO.Stream _stream)
+    {
+        throw error(Error::missingOverload(funcName()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWorkShetNo</Name>
+				<Source><![CDATA[
+    public int parmWorkShetNo(int  _workShetNo = workShetNo)
+    {
+        workShetNo = _workShetNo;
+        return  workShetNo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmInFieldDelimiter</Name>
+				<Source><![CDATA[
+    public str parmInFieldDelimiter(str  _inFieldDelimiter = inFieldDelimiter)
+    {
+        inFieldDelimiter = _inFieldDelimiter;
+        return  inFieldDelimiter;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

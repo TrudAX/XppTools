@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVFileReaderCSV</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.VisualBasic.FileIO;
+
+class DEVFileReaderCSV extends DEVFileReaderBase
+{   
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>readCSVFile</Name>
+				<Source><![CDATA[
+    public void readCSVFile(System.IO.Stream _stream, str _inFieldDelimiter = ',')
+    {
+        this.parmInFieldDelimiter(_inFieldDelimiter);
+        this.openFile(_stream);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>openFile</Name>
+				<Source><![CDATA[
+    public void openFile(System.IO.Stream _stream)
+    {
+        container   rowData;
+        
+        this.initNewFile();
+        if (! _stream )
+        {
+            return;
+        }
+        TextFieldParser parser = new TextFieldParser(_stream);
+        parser.SetDelimiters(inFieldDelimiter ? inFieldDelimiter : ',');
+        parser.set_HasFieldsEnclosedInQuotes(true);
+        parser.TextFieldType  = Microsoft.VisualBasic.FileIO.FieldType::Delimited;
+        parser.TrimWhiteSpace = false;
+
+        System.String[]     netArray;
+        int                 xppArrayLength;
+        netArray = parser.ReadFields();
+
+        if (netArray != null)
+        {
+            xppArrayLength = netArray.get_Length();
+        }
+        while(xppArrayLength)
+        {
+            int counter;
+            str xppValue;
+            rowData = conNull();
+
+            for(counter = 1; counter <= xppArrayLength; counter++)
+            {
+                xppValue = netArray.GetValue(counter-1);
+                rowData += xppValue;
+
+            }
+            if (rowData != conNull())
+            {
+                excelDataCon += [rowData];
+                rowsCount++;
+            }
+            else
+            {
+                break;
+            }
+
+            netArray = parser.ReadFields();
+            if (netArray != null)
+            {
+                xppArrayLength = netArray.get_Length();
+            }
+            else
+            {
+                break;
+            }
+        }
+        if (_stream)
+        {
+            _stream.Close();
+        }
+
+        /*
+        If you don't want VisualBasic.FileIO reference
+        TextIO              file;
+        FileIOPermission    FIOPermission;
+        container           rowData;
+        ;
+
+        rowsCount    = 0;
+        excelDataCon = conNull();
+        updatedRecords  = 0;
+        insertedRecords = 0;
+        skippedRecords  = 0;
+
+        if (! _fileName )
+        {
+            return;
+        }
+        FIOPermission       = new FileIOPermission(_filename ,#IO_READ);
+        FIOPermission.assert();
+
+        file                = new TextIO(_filename, #IO_Read);
+        file.inFieldDelimiter(inFieldDelimiter);
+        file.inRecordDelimiter(#delimiterCRLF);
+
+        while (file.status() == IO_Status::Ok)
+        {
+            rowData = file.read(); // To read file
+
+            if (rowData != conNull())
+            {
+                excelDataCon += [rowData];
+                rowsCount++;
+            }
+        }
+        */
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
