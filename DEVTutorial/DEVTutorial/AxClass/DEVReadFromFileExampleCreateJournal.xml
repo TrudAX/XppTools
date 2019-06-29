@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVReadFromFileExampleCreateJournal</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVReadFromFileExampleCreateJournal extends RunBaseBatch
+{
+    LedgerJournalNameIdDaily  ledgerJournalNameIdDaily;
+    
+    DialogField               dlgLedgerJournalNameIdDaily;
+    
+    
+    DialogRunbase     dialog;
+    private const str FileUploadName = 'FileUpload';
+    private const str OkButtonName   = 'OkButton';
+    FileUploadTemporaryStorageResult    fileUploadResult;
+
+    DEVFileReaderExcel   fileReader;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        ledgerJournalNameIdDaily
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        dialog = super();
+        DialogGroup       dialogGroup;
+        FormBuildControl  formBuildControl;
+        FileUploadBuild   dialogFileUpload;
+        ;
+        dialogGroup      = dialog.addGroup("File");
+        formBuildControl = dialog.formBuildDesign().control(dialogGroup.name());
+        dialogFileUpload = formBuildControl.addControlEx(classstr(FileUpload), FileUploadName);
+        dialogFileUpload.style(FileUploadStyle::MinimalWithFilename);
+        dialogFileUpload.baseFileUploadStrategyClassName(classstr(FileUploadTemporaryStorageStrategy));
+        dialogFileUpload.fileTypesAccepted('.xlsx');
+        dialogFileUpload.fileNameLabel("@SYS308842");
+        
+        dlgLedgerJournalNameIdDaily  = dialog.addFieldValue(extendedtypestr(LedgerJournalNameIdDaily), ledgerJournalNameIdDaily);
+        dlgLedgerJournalNameIdDaily.mandatory_RU(true);
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        FileUpload  fileUploadControl = this.getFormControl(dialog, FileUploadName);
+        fileUploadResult = fileUploadControl.getFileUploadResult();
+        
+        ledgerJournalNameIdDaily   = dlgLedgerJournalNameIdDaily.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLedgerJournalNameIdDaily</Name>
+				<Source><![CDATA[
+    public LedgerJournalNameIdDaily parmLedgerJournalNameIdDaily(LedgerJournalNameIdDaily _ledgerJournalNameIdDaily = ledgerJournalNameIdDaily)
+    {
+        ledgerJournalNameIdDaily = _ledgerJournalNameIdDaily;
+        return ledgerJournalNameIdDaily;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createLedgerJournal</Name>
+				<Source><![CDATA[
+    void createLedgerJournal()
+    {
+        LedgerJournalTable      ledgerJournalTable;
+        LedgerJournalEngine     ledgerJournalEngine;
+        ledgerJournalTrans      ledgerJournalTrans;
+
+        ttsbegin;
+        while (fileReader.readNextRow())
+        {           
+            if (!ledgerJournalTable.RecId)
+            {
+                ledgerJournalTable.clear();
+                ledgerJournalTable.initValue();
+                ledgerJournalTable.JournalName = ledgerJournalNameIdDaily;
+                ledgerJournalTable.initFromLedgerJournalName();
+                ledgerJournalTable.JournalNum = JournalTableData::newTable(ledgerJournalTable).nextJournalId();
+                ledgerJournalTable.Name = strFmt("Excel file, Date %1", DEV::systemdateget());
+                ledgerJournalTable.insert();
+
+                info(strFmt("Journal %1 created", ledgerJournalTable.JournalNum));
+
+                ledgerJournalEngine = LedgerJournalEngine::construct(ledgerJournalTable.JournalType);
+                ledgerJournalEngine.newJournalActive(ledgerJournalTable);
+            }
+
+            ledgerJournalTrans.clear();
+            ledgerJournalTrans.initValue();
+            ledgerJournalEngine.initValue(ledgerJournalTrans);
+            ledgerJournalTrans.JournalNum           =   ledgerJournalTable.JournalNum;
+            ledgerJournalTrans.TransDate            =   DEV::systemdateget();
+            ledgerJournalTrans.AccountType          =   LedgerJournalACType::Ledger;
+            ledgerJournalTrans.modifiedField(fieldNum(LedgerJournalTrans, AccountType));
+
+            ledgerJournalTrans.LedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
+                LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(fileReader.getStringByName('Main account')),
+                DEVDimensionHelper::setValueToDefaultDimension(0, DEVDimensionHelper::BusinessUnit, fileReader.getStringByName('BusinessUnit')));
+
+            if (!ledgerJournalTrans.LedgerDimension)
+            {
+                throw error("Missing or invalid ledger dimension for journal process");
+            }
+            ledgerJournalTrans.modifiedField(fieldNum(LedgerJournalTrans, LedgerDimension));
+            ledgerJournalEngine.accountModified(LedgerJournalTrans);
+
+            //amounts
+            ledgerJournalTrans.CurrencyCode         =   Ledger::accountingCurrency();
+            ledgerJournalEngine.currencyModified(LedgerJournalTrans);
+            ledgerJournalTrans.amountCur2DebCred(fileReader.getRealByName('Amount'));
+           
+            //additional fields
+            ledgerJournalTrans.Approver           = HcmWorker::userId2Worker(curuserid());
+            ledgerJournalTrans.Approved           = NoYes::Yes;
+
+            DEV::validateWriteRecordCheck(ledgerJournalTrans);
+            ledgerJournalTrans.insert();
+            ledgerJournalEngine.write(ledgerJournalTrans);
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        info(strFmt("ledgerJournalNameIdDaily=%1", ledgerJournalNameIdDaily));
+        System.IO.MemoryStream memoryStreamFile;
+        try
+        {
+            if (!fileUploadResult)
+            {
+                throw error("File is empty");
+            }
+            //get file names
+            container fileNameCon = Docu::splitFilename(fileUploadResult.getFileName());
+            if (!fileNameCon)
+            {
+                throw error("File is empty");
+            }
+            str fileName   = strFmt('%1.%2', conPeek(fileNameCon, 1), conPeek(fileNameCon, 2));
+            str folderName = strFmt('%1', conPeek(fileNameCon, 3));
+            //get file data
+            memoryStreamFile = fileUploadResult.openResult();
+            fileReader   = new DEVFileReaderExcel();
+            fileReader.openFile(memoryStreamFile);
+            fileReader.readHeaderRow();
+           
+        }
+        catch (Exception::Error)
+        {
+            exceptionTextFallThrough();
+        }
+        finally
+        {
+            fileUploadResult.deleteResult();
+            memoryStreamFile = null;
+        }
+        this.createLedgerJournal();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialogPostRun</Name>
+				<Source><![CDATA[
+    public void dialogPostRun(DialogRunbase _dialog)
+    {
+        FileUpload fileUpload = this.getFormControl(_dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted += eventhandler(this.uploadCompleted);
+        this.setDialogOkButtonEnabled(_dialog, false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uploadCompleted</Name>
+				<Source><![CDATA[
+    protected void uploadCompleted()
+    {
+        FileUpload fileUpload = this.getFormControl(dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted -= eventhandler(this.uploadCompleted);
+        this.setDialogOkButtonEnabled(dialog, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDialogOkButtonEnabled</Name>
+				<Source><![CDATA[
+    protected void setDialogOkButtonEnabled(DialogRunbase _dialog, boolean _isEnabled)
+    {
+        FormControl okButtonControl = this.getFormControl(_dialog, OkButtonName);
+        if (okButtonControl)
+        {
+            okButtonControl.enabled(_isEnabled);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFormControl</Name>
+				<Source><![CDATA[
+    protected FormControl getFormControl(DialogRunbase _dialog, str _controlName)
+    {
+        return _dialog.formRun().control(_dialog.formRun().controlId( _controlName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVReadFromFileExampleCreateJournal construct()
+    {
+        return new DEVReadFromFileExampleCreateJournal();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Create ledger journal from Excel";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVReadFromFileExampleCreateJournal    runObject = DEVReadFromFileExampleCreateJournal::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.run();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

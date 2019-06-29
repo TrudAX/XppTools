@@ -49,6 +49,8 @@ class DEVFileReaderBase
     str  inFieldDelimiter;
     int  workShetNo;
 
+    System.Diagnostics.Stopwatch stopwatch;
+
 }
 ]]></Declaration>
 		<Methods>
@@ -63,6 +65,26 @@ class DEVFileReaderBase
         updatedRecords  = 0;
         insertedRecords = 0;
         skippedRecords  = 0;
+
+        stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTimeSec</Name>
+				<Source><![CDATA[
+    real getTimeSec()
+    {
+        real res;
+        if (stopwatch != null)
+        {
+            stopwatch.Stop();
+            res = stopwatch.get_ElapsedMilliseconds() / 1000;
+            res = decRound(res, 2);
+        }
+        return res;
     }
 
 ]]></Source>

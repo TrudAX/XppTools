@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVReadFromFileExamplePerf</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVReadFromFileExamplePerf extends RunBaseBatch
+{
+    LedgerJournalNameIdDaily  ledgerJournalNameIdDaily;
+    TransDate                 transDate;
+    
+    DialogField               dlgLedgerJournalNameIdDaily;
+    DialogField               dlgTransDate;
+    
+    
+    DialogRunbase     dialog;
+    private const str FileUploadName = 'FileUpload';
+    private const str OkButtonName   = 'OkButton';
+    FileUploadTemporaryStorageResult    fileUploadResult;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        ledgerJournalNameIdDaily,
+        transDate
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        dialog = super();
+        DialogGroup       dialogGroup;
+        FormBuildControl  formBuildControl;
+        FileUploadBuild   dialogFileUpload;
+        ;
+        dialogGroup      = dialog.addGroup("File");
+        formBuildControl = dialog.formBuildDesign().control(dialogGroup.name());
+        dialogFileUpload = formBuildControl.addControlEx(classstr(FileUpload), FileUploadName);
+        dialogFileUpload.style(FileUploadStyle::MinimalWithFilename);
+        dialogFileUpload.baseFileUploadStrategyClassName(classstr(FileUploadTemporaryStorageStrategy));
+        //dialogFileUpload.fileTypesAccepted('.xlsx');
+        dialogFileUpload.fileNameLabel("@SYS308842");
+        
+        dlgLedgerJournalNameIdDaily  = dialog.addFieldValue(extendedtypestr(LedgerJournalNameIdDaily), ledgerJournalNameIdDaily);
+        dlgTransDate                 = dialog.addFieldValue(extendedtypestr(TransDate), transDate);
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        FileUpload  fileUploadControl = this.getFormControl(dialog, FileUploadName);
+        fileUploadResult = fileUploadControl.getFileUploadResult();
+        
+        ledgerJournalNameIdDaily   = dlgLedgerJournalNameIdDaily.value();
+        transDate                  = dlgTransDate.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLedgerJournalNameIdDaily</Name>
+				<Source><![CDATA[
+    public LedgerJournalNameIdDaily parmLedgerJournalNameIdDaily(LedgerJournalNameIdDaily _ledgerJournalNameIdDaily = ledgerJournalNameIdDaily)
+    {
+        ledgerJournalNameIdDaily = _ledgerJournalNameIdDaily;
+        return ledgerJournalNameIdDaily;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTransDate</Name>
+				<Source><![CDATA[
+    public TransDate parmTransDate(TransDate _transDate = transDate)
+    {
+        transDate = _transDate;
+        return transDate;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        info(strFmt("ledgerJournalNameIdDaily=%1", ledgerJournalNameIdDaily));
+        info(strFmt("transDate=%1", transDate));
+        System.IO.MemoryStream memoryStreamFile;
+        try
+        {
+            if (!fileUploadResult)
+            {
+                throw error("File is empty");
+            }
+            //get file names
+            container fileNameCon = Docu::splitFilename(fileUploadResult.getFileName());
+            if (!fileNameCon)
+            {
+                throw error("File is empty");
+            }
+            str fileName   = strFmt('%1.%2', conPeek(fileNameCon, 1), conPeek(fileNameCon, 2));
+            str folderName = strFmt('%1', conPeek(fileNameCon, 3));
+            //get file data
+            memoryStreamFile = fileUploadResult.openResult();
+
+            DEVFileReaderBase   fileReader;
+
+            if (conPeek(fileNameCon, 2) == 'xlsx')
+            {
+                fileReader   = new DEVFileReaderExcel();
+            }
+            else
+            {
+                fileReader   = new DEVFileReaderCSV();                
+            }
+            fileReader.openFile(memoryStreamFile);
+            fileReader.readHeaderRow();
+            container c;
+            while (fileReader.readNextRow())
+            {
+                c = [
+                fileReader.getStringByName("Field1"), fileReader.getStringByName("Field2"),
+                fileReader.getStringByName("Field3"), fileReader.getStringByName("Field4"),
+                fileReader.getStringByName("Field5"), fileReader.getStringByName("Field6"),
+                fileReader.getIntByName("Field7"),    fileReader.getIntByName("Field8"),
+                fileReader.getRealByName("Field9"),   fileReader.getDateByName("Field10")  ];
+            }
+            info(strFmt("Time to process %1 file: %2 sec",
+                    fileName, fileReader.getTimeSec()));
+        }
+        catch (Exception::Error)
+        {
+            exceptionTextFallThrough();
+        }
+        finally
+        {
+            fileUploadResult.deleteResult();
+            memoryStreamFile = null;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialogPostRun</Name>
+				<Source><![CDATA[
+    public void dialogPostRun(DialogRunbase _dialog)
+    {
+        FileUpload fileUpload = this.getFormControl(_dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted += eventhandler(this.uploadCompleted);
+        this.setDialogOkButtonEnabled(_dialog, false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uploadCompleted</Name>
+				<Source><![CDATA[
+    protected void uploadCompleted()
+    {
+        FileUpload fileUpload = this.getFormControl(dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted -= eventhandler(this.uploadCompleted);
+        this.setDialogOkButtonEnabled(dialog, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDialogOkButtonEnabled</Name>
+				<Source><![CDATA[
+    protected void setDialogOkButtonEnabled(DialogRunbase _dialog, boolean _isEnabled)
+    {
+        FormControl okButtonControl = this.getFormControl(_dialog, OkButtonName);
+        if (okButtonControl)
+        {
+            okButtonControl.enabled(_isEnabled);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFormControl</Name>
+				<Source><![CDATA[
+    protected FormControl getFormControl(DialogRunbase _dialog, str _controlName)
+    {
+        return _dialog.formRun().control(_dialog.formRun().controlId( _controlName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVReadFromFileExamplePerf construct()
+    {
+        return new DEVReadFromFileExamplePerf();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Read From Excel";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVReadFromFileExamplePerf    runObject = DEVReadFromFileExamplePerf::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.run();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
