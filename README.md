@@ -10,9 +10,11 @@ This repository contains 3 D365FO models:
 - [DEVCommon model](#devcommon-model): X++ code, that can be shared between different projects.
   - [-DEV class](#-dev-class)
   - [-DEVDimensionHelper class](#-devdimensionhelper-class)
+  - [-Read Excel and CSV files](#-read-excel-and-csv-files)
 - [DEVTutorial model](#devtutorial-model): Various X++ examples, that can be used to test something or used as a template
   - [-Blocking in D365FO](#-blocking-in-d365fo)
   - [-Create ledger journals using X++](#-create-ledger-journals-using-x)
+  - [-Create ledger journal from Excel file](#-create-ledger-journal-from-excel-file)
 - [Installation](#installation)
 - [Contribution](#contribution)
 
@@ -55,6 +57,12 @@ Collection of [global methods](https://denistrunin.com/xpptools-devglobal/)
 
 Description: Working with the [Financial dimensions](https://denistrunin.com/xpptools-devfindim/)
 
+### -Read Excel and CSV files
+
+Classes: [**DEVFileReaderBase**](https://github.com/TrudAX/XppTools/blob/master/DEVCommon/DEVCommon/AxClass/DEVFileReaderBase.xml),  [**DEVFileReaderCSV**](https://github.com/TrudAX/XppTools/blob/master/DEVCommon/DEVCommon/AxClass/DEVFileReaderCSV.xml) and  [**DEVFileReaderExcel**](https://github.com/TrudAX/XppTools/blob/master/DEVCommon/DEVCommon/AxClass/DEVFileReaderExcel.xml)  - read from CSV and XLSX files
+
+Description: [How to read Excel and CSV files in D365FO using X++](https://denistrunin.com/xpptools-readexcelfile/)
+
 **[⬆ back to top](#XppTools)**
 
 ## DEVTutorial model
@@ -72,6 +80,10 @@ Form **DEVBlockingTest**, table **DEVBlockingTestTable**(to test SQL blocking is
 Class **[DEVTutorialCreateLedgerJournal](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVTutorialCreateLedgerJournal.xml)** that demonstrates different methods for a ledger journal creation
 
 [Create ledger journals in D365FO using X++](https://denistrunin.com/xpptools-createledgerjournal/)
+
+### -Create ledger journal from Excel file
+
+Class [**DEVReadFromFileExampleCreateJournal**](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVReadFromFileExampleCreateJournal.xml)  - sample code to create a ledger journal from Excel file
 
 **[⬆ back to top](#XppTools)**
 
