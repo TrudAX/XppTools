@@ -66,7 +66,18 @@ class DEVDimensionHelper
 
         return res;
     }
-
+    //To filter by dimension value
+    //https://www.1clickfactory.com/blog/microsoft-dynamics-365-changes-to-financial-dimensions-structure/
+    /*
+    businessUnitId = DimensionAttributeValueCombination::getDimensionValueFieldId(DEVDimensionHelper::BusinessUnit);
+    while select ProjId from projTable
+    exists join davs
+        where davs.RecId            == projTable.DefaultDimension &&
+              davs.(businessUnitId) == '20' ...
+    qbdDimensionAttributeValueSet = qbdProjTable.addDataSource(tableNum(DimensionAttributeValueSet));
+    qbdDimensionAttributeValueSet.relations(true);
+    SysQuery::findOrCreateRange(qbdDimensionAttributeValueSet, businessUnitId).value('20');
+    */
 ]]></Source>
 			</Method>
 			<Method>
