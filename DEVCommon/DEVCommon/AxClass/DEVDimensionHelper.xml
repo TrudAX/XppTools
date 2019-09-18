@@ -18,6 +18,8 @@ class DEVDimensionHelper
 				<Source><![CDATA[
     //CREATE A NEW FINANCIAL DIMENSION
     //https://docs.microsoft.com/en-us/dynamics365/unified-operations//dev-itpro/financial/dimensionable-entities
+    //INTERNAL STRUCTURE 
+    //https://docs.microsoft.com/en-us/dynamics365/unified-operations/dev-itpro/financial/ledgeraccountcombinations
 
     //FILTER VALUES
     //SysQuery::addDimensionAttributeRange(
