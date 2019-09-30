@@ -4,19 +4,21 @@ Useful X++ code samples
 
 This repository contains 3 D365FO models:
 
-- [DEVTools model](#devtools-model): User X++ utilities, providing additional application functionality
-  - [-Fields list](#-fields-list)
-  - [-Display system field name in the query filter](#-display-system-field-name-in-the-query-filter)
-- [DEVCommon model](#devcommon-model): X++ code, that can be shared between different projects.
-  - [-DEV class](#-dev-class)
-  - [-DEVDimensionHelper class](#-devdimensionhelper-class)
-  - [-Read Excel and CSV files](#-read-excel-and-csv-files)
-- [DEVTutorial model](#devtutorial-model): Various X++ examples, that can be used to test something or used as a template
-  - [-Blocking in D365FO](#-blocking-in-d365fo)
-  - [-Create ledger journals using X++](#-create-ledger-journals-using-x)
-  - [-Create ledger journal from Excel file](#-create-ledger-journal-from-excel-file)
-- [Installation](#installation)
-- [Contribution](#contribution)
+- [XppTools](#xpptools)
+  - [DEVTools model](#devtools-model)
+    - [-Fields list](#-fields-list)
+    - [-Display system field name in the query filter](#-display-system-field-name-in-the-query-filter)
+    - [-Display table relation fields](#-display-table-relation-fields)
+  - [DEVCommon model](#devcommon-model)
+    - [-DEV class](#-dev-class)
+    - [-DEVDimensionHelper class](#-devdimensionhelper-class)
+    - [-Read Excel and CSV files](#-read-excel-and-csv-files)
+  - [DEVTutorial model](#devtutorial-model)
+    - [-Blocking in D365FO](#-blocking-in-d365fo)
+    - [-Create ledger journals using X++](#-create-ledger-journals-using-x)
+    - [-Create ledger journal from Excel file](#-create-ledger-journal-from-excel-file)
+  - [Installation](#installation)
+  - [Contribution](#contribution)
 
 The DEV prefix is used for all objects.
 
@@ -40,6 +42,16 @@ Full description: [Filter by AOT name](https://denistrunin.com/xpptools-queryfie
 
 ![](assets/DEVQueryFieldsAOTName.png)
 ![](assets/DEVQueryFieldsAOTNamePers.png)
+
+### -Display table relation fields
+
+This utility adds additional relation information into **Add table join** function of the standard Advanced query form(Advanced filter or sort - Joins - Add table join)
+
+Code is based on **sukhanchik** post on [axForum](https://translate.google.com/translate?hl=en&sl=ru&tl=en&u=http%3A%2F%2Faxforum.info%2Fforums%2Fshowthread.php%3Fp%3D417433%23post417433&sandbox=1)
+
+Sub-model name: DEVSysQueryFormAddRelInfo
+
+![](assets/DEVSysQueryFormAddRelInfo.png)
 
 **[⬆ back to top](#XppTools)**
 
