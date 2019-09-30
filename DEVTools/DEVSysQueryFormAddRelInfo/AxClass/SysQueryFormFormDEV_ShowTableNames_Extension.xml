@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SysQueryFormFormDEV_ShowTableNames_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(formcontrolstr(SysQueryForm, ShowTableNames))]
+final class SysQueryFormFormDEV_ShowTableNames_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>modified</Name>
+				<Source><![CDATA[
+    public boolean modified()
+    {
+        boolean ret;
+        FormRun fr = element;
+        ret = next modified();
+
+        FormStringControl relationDescriptionCtrl = fr.design().controlName(formControlStr(SysQueryForm, TmpSysQueryAddDataSource_DEVRelationDescription));
+        boolean visible = this.checked();
+        relationDescriptionCtrl.visible(visible);
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

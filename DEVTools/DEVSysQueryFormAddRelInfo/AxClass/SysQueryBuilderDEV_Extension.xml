@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SysQueryBuilderDEV_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classstr(SysQueryBuilder))]
+// VSUH, Add Relation info into SysQueryForm, 24.05.2019
+//https://github.com/TrudAX/XppTools
+final class SysQueryBuilderDEV_Extension
+{
+    #define.One2Many('1:n')
+    #define.Many2One('n:1')
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>PopulateAddDatasourceTables</Name>
+				<Source><![CDATA[
+    public boolean PopulateAddDatasourceTables(tableId _tableId, TmpSysQueryAddDataSource _addDataSourceTmpTable)
+    {
+        boolean             ret;
+        SysDictTable        orgDictTable;
+        SysDictTable        derivedTable;
+        tableId             originalTableId = _tableId;
+        ListEnumerator      derivedTables;
+
+        ret = next PopulateAddDatasourceTables(_tableId, _addDataSourceTmpTable);
+        if (ret)
+        {
+            do
+            {
+                orgDictTable = new SysDictTable(_tableId);
+                this.updateRelationInfo(orgDictTable, _addDataSourceTmpTable);
+                _tableId = orgDictTable.supportInheritance()? orgDictTable.extends(): 0;
+            }
+            while (_tableId != 0);
+
+            //Process tables down in the hierarchy
+            orgDictTable = new SysDictTable(originalTableId);
+            derivedTables = orgDictTable.extendedBy().getEnumerator();
+            while(derivedTables.moveNext())
+            {
+                derivedTable = new SysDictTable(derivedTables.current());
+                this.updateRelationInfo(derivedTable, _addDataSourceTmpTable);
+            }
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateRelationInfo</Name>
+				<Source><![CDATA[
+    private void updateRelationInfo(SysDictTable _dictTable, TmpSysQueryAddDataSource _addDataSourceTmpTable)
+    {
+        TmpSysQueryAddDataSource locAddDataSourceTmpTable;
+        SysDictRelation          dictRelation;
+        ;
+        if (!SysQueryForm::hasValidCountryCode(_dictTable.id()))
+        {
+            return;
+        }
+        locAddDataSourceTmpTable.linkPhysicalTableInstance(_addDataSourceTmpTable);
+        ttsbegin;
+        while select forupdate locAddDataSourceTmpTable
+            where locAddDataSourceTmpTable.Relation
+        {
+            if (locAddDataSourceTmpTable.JoinMode == #One2Many)
+            {
+                dictRelation = this.getDictRelation(_dictTable.id(), locAddDataSourceTmpTable.Relation, locAddDataSourceTmpTable.Table);
+            }
+            else
+            {
+                dictRelation = this.getDictRelation(locAddDataSourceTmpTable.Table, locAddDataSourceTmpTable.Relation, _dictTable.id());
+            }
+            if (dictRelation)
+            {
+                str s = '';
+                for (int i = 1; i <= dictRelation.lines(); i++)
+                {
+                    if (s)
+                    {
+                        s += '&&';
+                    }
+                    s += strFmt('(%1)', dictRelation.lineDescription(i));
+                }
+                locAddDataSourceTmpTable.DEVRelationDescription = s;
+                locAddDataSourceTmpTable.update();
+            }
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDictRelation</Name>
+				<Source><![CDATA[
+    private SysDictRelation getDictRelation(tableId _tableId, fieldId _fieldId = 0, tableId _relatedTableId = 0)
+    {
+        SysDictRelation    dictRelation;
+        ;
+        dictRelation = new SysDictRelation(_relatedTableId);
+
+        if (dictRelation)
+        {
+            dictRelation.loadFieldRelation(_fieldId);
+            if (_tableId != dictRelation.externTable())
+            {
+                dictRelation.loadTableRelation(_tableId);
+            }
+        }
+
+        return dictRelation;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
