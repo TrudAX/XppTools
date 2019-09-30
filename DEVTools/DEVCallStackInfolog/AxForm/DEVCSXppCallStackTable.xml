@@ -56,8 +56,8 @@ public class DEVCSXppCallStackTable extends FormRun
         public void init()
         {
             super();
-            SysXppCallStackTable_ds.queryBuildDataSource().addRange(fieldNum(DEVCSTmpXppCallStackTable, CreatedBy)).value(curUserId());
-            SysXppCallStackTable_ds.queryBuildDataSource().addOrderByField(fieldNum(DEVCSTmpXppCallStackTable, RecId), SortOrder::Descending);
+            SysXppCallStackTable_ds.queryBuildDataSource().addRange(fieldNum(DEVCSXppCallStackTable, CreatedBy)).value(curUserId());
+            SysXppCallStackTable_ds.queryBuildDataSource().addOrderByField(fieldNum(DEVCSXppCallStackTable, RecId), SortOrder::Descending);
         }
 
 ]]></Source>
