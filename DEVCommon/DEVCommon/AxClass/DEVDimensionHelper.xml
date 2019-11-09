@@ -68,6 +68,12 @@ class DEVDimensionHelper
 
         return res;
     }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDefaultDimensionRecId</Name>
+				<Source><![CDATA[
     //To filter by dimension value
     //https://www.1clickfactory.com/blog/microsoft-dynamics-365-changes-to-financial-dimensions-structure/
     /*
@@ -80,11 +86,7 @@ class DEVDimensionHelper
     qbdDimensionAttributeValueSet.relations(true);
     SysQuery::findOrCreateRange(qbdDimensionAttributeValueSet, businessUnitId).value('20');
     */
-]]></Source>
-			</Method>
-			<Method>
-				<Name>setDefaultDimensionRecId</Name>
-				<Source><![CDATA[
+
     //--DefaultDimension merge with DefaultDimension
     //DimensionDefaultFacade::serviceMergeDefaultDimensions
 

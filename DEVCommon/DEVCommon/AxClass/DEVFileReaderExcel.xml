@@ -30,7 +30,7 @@ class DEVFileReaderExcel extends DEVFileReaderBase
         excelWorksheet = package.Workbook.Worksheets.get_Item(workShetNo ? workShetNo : 1);
         if (! excelWorksheet)
         {
-            throw error(strFmt("Failed to open Excel file"));
+            throw error("Failed to open Excel file");
         }
         this.readExcelDataToCon();   
     }

@@ -73,11 +73,13 @@ class DEV
     public static boolean canBeConverted(
         UnitOfMeasureSymbol     _fromUnitOfMeasure,
         UnitOfMeasureSymbol     _toUnitOfMeasure,
-        ItemId                  _ItemId)
+        ItemId                  _ItemId,
+        InventDimId             _inventDimId = InventDim::inventDimIdBlank())
     {
-        return UnitofMeasureConverter::canBeConverted(UnitOfMeasure::unitOfMeasureIdBySymbol(_fromUnitOfMeasure),
-                                                        UnitOfMeasure::unitOfMeasureIdBySymbol(_toUnitOfMeasure),
-                                                        InventTable::itemProduct(_itemId));
+        return EcoResProductUnitConverter::canBeConvertedGivenUnitSymbolsForReleasedProduct(_itemId, 
+                                                                                     _inventDimId,
+                                                                                     _fromUnitOfMeasure,
+                                                                                     _toUnitOfMeasure);
     }
 
 ]]></Source>
@@ -89,15 +91,26 @@ class DEV
         real                    _value,
         UnitOfMeasureSymbol     _fromUnitOfMeasure,
         UnitOfMeasureSymbol     _toUnitOfMeasure,
-        ItemId                  _ItemId,
-        NoYes                   _roundAbsoluteValue = true,
-        boolean                 _errorMessage = true  )
+        ItemId                  _itemId,
+        InventDimId             _inventDimId = InventDim::inventDimIdBlank(),
+        NoYes                   _roundAbsoluteValue = true)
     {
-        return UnitOfMeasureConverter::convert(_value,
-                                            UnitOfMeasure:: unitOfMeasureIdBySymbol(_fromUnitOfMeasure),
-                                            UnitOfMeasure:: unitOfMeasureIdBySymbol(_toUnitOfMeasure),
-                                            _roundAbsoluteValue, InventTable::itemProduct(_ItemId), _roundAbsoluteValue ,
-                                            _errorMessage ? false : true );
+        //boolean  _errorMessage = true probably not supported
+        //if you have InventDimId, better use convertGivenUnitSymbolsForReleasedProduct call directly
+        //old code:
+        //return UnitOfMeasureConverter::convert(_value,
+        //                                    UnitOfMeasure:: unitOfMeasureIdBySymbol(_fromUnitOfMeasure),
+        //                                    UnitOfMeasure:: unitOfMeasureIdBySymbol(_toUnitOfMeasure),
+        //                                    _roundAbsoluteValue, InventTable::itemProduct(_ItemId), _roundAbsoluteValue ,
+        //                                    _errorMessage ? false : true );
+        return EcoResProductUnitConverter::convertGivenUnitSymbolsForReleasedProduct(_ItemId, 
+                                                                              _inventDimId,
+                                                                              _value,
+                                                                              _fromUnitOfMeasure,
+                                                                              _toUnitOfMeasure,
+                                                                              _roundAbsoluteValue,
+                                                                              _roundAbsoluteValue);
+        
     }
 
 ]]></Source>
@@ -468,7 +481,7 @@ class DEV
         SecurityUserRole        securityUserRole;
         SecurityRole            securityRole;
         ;
-        select RecId from securityUserRole
+        select firstonly RecId from securityUserRole
             where  securityUserRole.User    == curUserId()
             join RecId from securityRole
                 where  securityRole.RecId == securityUserRole.SecurityRole
