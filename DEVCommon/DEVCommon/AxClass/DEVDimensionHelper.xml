@@ -101,7 +101,7 @@ class DEVDimensionHelper
 
             if (_newDimensionValue)
             {
-                dimensionAttributeValue = DimensionAttributeValue::findByDimensionAttributeAndValue(DimensionAttribute::find(_dimensionAttributeRecId), _newDimensionValue);
+                dimensionAttributeValue = DimensionAttributeValue::findByDimensionAttributeAndValue(DimensionAttribute::find(_dimensionAttributeRecId), _newDimensionValue, false, true);
                 dimStorage.addItem(dimensionAttributeValue);
             }
             else

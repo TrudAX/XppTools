@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialPurchConfirm</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVTutorialPurchConfirm extends RunBaseBatch
+{
+    NoYesId         isCreatePO;
+    PositiveNumber  stepPOLines;
+    PositiveNumber  maxPOLines;
+    NoYesId         isConfirmPO;
+    PurchId         purchIdConfirmInitial;
+    PositiveNumber  numPOToConfirm;
+    
+    DialogField     dlgIsCreatePO;
+    DialogField     dlgStepPOLines;
+    DialogField     dlgMaxPOLines;
+    DialogField     dlgIsConfirmPO;
+    DialogField     dlgPurchIdConfirmInitial;
+    DialogField     dlgNumPOToConfirm;
+    
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        isCreatePO,
+        stepPOLines,
+        maxPOLines,
+        isConfirmPO,
+        purchIdConfirmInitial,
+        numPOToConfirm
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgIsCreatePO             = dialog.addFieldValue(extendedtypestr(NoYesId), isCreatePO, "Create purch orders", "Create purch order with lines");
+        dlgStepPOLines            = dialog.addFieldValue(extendedtypestr(PositiveNumber), stepPOLines, "PO lines increment");
+        dlgMaxPOLines             = dialog.addFieldValue(extendedtypestr(PositiveNumber), maxPOLines, "Maximum PO lines");
+        dlgIsConfirmPO            = dialog.addFieldValue(extendedtypestr(NoYesId), isConfirmPO, "Confirm PO", "Confirm purchase orders");
+        dlgPurchIdConfirmInitial  = dialog.addFieldValue(extendedtypestr(PurchId), purchIdConfirmInitial, "Initial PO to confirm");
+        dlgNumPOToConfirm         = dialog.addFieldValue(extendedtypestr(PositiveNumber), numPOToConfirm, "Number of PO to confirm");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        isCreatePO              = dlgIsCreatePO.value();
+        stepPOLines             = dlgStepPOLines.value();
+        maxPOLines              = dlgMaxPOLines.value();
+        isConfirmPO             = dlgIsConfirmPO.value();
+        purchIdConfirmInitial   = dlgPurchIdConfirmInitial.value();
+        numPOToConfirm          = dlgNumPOToConfirm.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        if (isCreatePO)
+        {
+            this.processPOCreate();
+        }
+        if (isConfirmPO)
+        {
+            this.processPOConfirm();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processPOConfirm</Name>
+				<Source><![CDATA[
+    public void processPOConfirm()
+    {
+        PurchFormLetter         purchFormLetter;
+        PurchTable              purchTable;
+        int                     confirmedPOCount;
+        int                     numOfLines;
+        ;
+        if (! purchIdConfirmInitial)
+        {
+            throw error("Need to specify Initial PO");
+        }
+        while select purchTable
+            order by PurchId
+            where purchTable.PurchId >= purchIdConfirmInitial
+        {                
+            numOfLines = (select count(RecId) from purchLine where purchLine.PurchId == purchTable.PurchId).RecId;
+           
+            System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+            real                         timeMs;
+            stopwatch.Start();
+
+            ttsbegin;
+            purchFormLetter = purchFormLetter::construct(DocumentStatus::PurchaseOrder);
+            purchFormLetter.update(purchTable,'');
+            ttsabort;
+
+            stopwatch.Stop();
+            timeMs = stopwatch.get_ElapsedMilliseconds();
+            info(strFmt("Time to confirm PO %1 with %2 lines: %3 sec", purchTable.PurchId, numOfLines, timeMs / 1000));
+            
+            confirmedPOCount++;
+            if (confirmedPOCount >= numPOToConfirm)
+            {
+                break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processPOCreate</Name>
+				<Source><![CDATA[
+    public void processPOCreate()
+    {
+        if (stepPOLines <= 0)
+        {
+            throw error("Step should be more than 0");
+        }
+        int curLineCount = stepPOLines;
+        while (curLineCount <= maxPOLines)
+        {
+            ttsbegin;
+            this.createPOWithLines(curLineCount);
+            ttscommit;
+
+            curLineCount += stepPOLines;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createPOWithLines</Name>
+				<Source><![CDATA[
+    public void createPOWithLines(int _lineCount)
+    {
+        PurchTable            purchTable;    
+        int                   i,  currentLine;
+        PurchLine             purchLine;
+        DEVTutorialCombinationGenerator   combinationAccount = new DEVTutorialCombinationGenerator();
+        Query                             query;
+        ;
+        combinationAccount.setMaxElements(_lineCount);
+
+        combinationAccount.addLevel('OrderAccount', ['1001']);
+        combinationAccount.addLevel('InventLocationId', ['11']);
+        query = new Query();
+        query.addDataSource(tableNum(DimAttributeOMBusinessUnit));
+        combinationAccount.addLevelFromQuery('BusinessUnit', query, fieldNum(DimAttributeOMBusinessUnit, Value));
+        query = new Query();
+        query.addDataSource(tableNum(DimAttributeOMCostCenter));
+        combinationAccount.addLevelFromQuery('CostCenter',  query, fieldNum(DimAttributeOMCostCenter, Value));
+        combinationAccount.addLevel('ItemId', ['1000', 'C0001', 'C0002', 'M0001', 'M0002', 'M0003', 'M0005','M0006', 'M0007', 'M0009' ]);
+        
+
+        while (combinationAccount.moveToNext())
+        {
+            if (! purchTable.RecId)
+            {
+                purchTable.clear();
+                purchTable.initValue();
+
+                purchTable.PurchId = NumberSeq::newGetNum(PurchParameters::numRefPurchId()).num();
+                purchTable.OrderAccount = combinationAccount.getLevelValue('OrderAccount');
+                purchTable.initFromVendTable();
+    
+                purchTable.InventLocationId = combinationAccount.getLevelValue('InventLocationId');
+                purchTable.modifiedField(fieldNum(PurchTable, InventLocationId));
+        
+                DEV::validateWriteRecordCheck(purchTable);
+                purchTable.insert();
+            }
+
+            purchLine.clear();
+            purchLine.initFromPurchTable(purchTable);
+
+            purchLine.ItemId = combinationAccount.getLevelValue('ItemId');
+            purchLine.initFromInventTable(purchLine.inventTable());
+
+            purchLine.DefaultDimension = DEVDimensionHelper::setValueToDefaultDimension(
+                purchLine.DefaultDimension, DEVDimensionHelper::BusinessUnit, combinationAccount.getLevelValue('BusinessUnit'));
+
+            purchLine.DefaultDimension = DEVDimensionHelper::setValueToDefaultDimension(
+                purchLine.DefaultDimension, DEVDimensionHelper::CostCenter, combinationAccount.getLevelValue('CostCenter'));
+            
+            purchLine.PurchQty = 1;
+            purchLine.PurchPrice = 10;
+            purchLine.LineAmount = purchLine.calcLineAmount();
+
+            purchLine.createLine(true, false, false, true, true, false);
+
+            currentLine++;
+        }
+    
+        info(strFmt("PO %1 has been created with %2 lines", purchTable.PurchId, currentLine ));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVTutorialPurchConfirm construct()
+    {
+        return new DEVTutorialPurchConfirm();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Create and confirm PO";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVTutorialPurchConfirm    runObject = DEVTutorialPurchConfirm::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        super();
+
+        isCreatePO = true;
+        stepPOLines = 200;
+        maxPOLines = 2000;
+        numPOToConfirm = 1;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

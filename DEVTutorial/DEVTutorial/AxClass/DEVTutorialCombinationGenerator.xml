@@ -61,6 +61,30 @@ class DEVTutorialCombinationGenerator
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>addLevelFromQuery</Name>
+				<Source><![CDATA[
+    public void addLevelFromQuery(str _levelName, Query _query, FieldId _queryField)
+    {
+        container       levelDataLine;
+        QueryRun        qr = new QueryRun(_query);
+        Common          cursor;
+        
+        while (qr.next())
+        {
+            cursor = qr.getNo(1);
+            levelDataLine += cursor.(_queryField);
+        }
+
+        if (levelDataLine == conNull())
+        {
+            throw error(strFmt("No data for level %1", _levelName));
+        }
+        this.addLevel(_levelName, levelDataLine);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>moveToNext</Name>
 				<Source><![CDATA[
     public boolean moveToNext()
