@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVDimNamesReference</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVDimNamesReference extends FormRun
+{
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>DEVDimNamesReference</Name>
+			<Table>DEVDimNamesReference</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>BusinessUnitRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CostCenterRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DepartmentRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Key</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@Dimension:FinancialDimensionValuesDimensionName</Caption>
+		<Pattern xmlns="">SimpleDetails-StandardTabsContainer</Pattern>
+		<PatternVersion xmlns="">1.5</PatternVersion>
+		<SetCompany xmlns="">No</SetCompany>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ApplicationBar</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Body</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FormTabPageControl1</Name>
+						<Pattern>FieldsFieldGroups</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Overview</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormReferenceGroupControl">
+										<Name>Overview_DepartmentRecId</Name>
+										<Type>ReferenceGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls />
+										<DataSource>DEVDimNamesReference</DataSource>
+										<ReferenceField>DepartmentRecId</ReferenceField>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormReferenceGroupControl">
+										<Name>Overview_BusinessUnitRecId</Name>
+										<Type>ReferenceGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls />
+										<DataSource>DEVDimNamesReference</DataSource>
+										<ReferenceField>BusinessUnitRecId</ReferenceField>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormReferenceGroupControl">
+										<Name>Overview_CostCenterRecId</Name>
+										<Type>ReferenceGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls />
+										<DataSource>DEVDimNamesReference</DataSource>
+										<ReferenceField>CostCenterRecId</ReferenceField>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Overview</DataGroup>
+								<DataSource>DEVDimNamesReference</DataSource>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>@Budget:EntityField_DimensionValues</Caption>
+						<DataSource>DEVDimNamesReference</DataSource>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>
