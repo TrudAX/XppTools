@@ -9,7 +9,24 @@
 [Form]
 public class DEVDimNamesReference extends FormRun
 {
+
 }
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+
+        ttsbegin;
+        DEVDimNamesReference  loc = DEVDimNamesReference::find(true);
+        loc.initFromDefaultDimension();
+        loc.write();
+        ttscommit;
+    }
+
 ]]></Source>
 			</Method>
 		</Methods>
@@ -62,6 +79,7 @@ public class DEVDimNamesReference extends FormRun
 		<Pattern xmlns="">SimpleDetails-StandardTabsContainer</Pattern>
 		<PatternVersion xmlns="">1.5</PatternVersion>
 		<SetCompany xmlns="">No</SetCompany>
+		<TitleDataSource xmlns="">DEVDimNamesReference</TitleDataSource>
 		<Controls xmlns="">
 			<AxFormControl xmlns=""
 				i:type="AxFormActionPaneControl">

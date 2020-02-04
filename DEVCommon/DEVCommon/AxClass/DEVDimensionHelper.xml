@@ -6,13 +6,47 @@
 //https://github.com/TrudAX/XppTools#devcommon-model 
 class DEVDimensionHelper
 {
-    static const public Name BusinessUnit   = 'BusinessUnit';
-    static const public Name Department     = 'Department';
-    static const public Name CostCenter     = 'CostCenter';
+    //put the default value here
+    static protected Name BusinessUnit   = 'BusinessUnit';
+    static protected Name Department     = 'Department';
+    static protected Name CostCenter     = 'CostCenter';
 
 }
 ]]></Declaration>
 		<Methods>
+			<Method>
+				<Name>BusinessUnit</Name>
+				<Source><![CDATA[
+    static public Name BusinessUnit()  { return BusinessUnit;  }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Department</Name>
+				<Source><![CDATA[
+    static public Name Department()    { return Department;  }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>CostCenter</Name>
+				<Source><![CDATA[
+    static public Name CostCenter()    { return CostCenter;  }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>TypeNew</Name>
+				<Source><![CDATA[
+    static void TypeNew()
+    {
+        //place code here to override default values
+        //see DEVDimNamesReference table
+        //like BusinessUnit = myParmTable.BusinessUnit
+    }
+
+]]></Source>
+			</Method>
 			<Method>
 				<Name>getValueByDefaultDimension</Name>
 				<Source><![CDATA[
@@ -42,7 +76,7 @@ class DEVDimensionHelper
 			<Method>
 				<Name>setValueToDefaultDimension</Name>
 				<Source><![CDATA[
-    //--DefaultAccount from LedgerDimension
+    //--DefaultAccount from LedgerDimension    
     //LedgerDefaultAccountHelper::getDefaultAccountFromLedgerDimension(
 
     //--DefaultDimension from LedgerDimension
@@ -59,7 +93,7 @@ class DEVDimensionHelper
     //--LedgerDimension from DefaultAccount and DefaultDimension
     //LedgerDimensionFacade::serviceCreateLedgerDimension(
 
-    //--DefaultDimension from Value str
+    // --DefaultDimension from Value str
     static DimensionDefault setValueToDefaultDimension(DimensionDefault _dimensionDefault,Name _dimensionName, DimensionValue  _newDimensionValue)
     {
         DimensionDefault                     res;

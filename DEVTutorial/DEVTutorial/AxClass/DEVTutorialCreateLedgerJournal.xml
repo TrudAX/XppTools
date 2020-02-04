@@ -321,15 +321,15 @@ class DEVTutorialCreateLedgerJournal
             ledgerJournalTrans.AccountType            = LedgerJournalACType::Ledger;
 
             DimensionDefault  dim;
-            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, 'BusinessUnit', combinationAccount.getLevelValue('BusinessUnit'));
-            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, 'CostCenter',     combinationAccount.getLevelValue('CostCenter'));
+            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, DEVDimensionHelper::BusinessUnit(), combinationAccount.getLevelValue('BusinessUnit'));
+            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, DEVDimensionHelper::CostCenter(),     combinationAccount.getLevelValue('CostCenter'));
             ledgerJournalTrans.LedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
                                               LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(combinationAccount.getLevelValue('Account')), dim);       
         
             ledgerJournalTrans.OffsetAccountType      = LedgerJournalACType::Ledger;
 
-            dim = DEVDimensionHelper::setValueToDefaultDimension(0,   'BusinessUnit', combinationAccountOffset.getLevelValue('BusinessUnit'));
-            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, 'CostCenter',     combinationAccountOffset.getLevelValue('CostCenter'));
+            dim = DEVDimensionHelper::setValueToDefaultDimension(0,   DEVDimensionHelper::BusinessUnit(), combinationAccountOffset.getLevelValue('BusinessUnit'));
+            dim = DEVDimensionHelper::setValueToDefaultDimension(dim, DEVDimensionHelper::CostCenter(),     combinationAccountOffset.getLevelValue('CostCenter'));
             ledgerJournalTrans.OffsetLedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
                                               LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(combinationAccountOffset.getLevelValue('Account')), dim);
         

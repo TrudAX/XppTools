@@ -144,7 +144,7 @@ public class DEVReadFromFileExampleCreateJournal extends RunBaseBatch
 
             ledgerJournalTrans.LedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
                 LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(fileReader.getStringByName('Main account')),
-                DEVDimensionHelper::setValueToDefaultDimension(0, DEVDimensionHelper::BusinessUnit, fileReader.getStringByName('BusinessUnit')));
+                DEVDimensionHelper::setValueToDefaultDimension(0, DEVDimensionHelper::BusinessUnit(), fileReader.getStringByName('BusinessUnit')));
 
             if (!ledgerJournalTrans.LedgerDimension)
             {

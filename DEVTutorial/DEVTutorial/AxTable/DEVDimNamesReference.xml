@@ -31,6 +31,29 @@ public class DEVDimNamesReference extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>initFromDefaultDimension</Name>
+				<Source><![CDATA[
+    public void initFromDefaultDimension()
+    {
+        if (! this.BusinessUnitRecId && DEVDimensionHelper::BusinessUnit())
+        {
+            this.BusinessUnitRecId = DimensionAttribute::findByName(DEVDimensionHelper::BusinessUnit()).RecId;
+        }
+        if (! this.DepartmentRecId && DEVDimensionHelper::Department())
+        {
+            this.DepartmentRecId = DimensionAttribute::findByName(DEVDimensionHelper::Department()).RecId;
+        }
+        if (! this.CostCenterRecId && DEVDimensionHelper::CostCenter())
+        {
+            this.CostCenterRecId = DimensionAttribute::findByName(DEVDimensionHelper::CostCenter()).RecId;
+        }
+
+
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>Dimension name reference</Label>

@@ -230,10 +230,10 @@ public class DEVTutorialPurchConfirm extends RunBaseBatch
             purchLine.initFromInventTable(purchLine.inventTable());
 
             purchLine.DefaultDimension = DEVDimensionHelper::setValueToDefaultDimension(
-                purchLine.DefaultDimension, DEVDimensionHelper::BusinessUnit, combinationAccount.getLevelValue('BusinessUnit'));
+                purchLine.DefaultDimension, DEVDimensionHelper::BusinessUnit(), combinationAccount.getLevelValue('BusinessUnit'));
 
             purchLine.DefaultDimension = DEVDimensionHelper::setValueToDefaultDimension(
-                purchLine.DefaultDimension, DEVDimensionHelper::CostCenter, combinationAccount.getLevelValue('CostCenter'));
+                purchLine.DefaultDimension, DEVDimensionHelper::CostCenter(), combinationAccount.getLevelValue('CostCenter'));
             
             purchLine.PurchQty = 1;
             purchLine.PurchPrice = 10;
