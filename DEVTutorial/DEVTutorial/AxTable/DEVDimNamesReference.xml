@@ -61,15 +61,32 @@ public class DEVDimNamesReference extends common
 		<Read>Allow</Read>
 	</SubscriberAccessLevel>
 	<TableGroup>Parameter</TableGroup>
+	<TitleField1>Key</TitleField1>
 	<CacheLookup>EntireTable</CacheLookup>
+	<ClusteredIndex>ParametersKeyIdx</ClusteredIndex>
+	<CreateRecIdIndex>No</CreateRecIdIndex>
 	<ModifiedBy>Yes</ModifiedBy>
 	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>ParametersKeyIdx</PrimaryIndex>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
 	<DeleteActions />
 	<FieldGroups>
 		<AxTableFieldGroup>
 			<Name>AutoReport</Name>
-			<Fields />
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Key</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>BusinessUnitRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DepartmentRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CostCenterRecId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
 			<Name>AutoLookup</Name>
@@ -82,7 +99,11 @@ public class DEVDimNamesReference extends common
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
 			<Name>AutoSummary</Name>
-			<Fields />
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Key</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
 			<Name>AutoBrowse</Name>
@@ -109,19 +130,19 @@ public class DEVDimNamesReference extends common
 			i:type="AxTableFieldInt64">
 			<Name>BusinessUnitRecId</Name>
 			<ExtendedDataType>DimensionAttributeRecId</ExtendedDataType>
-			<Label>BusinessUnit</Label>
+			<Label>@SYS313109</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt64">
 			<Name>DepartmentRecId</Name>
 			<ExtendedDataType>DimensionAttributeRecId</ExtendedDataType>
-			<Label>Department</Label>
+			<Label>@SYS90025</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt64">
 			<Name>CostCenterRecId</Name>
 			<ExtendedDataType>DimensionAttributeRecId</ExtendedDataType>
-			<Label>CostCenter</Label>
+			<Label>@SYS13911</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt">
@@ -135,7 +156,7 @@ public class DEVDimNamesReference extends common
 	<Indexes>
 		<AxTableIndex>
 			<Name>ParametersKeyIdx</Name>
-			<AllowDuplicates>Yes</AllowDuplicates>
+			<AlternateKey>Yes</AlternateKey>
 			<Fields>
 				<AxTableIndexField>
 					<DataField>Key</DataField>
@@ -148,7 +169,12 @@ public class DEVDimNamesReference extends common
 		<AxTableRelation xmlns=""
 			i:type="AxTableRelationForeignKey">
 			<Name>DimensionAttributeBU</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<EDTRelation>Yes</EDTRelation>
+			<OnDelete>Restricted</OnDelete>
 			<RelatedTable>DimensionAttribute</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
 			<Constraints>
 				<AxTableRelationConstraint xmlns=""
 					i:type="AxTableRelationConstraintField">
@@ -157,13 +183,11 @@ public class DEVDimNamesReference extends common
 					<RelatedField>RecId</RelatedField>
 				</AxTableRelationConstraint>
 			</Constraints>
-			<Index>RecId</Index>
 		</AxTableRelation>
 		<AxTableRelation xmlns=""
 			i:type="AxTableRelationForeignKey">
-			<Name>DimensionAttribute</Name>
+			<Name>DimensionAttributeDepartment</Name>
 			<Cardinality>ZeroMore</Cardinality>
-			<EDTRelation>Yes</EDTRelation>
 			<OnDelete>Restricted</OnDelete>
 			<RelatedTable>DimensionAttribute</RelatedTable>
 			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
@@ -180,7 +204,7 @@ public class DEVDimNamesReference extends common
 		</AxTableRelation>
 		<AxTableRelation xmlns=""
 			i:type="AxTableRelationForeignKey">
-			<Name>DimensionAttribute_CostCenter</Name>
+			<Name>DimensionAttributeCostCenter</Name>
 			<Cardinality>ZeroMore</Cardinality>
 			<EDTRelation>Yes</EDTRelation>
 			<OnDelete>Restricted</OnDelete>

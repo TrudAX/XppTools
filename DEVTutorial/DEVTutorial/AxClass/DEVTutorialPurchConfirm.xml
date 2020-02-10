@@ -124,7 +124,7 @@ public class DEVTutorialPurchConfirm extends RunBaseBatch
         PurchFormLetter         purchFormLetter;
         PurchTable              purchTable;
         int                     confirmedPOCount;
-        int                     numOfLines;
+        int64                   numOfLines;
         ;
         if (! purchIdConfirmInitial)
         {
