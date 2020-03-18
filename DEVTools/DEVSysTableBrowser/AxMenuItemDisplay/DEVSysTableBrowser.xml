@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVSysTableBrowser</Name>
+	<AllowRootNavigation>Yes</AllowRootNavigation>
+	<ConfigurationKey>SysDevelopmentMorphX</ConfigurationKey>
+	<DisabledResource>0</DisabledResource>
+	<Label>@SYS54191</Label>
+	<LinkedPermissionObject>SysTableBrowser</LinkedPermissionObject>
+	<LinkedPermissionType>Form</LinkedPermissionType>
+	<MaintainUserLicense>Enterprise</MaintainUserLicense>
+	<NormalResource>0</NormalResource>
+	<Object>SysTableBrowser</Object>
+	<ObjectType>Class</ObjectType>
+	<OperationalDomain>Company</OperationalDomain>
+	<SubscriberAccessLevel>
+		<Read xmlns="">Allow</Read>
+	</SubscriberAccessLevel>
+	<ViewUserLicense>Universal</ViewUserLicense>
+</AxMenuItemDisplay>

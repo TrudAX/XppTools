@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SysTableBrowserDEV_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classstr(SysTableBrowser))]
+final class SysTableBrowserDEV_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run(TableId _tableId)
+    {
+        if (! allowEdit)
+        {
+            if (this.DEVisUserInRole(roleStr(DEVSysTableBrowserExt)))
+            {
+                allowEdit   = true;
+                allowDelete = true;
+                allowCreate = true;
+            }
+        }
+
+        next run(_tableId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DEVisUserInRole</Name>
+				<Source><![CDATA[
+    public boolean DEVisUserInRole(Description  _roleName)
+    {
+        boolean                 res;
+        SecurityUserRole        securityUserRole;
+        SecurityRole            securityRole;
+        ;
+        select firstonly RecId from securityUserRole
+            where  securityUserRole.User    == curUserId()
+            join RecId from securityRole
+                where  securityRole.RecId == securityUserRole.SecurityRole
+                    && (   securityRole.AotName == _roleName
+                    )    ;
+        if (securityUserRole.RecId)
+        {
+            res = true;
+        }
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
