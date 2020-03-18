@@ -9,6 +9,7 @@ This repository contains 3 D365FO models:
     - [-Fields list](#-fields-list)
     - [-Display system field name in the query filter](#-display-system-field-name-in-the-query-filter)
     - [-Display table relation fields](#-display-table-relation-fields)
+    - [-Editable table browser](#-editable-table-browser)
   - [DEVCommon model](#devcommon-model)
     - [-DEV class](#-dev-class)
     - [-DEVDimensionHelper class](#-devdimensionhelper-class)
@@ -52,6 +53,13 @@ Code is based on **sukhanchik** post on [axForum](https://translate.google.com/t
 Sub-model name: DEVSysQueryFormAddRelInfo
 
 ![](assets/DEVSysQueryFormAddRelInfo.png)
+
+### -Editable table browser
+
+Extension for the standard D365FO table browser that allows root navigation and editing for non-development environments.
+
+Full description: [Editable table browser](https://denistrunin.com/xpptools-devtablebrowser/). Sub-model name: DEVSysTableBrowser
+
 
 **[⬆ back to top](#XppTools)**
 
