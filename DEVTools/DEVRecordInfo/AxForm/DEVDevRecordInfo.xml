@@ -343,7 +343,7 @@ public class DEVDevRecordInfo extends FormRun
         {
             throw error(strFmt("Can't find a EDT for field %1", tmpDevRecordInfo.FieldName));
         }
-        boolean isGuidField = dictField.baseType() ? true : false;
+        boolean isGuidField = (dictField.baseType() == Types::Guid) ? true : false;
         if (isGuidField)
         {
             //Guid is not supported in dialogs
