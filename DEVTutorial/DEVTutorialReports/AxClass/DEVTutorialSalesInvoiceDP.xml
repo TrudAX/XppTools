@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialSalesInvoiceDP</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[SRSReportParameterAttribute(classStr(SalesInvoiceContract))]
+class DEVTutorialSalesInvoiceDP  extends SalesInvoiceDP
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>populateSalesInvoiceTmp</Name>
+				<Source><![CDATA[
+    protected void populateSalesInvoiceTmp(CustInvoiceJour _custInvoiceJour,
+        CustInvoiceTrans _custInvoiceTrans,
+        TaxSpec _taxSpec,
+        CustPaymSchedLine _custPaymSchedLine,
+        CustTrans _prepaymentCustTrans,
+        TaxTrans _prepaymentTaxTrans)
+    {
+        super(_custInvoiceJour, _custInvoiceTrans, _taxSpec, _custPaymSchedLine, _prepaymentCustTrans, _prepaymentTaxTrans);
+
+        //populate additional fields in salesInvoiceTmp here
+        //salesInvoiceTmp.MyField = '';
+        //this method is called for main lines and also for all linked tables
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populateSalesInvoiceHeaderFooterTmp</Name>
+				<Source><![CDATA[
+    protected void populateSalesInvoiceHeaderFooterTmp(CustInvoiceJour _custInvoiceJour, CompanyInfo _companyInfo)
+    {
+        super(_custInvoiceJour, _companyInfo);
+
+        //populate additional fields in salesInvoiceTmp here
+        //salesInvoiceHeaderFooterTmp.MyField = '';
+     
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
