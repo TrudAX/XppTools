@@ -18,6 +18,7 @@ This repository contains 3 D365FO models:
     - [-Blocking in D365FO](#-blocking-in-d365fo)
     - [-Create ledger journals using X++](#-create-ledger-journals-using-x)
     - [-Create ledger journal from Excel file](#-create-ledger-journal-from-excel-file)
+    - [-Sales Invoice report](#-sales-invoice-report)
   - [Installation](#installation)
   - [Contribution](#contribution)
 
@@ -104,6 +105,14 @@ Class **[DEVTutorialCreateLedgerJournal](https://github.com/TrudAX/XppTools/blob
 ### -Create ledger journal from Excel file
 
 Class [**DEVReadFromFileExampleCreateJournal**](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVReadFromFileExampleCreateJournal.xml)  - sample code to create a ledger journal from Excel file
+
+## DEVTutorialReports model
+
+Contains report development examples
+
+### -Sales Invoice report
+
+A sample code to Create a new design for Sales Invoice report in D365FO (https://denistrunin.com/xpptools-reportsalesinvoice/)
 
 **[⬆ back to top](#XppTools)**
 
