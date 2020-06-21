@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialBatchMultipleThreadBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVTutorialBatchMultipleThreadBase extends RunBaseBatch
+{
+    Range                       batchIdentifier;
+    BatchHeader                 batchHeader;
+    Batchable                   finalTask;
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>runStartTask</Name>
+				<Source><![CDATA[
+    public void runStartTask()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runThreadTask</Name>
+				<Source><![CDATA[
+    public void runThreadTask()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runFinalTask</Name>
+				<Source><![CDATA[
+    public void runFinalTask()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBatchIdentifiersRangeCon</Name>
+				<Source><![CDATA[
+    public container  getBatchIdentifiersRangeCon()
+    {
+        container  res;
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>finalTaskIdentifier</Name>
+				<Source><![CDATA[
+    public Range  finalTaskIdentifier()
+    {
+        return '--TheLast--';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isUseRunTimeTasks</Name>
+				<Source><![CDATA[
+    public boolean  isUseRunTimeTasks()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBatchIdentifier</Name>
+				<Source><![CDATA[
+    public Range parmBatchIdentifier(Range _batchIdentifier = batchIdentifier)
+    {
+        batchIdentifier = _batchIdentifier;
+        
+        return batchIdentifier;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processThreadItem</Name>
+				<Source><![CDATA[
+    protected void processThreadItem(boolean _isLast)
+    {
+        DEVTutorialBatchMultipleThreadBase        childThread;
+        ;
+        if (! batchIdentifier)
+        {
+            return;
+        }
+                
+        childThread = RunBase::makeObject(classIdGet(this));
+        childThread.batchInfo().resetBatchHeader();
+        childThread.batchInfo().parmGroupId(this.parmCurrentBatch().GroupId);
+        childThread.batchInfo().parmConstraintType(BatchConstraintType::And);
+        childThread.batchInfo().parmDataareaId(this.parmCurrentBatch().Company);
+        childThread.batchInfo().parmCaption(childThread.caption() + ' (Helper)' + batchIdentifier);
+        childThread.unpack(this.pack());
+        
+        childThread.parmBatchIdentifier(batchIdentifier);
+        if (_isLast)
+        {
+            finalTask = childThread;
+        }
+        
+        if (this.isInBatch())
+        {
+            if (! batchHeader)
+            {
+                batchHeader = BatchHeader::construct(this.parmCurrentBatch().BatchJobId);
+            }
+            if (this.isUseRunTimeTasks())
+            {
+                batchHeader.addRuntimeTask(childThread, this.parmCurrentBatch().ReciD);
+            }
+            else
+            {
+                batchHeader.addTask(childThread);
+            }
+        
+            if (! _isLast && finalTask)
+            {
+                batchHeader.addDependency(finalTask, childThread, BatchDependencyStatus::FinishedOrError);
+            }
+        
+        }
+        else
+        {
+            if (! _isLast)
+            {
+                childThread.runOperation();
+            }
+        }        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        container               batchIdentifierCon;
+        int                     i;
+        ;
+        if (batchIdentifier) //child task
+        {
+            if (batchIdentifier == this.finalTaskIdentifier())
+            {
+                this.runFinalTask();
+            }
+            else
+            {
+                this.runThreadTask();
+            }
+        
+        }
+        else
+        {
+            this.runStartTask();
+
+            batchIdentifier = this.finalTaskIdentifier();
+            this.processThreadItem(true); //create the final task, we need a dependency, so create it in the beggining.
+        
+            batchIdentifierCon = this.getBatchIdentifiersRangeCon();
+                
+            for (i = 1; i <= conLen(batchIdentifierCon); i++)
+            {
+                batchIdentifier = conPeek(batchIdentifierCon, i);
+        
+                this.processThreadItem(false);        
+            }
+
+            if (finalTask)
+            {
+                if (this.isInBatch())
+                {
+                    batchHeader.save();
+                }
+                else
+                {
+                    finalTask.run();
+                }
+            }
+        
+        }        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

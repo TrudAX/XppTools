@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialBatchSingleThread</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVTutorialBatchSingleThread extends RunBaseBatch
+{
+    TransDate       transDate;
+    DialogField     dlgTransDate;
+
+    PositiveNumber  taskSleepTimeMs;
+    DialogField     dlgTaskSleepTimeMs;
+    
+    QueryRun       queryRun;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        transDate,
+        taskSleepTimeMs
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgTransDate  = dialog.addFieldValue(extendedtypestr(TransDate), transDate);
+        dlgTaskSleepTimeMs  = dialog.addFieldValue(extendedtypestr(PositiveNumber), taskSleepTimeMs, "Time to process 1 record(ms)");        
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        transDate         = dlgTransDate.value();
+        taskSleepTimeMs   = dlgTaskSleepTimeMs.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        this.initQuery();
+        taskSleepTimeMs = 100;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initQuery</Name>
+				<Source><![CDATA[
+    public void initQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds = query.addDataSource(tablenum(CustTrans));
+        ;        
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        container  queryCon;
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList, queryCon] = _packedClass;
+                if (SysQuery::isPackedOk(queryCon))
+                {
+                    queryRun = new QueryRun(queryCon);
+                }
+                else
+                {
+                    this.initQuery();
+                }
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        //1. data preparation
+        info(strFmt("%1 - Start operation", AifUtil::applyUserPreferredTimeZoneOffset(DateTimeUtil::utcNow())));
+
+        //2. Query Processing
+        this.runQueryProcessing();
+
+        //3.final task
+        info(strfmt("%2 - %1 record(s) processed", SysQuery::countTotal(queryRun),
+                                            AifUtil::applyUserPreferredTimeZoneOffset(DateTimeUtil::utcNow())));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runQueryProcessing</Name>
+				<Source><![CDATA[
+    public void runQueryProcessing()
+    {
+        while (queryRun.next())
+        {
+            CustTrans   custTrans = queryRun.get(tablenum(CustTrans));
+
+            this.processRecord(custTrans);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processRecord</Name>
+				<Source><![CDATA[
+    public void processRecord(CustTrans  _custTrans)
+    {
+        //do some job using _custTrans and transDate
+        sleep(taskSleepTimeMs);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVTutorialBatchSingleThread construct()
+    {
+        return new DEVTutorialBatchSingleThread();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Batch single thread";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVTutorialBatchSingleThread    runObject = DEVTutorialBatchSingleThread::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
