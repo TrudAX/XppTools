@@ -63,16 +63,6 @@ class DEVTutorialBatchMultipleThreadBase extends RunBaseBatch
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>isUseRunTimeTasks</Name>
-				<Source><![CDATA[
-    public boolean  isUseRunTimeTasks()
-    {
-        return false;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
 				<Name>parmBatchIdentifier</Name>
 				<Source><![CDATA[
     public Range parmBatchIdentifier(Range _batchIdentifier = batchIdentifier)
@@ -116,14 +106,7 @@ class DEVTutorialBatchMultipleThreadBase extends RunBaseBatch
             {
                 batchHeader = BatchHeader::construct(this.parmCurrentBatch().BatchJobId);
             }
-            if (this.isUseRunTimeTasks())
-            {
-                batchHeader.addRuntimeTask(childThread, this.parmCurrentBatch().ReciD);
-            }
-            else
-            {
-                batchHeader.addTask(childThread);
-            }
+            batchHeader.addRuntimeTask(childThread, this.parmCurrentBatch().ReciD);
         
             if (! _isLast && finalTask)
             {

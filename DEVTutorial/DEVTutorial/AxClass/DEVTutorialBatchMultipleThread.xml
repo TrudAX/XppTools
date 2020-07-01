@@ -11,20 +11,17 @@ public class DEVTutorialBatchMultipleThread extends DEVTutorialBatchMultipleThre
     PositiveNumber  taskSleepTimeMs;
     DialogField     dlgTaskSleepTimeMs;
     
-    PositiveNumber  maxTaskCount;
-    NoYesId         useRunTimeTasks;    
+    PositiveNumber  maxTaskCount;  
     DialogField     dlgMaxTaskCount;
-    DialogField     dlgUseRunTimeTasks;
 
     QueryRun       queryRun;
     
-    #define.CurrentVersion(1)
+    #define.CurrentVersion(2)
     #localmacro.CurrentList
         transDate,
         taskSleepTimeMs,
         batchIdentifier,
-        maxTaskCount,
-        useRunTimeTasks
+        maxTaskCount
     #endmacro
     
 }
@@ -42,8 +39,6 @@ public class DEVTutorialBatchMultipleThread extends DEVTutorialBatchMultipleThre
         
         dialog.addGroup("Performance settings");
         dlgMaxTaskCount     = dialog.addFieldValue(extendedtypestr(PositiveNumber), maxTaskCount, "Number of batch tasks", "Max number of tasks to create in batch job");
-        dlgUseRunTimeTasks  = dialog.addFieldValue(extendedtypestr(NoYesId), useRunTimeTasks, "Use runtime tasks");
-
 
         return dialog;
     }
@@ -60,7 +55,6 @@ public class DEVTutorialBatchMultipleThread extends DEVTutorialBatchMultipleThre
         taskSleepTimeMs   = dlgTaskSleepTimeMs.value();
 
         maxTaskCount      = dlgMaxTaskCount.value();
-        useRunTimeTasks   = dlgUseRunTimeTasks.value();
 
         return super();
     }
@@ -237,16 +231,6 @@ public class DEVTutorialBatchMultipleThread extends DEVTutorialBatchMultipleThre
     {
         //do some job using _custTrans and transDate
         sleep(taskSleepTimeMs);
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>isUseRunTimeTasks</Name>
-				<Source><![CDATA[
-    public boolean  isUseRunTimeTasks()
-    {
-        return useRunTimeTasks;
     }
 
 ]]></Source>
