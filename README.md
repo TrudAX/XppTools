@@ -10,6 +10,7 @@ This repository contains 3 D365FO models:
     - [-Display system field name in the query filter](#-display-system-field-name-in-the-query-filter)
     - [-Display table relation fields](#-display-table-relation-fields)
     - [-Editable table browser](#-editable-table-browser)
+    - [-List of Values to Range](#-list-of-values-to-range)
   - [DEVCommon model](#devcommon-model)
     - [-DEV class](#-dev-class)
     - [-DEVDimensionHelper class](#-devdimensionhelper-class)
@@ -18,6 +19,7 @@ This repository contains 3 D365FO models:
     - [-Blocking in D365FO](#-blocking-in-d365fo)
     - [-Create ledger journals using X++](#-create-ledger-journals-using-x)
     - [-Create ledger journal from Excel file](#-create-ledger-journal-from-excel-file)
+    - [-Parallel batch processing in X++](#-parallel-batch-processing-in-X)
     - [-Sales Invoice report](#-sales-invoice-report)
   - [Installation](#installation)
   - [Contribution](#contribution)
@@ -61,6 +63,16 @@ Extension for the standard D365FO table browser that allows root navigation and 
 
 Full description: [Editable table browser](https://denistrunin.com/xpptools-devtablebrowser/). Sub-model name: DEVSysTableBrowser
 
+### -List of Values to Range 
+
+This functionality is intended to help users deal with list of values in query range. With help of this tool you can:
+
+- Copy list of values from, for example, excel and paste it in a range;
+- Easily manage values of existed range
+
+Sub-model name: DEVListOfValuesToRange
+
+![](assets/DEVListOfValuesToRange.png)
 
 **[⬆ back to top](#XppTools)**
 
@@ -105,6 +117,12 @@ Class **[DEVTutorialCreateLedgerJournal](https://github.com/TrudAX/XppTools/blob
 ### -Create ledger journal from Excel file
 
 Class [**DEVReadFromFileExampleCreateJournal**](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVReadFromFileExampleCreateJournal.xml)  - sample code to create a ledger journal from Excel file
+
+### -Parallel batch processing in X++
+
+Classes [DEVTutorialBatchSingleThread](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVTutorialBatchSingleThread.xml), [DEVTutorialBatchMultipleThreadBase](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVTutorialBatchMultipleThreadBase.xml),  [DEVTutorialBatchMultipleThread](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVTutorialBatchMultipleThread.xml) that demonstrates how you can convert your existing batch job to multi-threaded.
+
+[A simple way to implement a parallel batch processing in X++](https://denistrunin.com/xpptutorial-batchmultithread/)
 
 ## DEVTutorialReports model
 
