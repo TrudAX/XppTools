@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SysQueryFormFormDEVList_Range_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(formdatasourcestr(SysQueryForm, Range))]
+final class SysQueryFormFormDEVList_Range_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>active</Name>
+				<Source><![CDATA[
+    int active()
+    {
+        boolean ret = next active();
+
+        FormCommandButtonControl    rangeRemoveButton;
+        FormFunctionButtonControl   listOfValues2RangeButton;
+
+        rangeRemoveButton        = element.RangeRemove;
+        listOfValues2RangeButton = element.DEVSysQueryFormListOfValues2Range;
+
+        if (listOfValues2RangeButton && rangeRemoveButton)
+        {
+            listOfValues2RangeButton.enabled(rangeRemoveButton.enabled());
+        }
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

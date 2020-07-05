@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SysQueryForm.DEVListOfValuesToRange</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlnrp4zbtn1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormMenuFunctionButtonControl">
+				<Name>DEVSysQueryFormListOfValues2Range</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Type>MenuFunctionButton</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<DataSource>Range</DataSource>
+				<MenuItemName>DEVSysQueryFormListOfValues2Range</MenuItemName>
+				<MenuItemType>Action</MenuItemType>
+				<MultiSelect>No</MultiSelect>
+				<NeedsRecord>Yes</NeedsRecord>
+			</FormControl>
+			<Parent>RangeButtonGroup</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSourceModifications />
+	<DataSourceReferences />
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

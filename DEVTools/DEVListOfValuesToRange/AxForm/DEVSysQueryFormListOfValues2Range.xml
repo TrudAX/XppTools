@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVSysQueryFormListOfValues2Range</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVSysQueryFormListOfValues2Range extends FormRun
+{
+    TmpSysQuery         tmpSysQuery;
+
+    boolean             isWithAll;
+    boolean             isWithQuotes;
+    boolean             isTextOnly;
+    boolean             isRemoveSpace;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>convertToGeneric</Name>
+				<Source><![CDATA[
+    public void convertToGeneric()
+    {
+        DEVSysQueryListStringHelper  stringHelper = DEVSysQueryListStringHelper::construct();
+
+        str                 adjustedString = ListOfValuesAdjusted.text();
+        str                 genericString;
+
+        if (adjustedString)
+        {
+            stringHelper.splitString(adjustedString, ',');
+            genericString = con2Str(stringHelper.splitGetData(), '\n');
+
+            LinesCount.text(strFmt("Lines: %1", stringHelper.splitElementsCount()));
+        }
+
+        ListOfValuesSource.text(genericString);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyAdjustment</Name>
+				<Source><![CDATA[
+    public void applyAdjustment()
+    {
+        str     s;
+        Counter lines;
+        
+        [s, lines] = DEVSysQueryFormListOfValues2Range::getRangeValueFromList(
+            ListOfValuesSource.text(), 0, ',', isWithAll, isWithQuotes, isTextOnly, isRemoveSpace);
+
+        LinesCount.text(strFmt("Lines: %1", lines));
+        ListOfValuesAdjusted.text(s);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyRanges</Name>
+				<Source><![CDATA[
+    public void applyRanges()
+    {        
+        DictField       dictField;
+        int             fieldSize;
+        int             bufSize;
+        str             s;
+        str             s1;
+
+        TmpSysQuery     tmpSysQueryCurrent;
+        ;
+        tmpSysQueryCurrent.data(tmpSysQuery);
+
+        dictField   = new DictField(tableNum(TmpSysQuery), fieldNum(TmpSysQuery, RangeValue));
+        fieldSize   = dictField.stringLen();
+
+        s           = ListOfValuesAdjusted.text();
+        bufSize     = strLen(s);
+
+        while (bufSize > fieldSize)
+        {
+            s1      = DEVSysQueryFormListOfValues2Range::getMinStr(s, fieldSize, ',');
+
+            if (!strLen(s1))
+            {
+                break;
+            }
+
+            // set filter to line
+            tmpSysQuery.RangeValue = s1;
+            tmpSysQuery.update();
+
+            s       = subStr(s, strLen(s1) + 2, bufSize);
+            bufSize = strLen(s);
+
+            // create new line
+            tmpSysQuery.RangeValue = "";
+            tmpSysQuery.insert();
+        }
+
+        // set filter to line
+        tmpSysQuery.RangeValue = s;
+        tmpSysQuery.update();
+        
+        FormDataSource  fds = FormDataUtil::getFormDataSource(tmpSysQuery);
+            
+        fds.research();
+        fds.positionToRecord(tmpSysQueryCurrent);
+        fds.active();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearSource</Name>
+				<Source><![CDATA[
+    public void clearSource()
+    {
+        ListOfValuesSource.text('');
+        element.applyAdjustment();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>closeOk</Name>
+				<Source><![CDATA[
+    public void closeOk()
+    {
+        super();
+        element.applyRanges();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+
+        if (this.args().dataset() != tableNum(TmpSysQuery))
+        {
+            throw error(Error::wrongUseOfFunction(funcName()));
+        }
+
+        tmpSysQuery = this.args().record();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        super();
+
+        ListOfValuesAdjusted.text(tmpSysQuery.RangeValue);
+
+        element.convertToGeneric();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setButtons</Name>
+				<Source><![CDATA[
+    public void setButtons()
+    {
+        BtnWithAll.toggleValue(isWithAll);
+        BtnWithQuotes.toggleValue(isWithQuotes);
+        BtnTextOnly.toggleValue(isTextOnly);
+        BtnRemoveSpace.toggleValue(isRemoveSpace);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>toggleBtnWithAll</Name>
+				<Source><![CDATA[
+    public void toggleBtnWithAll()
+    {
+        isWithAll = BtnWithAll.toggleValue() != 0;
+        element.setButtons();
+        element.applyAdjustment();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>toggleBtnWithQuotes</Name>
+				<Source><![CDATA[
+    public void toggleBtnWithQuotes()
+    {
+        isWithQuotes = BtnWithQuotes.toggleValue() != 0;
+        element.setButtons();
+        element.applyAdjustment();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>toggleBtnTextOnly</Name>
+				<Source><![CDATA[
+    public void toggleBtnTextOnly()
+    {
+        isTextOnly = BtnTextOnly.toggleValue() != 0;
+        element.setButtons();
+        element.applyAdjustment();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>toggleBtnRemoveSpace</Name>
+				<Source><![CDATA[
+    public void toggleBtnRemoveSpace()
+    {
+        isRemoveSpace = BtnRemoveSpace.toggleValue() != 0;
+        element.setButtons();
+        element.applyAdjustment();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>BtnConvert</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.convertToGeneric();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnClear</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.clearSource();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ListOfValuesSource</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>textChange</Name>
+						<Source><![CDATA[
+        public void textChange()
+        {
+            super();
+            element.applyAdjustment();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnApply</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.applyAdjustment();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnWithQuotes</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.toggleBtnWithQuotes();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnWithAll</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.toggleBtnWithAll();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnTextOnly</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.toggleBtnTextOnly();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnRemoveSpace</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.toggleBtnRemoveSpace();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ListOfValuesAdjusted</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>textChange</Name>
+						<Source><![CDATA[
+        public void textChange()
+        {
+            super();
+            element.applyAdjustment();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">List of values</Caption>
+		<DialogSize xmlns="">Large</DialogSize>
+		<Pattern xmlns="">Custom</Pattern>
+		<Style xmlns="">Dialog</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>GroupBody</Name>
+				<ElementPosition>1073741822</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Height>0</Height>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<Width>0</Width>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>SourceGroup</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>Group</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>ActionPaneControlSource</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FunctionsSource</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>LinesCount</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Enabled>No</Enabled>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Lines:</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>BtnConvert</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Convert from Range view</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>BtnClear</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Clear</Text>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>ListOfValuesSource</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<ExtendedDataType>Notes</ExtendedDataType>
+								<Label>Column view (Paste here values from Excel)</Label>
+								<ViewEditMode>Edit</ViewEditMode>
+							</AxFormControl>
+						</Controls>
+						<FrameType>None</FrameType>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>CtrlSplitterHorizontal</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls />
+						<Style>SplitterHorizontalContainer</Style>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>AdjustedGroup</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Height>165</Height>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Type>Group</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>ActionPaneControlAdjusted</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>Functions</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>BtnApply</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Apply</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>BtnWithQuotes</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Quotes ("...")</Text>
+												<ToggleButton>Check</ToggleButton>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>BtnWithAll</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Substring (*...*)</Text>
+												<ToggleButton>Check</ToggleButton>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>BtnTextOnly</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Replace ('_', '.' -&gt; '?')</Text>
+												<ToggleButton>Check</ToggleButton>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>BtnRemoveSpace</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Remove (' ' -&gt; '')</Text>
+												<ToggleButton>Check</ToggleButton>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>ListOfValuesAdjusted</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<ExtendedDataType>Notes</ExtendedDataType>
+								<Label>Range friendly view</Label>
+								<ViewEditMode>Edit</ViewEditMode>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormButtonGroupControl">
+				<Name>OkCancel</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<ElementPosition>1431655764</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<LeftMode>AutoLeft</LeftMode>
+				<Type>ButtonGroup</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>OkButton</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1431655764</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>CommandButton</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Command>OK</Command>
+						<DefaultButton>Yes</DefaultButton>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>CancelButton</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<ElementPosition>1789569705</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>CommandButton</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Command>Cancel</Command>
+						<SaveRecord>No</SaveRecord>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalRight</ArrangeMethod>
+				<Style>DialogCommitContainer</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

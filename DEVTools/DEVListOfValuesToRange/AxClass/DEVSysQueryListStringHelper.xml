@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSysQueryListStringHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVSysQueryListStringHelper
+{
+    container   splitData;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>additionString</Name>
+				<Source><![CDATA[
+    str additionString(str _s, int _len, Char _additionSymbol = ' ', boolean _isLeftAddition = true)
+    {
+        str res;
+        ;
+        if (_len < strlen(_s))
+        {
+            throw error(StrFmt("Desired len %1 is less than string length %2(%3)", _len, strlen(_s), _s));
+        }
+
+        if (_isLeftAddition)
+        {
+            res = this.repeatString(_additionSymbol, _len - strlen(_s)) + _s;
+        }
+        else
+        {
+            res = _s + this.repeatString(_additionSymbol, _len - strlen(_s));
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFirstSymbols</Name>
+				<Source><![CDATA[
+    str getFirstSymbols(str _s, int _symbolCount)
+    {
+        str   res;
+        ;
+        if ((_symbolCount < 1) || (_symbolCount > strlen(_s)))
+        {
+            throw error(Error::wrongUseOfFunction(funcname()));
+        }
+        res = substr(_s, 1, _symbolCount);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLastSymbols</Name>
+				<Source><![CDATA[
+    str getLastSymbols(str _s, int _symbolCount)
+    {
+        str   res;
+        ;
+        if ((_symbolCount < 1) || (_symbolCount > strlen(_s)))
+        {
+            throw error(Error::wrongUseOfFunction(funcname()));
+        }
+        res = substr(_s, strlen(_s), - _symbolCount);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMaxStringLenght</Name>
+				<Source><![CDATA[
+    public int getMaxStringLenght()
+    {
+        int     i;
+        int     maxStringLenght;
+        ;
+        for (i = 1; i <= this.splitElementsCount(); i++)
+        {
+            maxStringLenght = max(maxStringLenght, strLen(this.splitGetElement(i)));
+        }
+
+        return maxStringLenght;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>infologText2Str</Name>
+				<Source><![CDATA[
+    str infologText2Str(int _from, int _to)
+    {
+        str        res;
+        container  message;
+        int        i;
+        int        j;
+        str        s;
+        ;
+        message = infolog.copy(_from,_to);
+
+        for(i = 1; i <= conlen(message) /2 ; i++)
+        {
+            s = conpeek(message, i *2);
+            j = strfind(s, '\t', strlen(s), - strlen(s));
+            s = substr(s, j + 1,  strlen(s));
+            s += '\n';
+
+            res += s;
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertSymbolsInterval</Name>
+				<Source><![CDATA[
+    str insertSymbolsInterval(str _s, str _symbol, int _interval)
+    {
+        str  res = _s;
+        int  currentPos = _interval;
+        ;
+        while (currentPos < strlen(res))
+        {
+            res = strIns (res,_symbol,currentPos);
+            currentPos += _interval;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>removeLeadingChar</Name>
+				<Source><![CDATA[
+    str removeLeadingChar(str _s, str 1 _char)
+    {
+        str res;
+        int i;
+        ;
+
+        for(i = 1; i <= strlen(_s); i++)
+        {
+            if (substr(_s, i, 1) != _char)
+            {
+                break;
+            }
+        }
+        res = substr(_s, i, strlen(_s));
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>repeatString</Name>
+				<Source><![CDATA[
+    str repeatString(str _s, int _repeatCount)
+    {
+        int  i;
+        str  res;
+        ;
+        if (_repeatCount < 0)
+        {
+            throw error(Error::wrongUseOfFunction(funcname()));
+        }
+        for (i = 1; i <= _repeatCount; i++)
+        {
+            res += _s;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitElementsCount</Name>
+				<Source><![CDATA[
+    int splitElementsCount()
+    {
+        return conlen(splitData);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitGetData</Name>
+				<Source><![CDATA[
+    container splitGetData()
+    {
+        return splitData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitGetElement</Name>
+				<Source><![CDATA[
+    str splitGetElement(
+    int     _num,
+    int     _desiredElementLen              = -1,
+    boolean _isSubstituteMaxElementError    = false)
+    {
+        str   res;
+        #define.EmptyStr("<empty>") 
+        ;
+        if ((_num > this.splitElementsCount()) || (_num == 0))
+        {
+            if (_isSubstituteMaxElementError)
+            {
+                return #EmptyStr;
+            }
+            else
+            {
+                throw error(Error::wrongUseOfFunction(funcname()));
+            }
+        }
+
+        res = conpeek(splitData, _num);
+
+        if (_desiredElementLen != -1)
+        {
+            if (strlen(res) != _desiredElementLen)
+            {
+                throw error(StrFmt("Element %1 size should be %2 char(s)", res, _desiredElementLen));
+            }
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitGetLastElement</Name>
+				<Source><![CDATA[
+    str splitGetLastElement(int _desiredElementLen = -1)
+    {
+        return this.splitGetElement(this.splitElementsCount(), _desiredElementLen);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitString</Name>
+				<Source><![CDATA[
+    void splitString(str  _string, str _char, int _desiredElementCount = 0, boolean  _allowRepeatDelimier = false)
+    {
+        str  currentSymbol;
+        int  i;
+        ;
+        splitData = connull();
+
+        if (! _allowRepeatDelimier)
+        {
+            splitData = str2con_RU(_string, _char);
+        }
+        else
+        {
+            for (i = 1; i <= strlen(_string); i++)
+            {
+                if ((substr(_string, i, 1) == _char))
+                {
+                    if (currentSymbol)
+                    {
+                        splitData       += currentSymbol;
+                        currentSymbol   = '';
+                    }
+                    continue;
+                }
+                else
+                {
+                    currentSymbol += subStr(_string, i, 1);
+                }
+            }
+            if (currentSymbol)
+            {
+                splitData       += currentSymbol;
+                currentSymbol   = '';
+            }
+        }
+
+        if (_desiredElementCount)
+        {
+            if (this.splitElementsCount() != _desiredElementCount)
+            {
+                throw error(StrFmt("String %1 split by %2 chars should contain %3 elements", _string, _char, _desiredElementCount));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    static DEVSysQueryListStringHelper construct()
+    {
+        DEVSysQueryListStringHelper  stringHelper = new DEVSysQueryListStringHelper();
+        ;
+        return stringHelper;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

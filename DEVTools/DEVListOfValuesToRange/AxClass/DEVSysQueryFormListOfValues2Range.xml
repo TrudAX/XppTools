@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSysQueryFormListOfValues2Range</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+// Common utilities, Form Query Info, AKA
+class DEVSysQueryFormListOfValues2Range
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getRangeValueFromList</Name>
+				<Source><![CDATA[
+    public static container getRangeValueFromList(
+        str         _source,
+        int         _size = 0,
+        str         _sep = ',',
+        boolean     _withAll = false,
+        boolean     _withQuotes = false,
+        boolean     _textOnly = false,
+        boolean     _removeSpace = false)
+    {
+        DEVSysQueryListStringHelper  stringHelper;
+        
+        int         i;
+        str         retStr;
+        str         s = _source;
+        int         words;
+        int         char;
+        int         len;
+        int         seplen;
+        str         all;
+        ;
+        if (_textOnly)
+        {
+            len        = strLen(s);
+
+            for (i = 1; i <= len; i ++)
+            {
+                char    = char2num(s, i);
+
+                switch (char)
+                {
+                    case 0x2E:   // .
+                    case 0x5f:   // _
+                        all        = '';
+
+                        if (char2num(s, i - 1) != 0x2A && char2num(s, i + 1) != 0x2A)
+                        {
+                            all     = '?';
+                        }
+
+                        s = subStr(s, 1, i - 1) + all +  subStr(s, i + 1, len);
+
+                        if (!all)
+                        {
+                            len --;
+                        }
+
+                        break;
+                }
+            }
+        }
+
+        seplen = strLen(_sep);
+
+        stringHelper = DEVSysQueryListStringHelper::construct();
+        stringHelper.splitString(s, '\n');
+
+        for (i = 1; i <= stringHelper.splitElementsCount(); i ++)
+        {
+            s = stringHelper.splitGetElement(i);
+
+            if (s && _removeSpace)
+            {
+                s = strRem(s, ' ');
+            }
+
+            if (s && _withAll)
+            {
+                s = '*' + s + '*';
+            }
+            if (s && _withQuotes)
+            {
+                if (subStr(s, 1, 1) != '"')
+                {
+                    s = '"' + strLRTrim(s);
+                }
+                if (subStr(s, strLen(s), 1) != '"')
+                {
+                    s = strLRTrim(s) + '"';
+                }
+            }
+
+            if (s && retStr)
+            {
+                len = strLen(retStr);
+
+                if (substr(retStr, len - seplen + 1, len) != _sep)
+                {
+                    retStr  = retStr + _sep;
+                }
+
+                words++;
+            }
+
+            if (!s)
+            {
+                continue;
+            }
+
+            len = strLen(retStr + s);
+
+            if (_size && (_size <= len))
+            {
+                Box::info('Data in buffer is very long. Save ' + int2str(words) + ' words.', 'WARNING!!!');
+                break;
+            }
+
+            retStr = retStr + s;
+            words++;
+        }
+
+        return [retStr, stringHelper.splitElementsCount()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMinStr</Name>
+				<Source><![CDATA[
+    public static str getMinStr(str s, int len, str sep = ',')
+    {
+        int l;
+        int char;
+
+        l       = strLen(s);
+
+        if (l <= len)
+        {
+            return s;
+        }
+
+        char    = char2num(sep, 1);
+        l       = len;
+
+        while (l)
+        {
+            l --;
+
+            if (char2num(s, l) == char)
+            {
+                return(subStr(s, 1, l - 1));
+            }
+        }
+
+        return "";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
