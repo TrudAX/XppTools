@@ -42,7 +42,7 @@ class DEVDimensionHelper
     {
         //place code here to override default values
         //see DEVDimNamesReference table
-        //like BusinessUnit = myParmTable.BusinessUnit
+        //e.g. BusinessUnit = myParmTable.BusinessUnit
     }
 
 ]]></Source>
@@ -62,12 +62,41 @@ class DEVDimensionHelper
     //--Value str from DefaultDimension
     static DimensionValue getValueByDefaultDimension(DimensionDefault  _dimensionDefault, Name _dimensionName)
     {
-        DimensionAttributeValueSetStorage  dimStorage;
         DimensionValue                     res;
+        FieldId fieldIdDim = DimensionAttributeValueSet::getDimensionValueFieldId(_dimensionName);
+        if (fieldIdDim)
+        {
+            DimensionAttributeValueSet dimValueTable = DimensionAttributeValueSet::find(_dimensionDefault);
+            if (dimValueTable.RecId)
+            {
+                res = dimValueTable.(fieldIdDim);
+            }
+        }
+        //this is a standard 'slow' version
+        //DimensionAttributeValueSetStorage  dimStorage;
+        //dimStorage = DimensionAttributeValueSetStorage::find(_dimensionDefault);
+        //res = dimStorage.getDisplayValueByDimensionAttribute(DimensionAttribute::findByName(_dimensionName).RecId);
 
-        dimStorage = DimensionAttributeValueSetStorage::find(_dimensionDefault);
-        res = dimStorage.getDisplayValueByDimensionAttribute(DimensionAttribute::findByName(_dimensionName).RecId);
+        return res;
+    }
 
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValueByLedgerDimension</Name>
+				<Source><![CDATA[
+    static DimensionValue getValueByLedgerDimension(LedgerDimensionAccount  _dimensionDefault, Name _dimensionName)
+    {
+        DimensionValue                     res;
+        FieldId fieldIdDim = DimensionAttributeValueCombination::getDimensionValueFieldId(_dimensionName);
+        if (fieldIdDim)
+        {
+            DimensionAttributeValueCombination dimValueTable = DimensionAttributeValueCombination::find(_dimensionDefault);
+            if (dimValueTable.RecId)
+            {
+                res = dimValueTable.(fieldIdDim);
+            }
+        }
         return res;
     }
 
@@ -111,6 +140,7 @@ class DEVDimensionHelper
     //To filter by dimension value
     //https://www.1clickfactory.com/blog/microsoft-dynamics-365-changes-to-financial-dimensions-structure/
     /*
+    DimensionAttributeValueSet  davs;
     businessUnitId = DimensionAttributeValueCombination::getDimensionValueFieldId(DEVDimensionHelper::BusinessUnit);
     while select ProjId from projTable
     exists join davs
