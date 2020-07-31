@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLQueryExecuteMode</Name>
+	<Help>SQL Query Mode</Help>
+	<Label>Mode</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Select</Name>
+			<Label>Select</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Update</Name>
+			<Label>Update</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLQueryExecute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVSQLQueryExecute
+{
+    DEVTmpSQLExecuteParm        executeParm;
+
+    str                     resRow;
+
+    boolean                 isRawOutput;
+    DEVSQLQueryExecuteLog   queryExecuteLog;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmExecuteParm</Name>
+				<Source><![CDATA[
+    public DEVTmpSQLExecuteParm parmExecuteParm(DEVTmpSQLExecuteParm _executeParm = executeParm)
+    {
+        executeParm = _executeParm;
+        return executeParm;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    static DEVSQLQueryExecute  construct(DEVTmpSQLExecuteParm _executeParm)
+    {
+        DEVSQLQueryExecute      queryExecute = new DEVSQLQueryExecute();
+        queryExecute.parmExecuteParm(_executeParm);
+    
+        return queryExecute;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logBegin</Name>
+				<Source><![CDATA[
+    void logBegin()
+    {
+        queryExecuteLog.SQLText = executeParm.SQLText;
+        queryExecuteLog.StartDateTime = DateTimeUtil::getSystemDateTime();
+        queryExecuteLog.insert();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logEnd</Name>
+				<Source><![CDATA[
+    void logEnd()
+    {
+        ;
+        ttsbegin;
+        queryExecuteLog = DEVSQLQueryExecuteLog::findRecId(queryExecuteLog.RecId, true);
+        queryExecuteLog.SQLText = executeParm.SQLText;
+        queryExecuteLog.EndDateTime = DateTimeUtil::getSystemDateTime();
+        queryExecuteLog.Duration = any2Int(DateTimeUtil::getDifference(queryExecuteLog.EndDateTime, queryExecuteLog.StartDateTime));
+        queryExecuteLog.write();
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>execSQL</Name>
+				<Source><![CDATA[
+    public str execSQL()
+    {
+        str  res;
+        resRow = '';
+
+        this.logBegin();
+
+        str fileExt = conPeek(fileNameSplit(executeParm.Filename), 3);
+        if (fileExt != '.html')
+        {
+            isRawOutput = true;
+        }
+        if (executeParm.QueryExecuteMode == DEVSQLQueryExecuteMode::Select)
+        {
+            this.doExecuteQueryResult();
+            if ( isRawOutput)
+            {
+                res = resRow;
+            }
+            else
+            {
+                res = '<!DOCTYPE html>\n <html><body><table>' + resRow + '</table></body></html>';
+            }
+            //res = executeParm.SQLText;
+        
+            if (executeParm.IsFileOutput)
+            {
+                File::SendStringAsFileToUser(res, executeParm.Filename);
+            }
+        }
+        else
+        {
+            if (executeParm.QueryExecuteMode == DEVSQLQueryExecuteMode::Update)
+            {
+                this.doExecuteUpdate(executeParm.SQLText);
+                res = strFmt('Executed %1', DateTimeUtil::applyTimeZoneOffset(DateTimeUtil::getSystemDateTime(), DateTimeUtil::getUserPreferredTimeZone()));
+            }
+        }
+        this.logEnd();
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doExecuteUpdate</Name>
+				<Source><![CDATA[
+    public void doExecuteUpdate(str _strQuery)
+    {
+        Connection  connection = new Connection();
+        Statement   statement = connection.createStatement();
+        SqlStatementExecutePermission permission;
+                     
+        permission = new SqlStatementExecutePermission(_strQuery);
+        permission.assert();
+
+        statement.executeUpdate(_strQuery);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultSet</Name>
+				<Source><![CDATA[
+    private ResultSet getResultSet(str _strQuery)
+    {
+        Connection  connection = new Connection();
+        Statement   statement = connection.createStatement();
+        SqlStatementExecutePermission permission;
+        ResultSet resultSet;
+          
+           
+        permission = new SqlStatementExecutePermission(_strQuery);
+        permission.assert();
+
+        resultSet = statement.executeQuery(_strQuery);
+
+        return resultSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addResultRow</Name>
+				<Source><![CDATA[
+    void  addResultRow(container _row, boolean _isHeader = false)
+    {
+        int i;
+        resRow += '<tr style="border: 1px  solid gray; padding: 1px;">';
+        for (i = 1; i <= conLen(_row); i++)
+        {
+            if (_isHeader)
+            {
+                resRow += strFmt('<th style="border: 1px  solid gray; padding: 1px;">%1</th>', conPeek(_row, i));
+            }
+            else
+            {
+                resRow += strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', conPeek(_row, i));
+            }
+        }
+        resRow += '</tr>';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doExecuteQueryResult</Name>
+				<Source><![CDATA[
+    public void doExecuteQueryResult()
+    {
+        int         i;
+        container   expectedSubResult;
+        ResultSet   resultSet;
+        ResultSetMetaData  resultSetMetaData;
+        boolean     isFirstRow = true;
+        int         maxColumnCount;
+        int         currentRow;        
+        ;
+
+        try
+        {
+            resultSet = this.getResultSet(executeParm.SQLText);
+
+            resultSetMetaData = resultSet.getMetaData();
+
+            while(resultSet.next())
+            {
+                currentRow++;
+                if (currentRow > executeParm.MaxRows)
+                {
+                    warning(strFmt("Exceeding the allowed number of lines %1", executeParm.MaxRows));
+                    break;
+                }
+                if (isRawOutput)
+                {
+                    if (isFirstRow)
+                    {
+                        isFirstRow = false;
+                        maxColumnCount = resultSetMetaData.getColumnCount();
+                    }
+                    else
+                    {
+                        resRow += '\n';
+                    }
+                    for ( i = 1; i <= maxColumnCount; i++)
+                    {
+                        str     sTmp = resultSet.getString(i);
+                        if (i > i)
+                        {
+                            resRow += ',';
+                        }
+                        resRow += strFmt('%1', sTmp);
+                    }
+                }
+                else
+                {
+                    //print row headers
+                    if (isFirstRow)
+                    {
+                        expectedSubResult = connull();
+                        for ( i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+                        {
+                            expectedSubResult += resultSetMetaData.getColumnName(i);
+                        }
+                        this.addResultRow(expectedSubResult, true);
+                        isFirstRow = false;
+
+                        maxColumnCount = resultSetMetaData.getColumnCount();
+                    }
+                    resRow += '<tr style="border: 1px  solid gray; padding: 1px;">';
+                    for ( i = 1; i <= maxColumnCount; i++)
+                    {
+                        //int colType = resultSetMetaData.getColumnType(i);
+                        //Types t = colType;
+                        str     sTmp = resultSet.getString(i);
+
+                        resRow += strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', sTmp);
+                    }
+                    resRow += '</tr>';
+                }
+            }
+        }
+        catch
+        {
+            error('error');
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
