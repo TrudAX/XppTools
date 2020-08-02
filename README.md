@@ -11,6 +11,7 @@ This repository contains 3 D365FO models:
     - [-Display table relation fields](#-display-table-relation-fields)
     - [-Editable table browser](#-editable-table-browser)
     - [-List of Values to Range](#-list-of-values-to-range)
+    - [-Execute direct SQL in D365FO database](#-execute-direct-sql-in-d365fo-database)
   - [DEVCommon model](#devcommon-model)
     - [-DEV class](#-dev-class)
     - [-DEVDimensionHelper class](#-devdimensionhelper-class)
@@ -70,9 +71,21 @@ This functionality is intended to help users deal with list of values in query r
 - Copy list of values from, for example, excel and paste it in a range;
 - Easily manage values of existed range
 
+Full description: [List of Values to Range](https://denistrunin.com/xpptools-listvaluestorange/)
 Sub-model name: DEVListOfValuesToRange
 
 ![](assets/DEVListOfValuesToRange.png)
+
+**[⬆ back to top](#XppTools)**
+
+### -Execute direct SQL in D365FO database
+
+'Execute direct SQL' is a simple form that allows to write and execute direct SQL from the browser on D365FO database.
+
+Full description: [Execute direct SQL in D365FO database](https://denistrunin.com/xpptools-sqlexecute/)
+Sub-model name: DEVSQLExecute
+
+![](assets/DEVSQLExecute.png)
 
 **[⬆ back to top](#XppTools)**
 
