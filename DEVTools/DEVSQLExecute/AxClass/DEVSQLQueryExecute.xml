@@ -5,7 +5,7 @@
 		<Declaration><![CDATA[
 class DEVSQLQueryExecute
 {
-    DEVTmpSQLExecuteParm        executeParm;
+    DEVSQLExecuteParm        executeParm;
 
     str                     resRow;
 
@@ -18,7 +18,7 @@ class DEVSQLQueryExecute
 			<Method>
 				<Name>parmExecuteParm</Name>
 				<Source><![CDATA[
-    public DEVTmpSQLExecuteParm parmExecuteParm(DEVTmpSQLExecuteParm _executeParm = executeParm)
+    public DEVSQLExecuteParm parmExecuteParm(DEVSQLExecuteParm _executeParm = executeParm)
     {
         executeParm = _executeParm;
         return executeParm;
@@ -29,7 +29,7 @@ class DEVSQLQueryExecute
 			<Method>
 				<Name>construct</Name>
 				<Source><![CDATA[
-    static DEVSQLQueryExecute  construct(DEVTmpSQLExecuteParm _executeParm)
+    static DEVSQLQueryExecute  construct(DEVSQLExecuteParm _executeParm)
     {
         DEVSQLQueryExecute      queryExecute = new DEVSQLQueryExecute();
         queryExecute.parmExecuteParm(_executeParm);
@@ -105,8 +105,27 @@ class DEVSQLQueryExecute
         {
             if (executeParm.QueryExecuteMode == DEVSQLQueryExecuteMode::Update)
             {
+                DEVSQLExecuteParm  executeParmLocal;
+                if (executeParm.IsFileOutput)
+                {
+                    ttsbegin;
+                    executeParmLocal = DEVSQLExecuteParm::find(curUserId(), true);
+                    executeParmLocal.SQLResults = '';
+                    executeParmLocal.update();
+                    ttscommit;
+                }
+
                 this.doExecuteUpdate(executeParm.SQLText);
                 res = strFmt('Executed %1', DateTimeUtil::applyTimeZoneOffset(DateTimeUtil::getSystemDateTime(), DateTimeUtil::getUserPreferredTimeZone()));
+
+                if (executeParm.IsFileOutput)
+                {
+                    executeParmLocal = DEVSQLExecuteParm::find(curUserId());
+                    if (executeParmLocal.SQLResults)
+                    {
+                        File::SendStringAsFileToUser(executeParmLocal.SQLResults, executeParm.Filename);
+                    }
+                }
             }
         }
         this.logEnd();
@@ -190,72 +209,64 @@ class DEVSQLQueryExecute
         int         currentRow;        
         ;
 
-        try
+        resultSet = this.getResultSet(executeParm.SQLText);
+        resultSetMetaData = resultSet.getMetaData();
+
+        while(resultSet.next())
         {
-            resultSet = this.getResultSet(executeParm.SQLText);
-
-            resultSetMetaData = resultSet.getMetaData();
-
-            while(resultSet.next())
+            currentRow++;
+            if (currentRow > executeParm.MaxRows)
             {
-                currentRow++;
-                if (currentRow > executeParm.MaxRows)
+                warning(strFmt("Exceeding the allowed number of lines %1", executeParm.MaxRows));
+                break;
+            }
+            if (isRawOutput)
+            {
+                if (isFirstRow)
                 {
-                    warning(strFmt("Exceeding the allowed number of lines %1", executeParm.MaxRows));
-                    break;
-                }
-                if (isRawOutput)
-                {
-                    if (isFirstRow)
-                    {
-                        isFirstRow = false;
-                        maxColumnCount = resultSetMetaData.getColumnCount();
-                    }
-                    else
-                    {
-                        resRow += '\n';
-                    }
-                    for ( i = 1; i <= maxColumnCount; i++)
-                    {
-                        str     sTmp = resultSet.getString(i);
-                        if (i > i)
-                        {
-                            resRow += ',';
-                        }
-                        resRow += strFmt('%1', sTmp);
-                    }
+                    isFirstRow = false;
+                    maxColumnCount = resultSetMetaData.getColumnCount();
                 }
                 else
                 {
-                    //print row headers
-                    if (isFirstRow)
+                    resRow += '\n';
+                }
+                for ( i = 1; i <= maxColumnCount; i++)
+                {
+                    str     sTmp = resultSet.getString(i);
+                    if (i > i)
                     {
-                        expectedSubResult = connull();
-                        for ( i = 1; i <= resultSetMetaData.getColumnCount(); i++)
-                        {
-                            expectedSubResult += resultSetMetaData.getColumnName(i);
-                        }
-                        this.addResultRow(expectedSubResult, true);
-                        isFirstRow = false;
-
-                        maxColumnCount = resultSetMetaData.getColumnCount();
+                        resRow += ',';
                     }
-                    resRow += '<tr style="border: 1px  solid gray; padding: 1px;">';
-                    for ( i = 1; i <= maxColumnCount; i++)
-                    {
-                        //int colType = resultSetMetaData.getColumnType(i);
-                        //Types t = colType;
-                        str     sTmp = resultSet.getString(i);
-
-                        resRow += strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', sTmp);
-                    }
-                    resRow += '</tr>';
+                    resRow += strFmt('%1', sTmp);
                 }
             }
-        }
-        catch
-        {
-            error('error');
+            else
+            {
+                //print row headers
+                if (isFirstRow)
+                {
+                    expectedSubResult = connull();
+                    for ( i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+                    {
+                        expectedSubResult += resultSetMetaData.getColumnName(i);
+                    }
+                    this.addResultRow(expectedSubResult, true);
+                    isFirstRow = false;
+
+                    maxColumnCount = resultSetMetaData.getColumnCount();
+                }
+                resRow += '<tr style="border: 1px  solid gray; padding: 1px;">';
+                for ( i = 1; i <= maxColumnCount; i++)
+                {
+                    //int colType = resultSetMetaData.getColumnType(i);
+                    //Types t = colType;
+                    str     sTmp = resultSet.getString(i);
+
+                    resRow += strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', sTmp);
+                }
+                resRow += '</tr>';
+            }
         }
     }
 

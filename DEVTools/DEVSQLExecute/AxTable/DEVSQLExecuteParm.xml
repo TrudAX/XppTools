@@ -1,20 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-	<Name>DEVTmpSQLExecuteParm</Name>
+	<Name>DEVSQLExecuteParm</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-public class DEVTmpSQLExecuteParm extends common
+public class DEVSQLExecuteParm extends common
 {
 }
 ]]></Declaration>
-		<Methods />
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEVSQLExecuteParm find(SysUserId  _userId,
+                                         boolean    _forUpdate = false)
+    {
+        DEVSQLExecuteParm dEVSQLExecuteParm;
+        ;
+        dEVSQLExecuteParm.selectForUpdate(_forUpdate);
+        
+        select firstonly dEVSQLExecuteParm
+            where dEVSQLExecuteParm.UserId  == _userId;
+        
+        return dEVSQLExecuteParm;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
 	</SourceCode>
 	<Label>SQL Execute parameters</Label>
 	<SubscriberAccessLevel>
 		<Read>Allow</Read>
 	</SubscriberAccessLevel>
+	<TitleField1>Filename</TitleField1>
+	<TitleField2>MaxRows</TitleField2>
+	<ClusteredIndex>UserIdIdx</ClusteredIndex>
+	<PrimaryIndex>UserIdIdx</PrimaryIndex>
+	<ReplacementKey>UserIdIdx</ReplacementKey>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
-	<TableType>InMemory</TableType>
 	<DeleteActions />
 	<FieldGroups>
 		<AxTableFieldGroup>
@@ -35,7 +58,11 @@ public class DEVTmpSQLExecuteParm extends common
 		<AxTableFieldGroup>
 			<Name>AutoIdentification</Name>
 			<AutoPopulate>Yes</AutoPopulate>
-			<Fields />
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
 			<Name>AutoSummary</Name>
@@ -72,6 +99,15 @@ public class DEVTmpSQLExecuteParm extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Results</Name>
+			<Label>Results</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>SQLResults</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -104,9 +140,32 @@ public class DEVTmpSQLExecuteParm extends common
 			<Name>Filename</Name>
 			<ExtendedDataType>Filename</ExtendedDataType>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SysUserId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SQLResults</Name>
+			<ExtendedDataType>Notes</ExtendedDataType>
+			<Label>Filed for storing SQL results</Label>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
-	<Indexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>UserIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>UserId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
 	<Mappings />
 	<Relations />
 	<StateMachines />

@@ -9,26 +9,85 @@
 [Form]
 public class DEVSQLQueryExecute extends FormRun
 {
-
-
 }
 ]]></Source>
 			</Method>
 			<Method>
 				<Name>init</Name>
 				<Source><![CDATA[
-    /// <summary>
-    ///
-    /// </summary>
     public void init()
     {
         super();
 
-        ExecuteParm.SQLText = 'select * from CustGroup';
-        ExecuteParm.MaxRows = 1000;
-        ExecuteParm.QueryExecuteMode = DEVSQLQueryExecuteMode::Select;
-        ExecuteParm.Filename = 'SQLResult.html';
-        ExecuteParm.insert();
+        if (! this.DEVisUserInRole(roleStr(DEVSQLQueryExecute)))
+        {
+            throw error(strFmt("User %1 should be included to %2 role", 
+                    curUserId(), roleStr(DEVSQLQueryExecute)));
+        }
+
+        ttsbegin;
+
+        DEVSQLExecuteParm  executeParmLocal = DEVSQLExecuteParm::find(curUserId(), true);
+
+        executeParmLocal.SQLText = 'select * from CustGroup';
+        executeParmLocal.MaxRows = 100;
+        executeParmLocal.QueryExecuteMode = DEVSQLQueryExecuteMode::Select;
+        executeParmLocal.Filename = 'SQLResult.html';
+        executeParmLocal.UserId = curUserId();
+        executeParmLocal.write();
+
+        ttscommit;
+
+        QueryBuildRange   qbr = ExecuteParm_ds.queryBuildDataSource().addRange(fieldNum(DEVSQLExecuteParm, UserId));
+        qbr.status(RangeStatus::Locked);
+        qbr.value(SysQuery::value(curUserId()));
+
+        this.updateHelpText();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateHelpText</Name>
+				<Source><![CDATA[
+    void updateHelpText()
+    {
+        str  helpText;
+
+        helpText += "To get the value from the UPDATE statement use the following sample:\n";
+        helpText += strFmt('UPDATE %1  \n', tableStr (DEVSQLExecuteParm));
+        helpText += 'SET SQLResults =  \n';
+        helpText += '  (SELECT TOP 1 CONVERT(nvarchar(max), query_plan) from sys.dm_exec_query_plan(0x06000C00061DE137A0156608AD02000001000000000000000000000000000000000000000000000000000000)) \n';
+        helpText += strFmt('WHERE UserId = \'%1\'', curUserId());
+        helpText += '\n\n';
+        helpText += 'Use qs.plan_handle to get "plan ID" value\n';
+
+        HelpTextControl.text(helpText);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DEVisUserInRole</Name>
+				<Source><![CDATA[
+    public boolean DEVisUserInRole(Description  _roleName)
+    {
+        boolean                 res;
+        SecurityUserRole        securityUserRole;
+        SecurityRole            securityRole;
+        ;
+        select firstonly RecId from securityUserRole
+            where  securityUserRole.User    == curUserId()
+            join RecId from securityRole
+                where  securityRole.RecId == securityUserRole.SecurityRole
+                    && (   securityRole.AotName == _roleName
+                    )    ;
+        if (securityUserRole.RecId)
+        {
+            res = true;
+        }
+    
+        return res;
     }
 
 ]]></Source>
@@ -46,8 +105,9 @@ public class DEVSQLQueryExecute extends FormRun
         public void clicked()
         {
             DEVSQLQueryExecute  queryExecute = DEVSQLQueryExecute::construct(ExecuteParm);
-            ResultSQL.text(queryExecute.execSQL());
             HtmlViewerResult.parmHtml(queryExecute.execSQL());
+
+            ExecuteParm_ds.reread();
         }
 
 ]]></Source>
@@ -80,13 +140,22 @@ public class DEVSQLQueryExecute extends FormRun
 	<DataSources>
 		<AxFormDataSource xmlns="">
 			<Name>ExecuteParm</Name>
-			<Table>DEVTmpSQLExecuteParm</Table>
+			<Table>DEVSQLExecuteParm</Table>
 			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Filename</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsFileOutput</DataField>
+				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>MaxRows</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>QueryExecuteMode</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>RecId</DataField>
@@ -96,6 +165,9 @@ public class DEVSQLQueryExecute extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UserId</DataField>
 				</AxFormDataSourceField>
 			</Fields>
 			<ReferencedDataSources />
@@ -418,6 +490,26 @@ public class DEVSQLQueryExecute extends FormRun
 							</AxFormControl>
 						</Controls>
 						<Caption>Log</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>HelpTabPageControl</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>HelpTextControl</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>StaticText</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+							</AxFormControl>
+						</Controls>
+						<Caption>Help</Caption>
 					</AxFormControl>
 				</Controls>
 			</AxFormControl>
