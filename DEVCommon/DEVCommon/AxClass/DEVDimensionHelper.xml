@@ -55,9 +55,6 @@ class DEVDimensionHelper
     //INTERNAL STRUCTURE 
     //https://docs.microsoft.com/en-us/dynamics365/unified-operations/dev-itpro/financial/ledgeraccountcombinations
 
-    //FILTER VALUES
-    //SysQuery::addDimensionAttributeRange(
-
     //EXTRACT VALUES
     //--Value str from DefaultDimension
     static DimensionValue getValueByDefaultDimension(DimensionDefault  _dimensionDefault, Name _dimensionName)
@@ -137,6 +134,9 @@ class DEVDimensionHelper
 			<Method>
 				<Name>setDefaultDimensionRecId</Name>
 				<Source><![CDATA[
+    //FILTER VALUES
+    //SysQuery::addDimensionAttributeRange(
+
     //To filter by dimension value
     //https://www.1clickfactory.com/blog/microsoft-dynamics-365-changes-to-financial-dimensions-structure/
     /*
