@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessagesProcess</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegMessagesProcess extends RunBaseBatch
+{
+    DEVIntegMessageTypeId    messageTypeId;
+    DialogField              dlgMessageTypeId;
+    
+    QueryRun       queryRun;
+    
+    Range                       batchIdentifier;
+    BatchHeader                 batchHeader;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        batchIdentifier,
+        messageTypeId
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgMessageTypeId         = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeId), messageTypeId);
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        messageTypeId          = dlgMessageTypeId.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBatchIdentifier</Name>
+				<Source><![CDATA[
+    public Range parmBatchIdentifier(Range _batchIdentifier = batchIdentifier)
+    {
+        batchIdentifier = _batchIdentifier;
+        
+        return batchIdentifier;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTypeId</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeId parmMessageTypeId(DEVIntegMessageTypeId _messageTypeId = messageTypeId)
+    {
+        messageTypeId = _messageTypeId;
+        return messageTypeId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        this.initQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initQuery</Name>
+				<Source><![CDATA[
+    public void initQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEVIntegMessageTable));
+        QueryBuildRange         qBR;
+        ;
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTable, Status));
+        qBR.value(strFmt('%1,%2', DEVIntegMessageStatus::Ready, DEVIntegMessageStatus::Processing));
+        qBR.status(RangeStatus::Locked);
+        
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        container  queryCon;
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList, queryCon] = _packedClass;
+                if (SysQuery::isPackedOk(queryCon))
+                {
+                    queryRun = new QueryRun(queryCon);
+                }
+                else
+                {
+                    this.initQuery();
+                }
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        QueryBuildDataSource    qBDS;
+        container               typesCon;
+        int                     i;
+        
+        if (batchIdentifier) //child task
+        {
+            this.runThreadTask();
+        }
+        else
+        {
+            qBDS = queryRun.query().dataSourceTable(tableNum(DEVIntegMessageTable));
+            if (messageTypeId)
+            {
+                SysQuery::findOrCreateRange(qBDS, fieldnum(DEVIntegMessageTable, MessageTypeId)).value(queryValue(messageTypeId));
+            }
+            typesCon = this.getSelectedTypes();
+            for (i = 1; i <= conLen(typesCon); i++)
+            {
+                this.processSelectedType(conPeek(typesCon, i));
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processSelectedType</Name>
+				<Source><![CDATA[
+    protected void processSelectedType(DEVIntegMessageTypeId _typeId)
+    {
+        QueryBuildDataSource        qBDS;
+        DEVIntegMessageTypeInbound    messageTypeTable = DEVIntegMessageTypeInbound::find(_typeId);
+
+        messageTypeId = _typeId;
+        qBDS = queryRun.query().dataSourceTable(tableNum(DEVIntegMessageTable));
+        SysQuery::findOrCreateRange(qBDS, fieldnum(DEVIntegMessageTable, MessageTypeId)).value(queryValue(_typeId));
+
+        if (messageTypeTable.ThreadsCount > 1)
+        {
+            container               batchIdentifierCon;
+            int                     i;
+
+            batchIdentifierCon = this.getBatchIdentifiersRangeCon(messageTypeTable.ThreadsCount);
+                
+            for (i = 1; i <= conLen(batchIdentifierCon); i++)
+            {
+                batchIdentifier = conPeek(batchIdentifierCon, i);
+        
+                this.processThreadItem();
+            }
+            if (this.isInBatch() && batchHeader)
+            {
+                batchHeader.save();
+            }
+        }
+        else
+        {
+            this.runThreadTask();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runThreadTask</Name>
+				<Source><![CDATA[
+    public void runThreadTask()
+    {
+        DEVIntegMessageProcessor    messageProcessor;
+        DEVIntegMessageTable        integMessageTable;
+        int                         processedCounter;
+        
+        //2. Query Processing
+        if (batchIdentifier)
+        {
+            QueryBuildDataSource  qBDS = queryRun.query().dataSourceTable(tablenum(DEVIntegMessageTable));
+            qBDS.addRange(fieldnum(DEVIntegMessageTable, RecId)).value(batchIdentifier);
+        }
+        messageProcessor = DEVIntegMessageProcessor::construct(DEVIntegMessageTypeInbound::find(messageTypeId));
+
+        while (queryRun.next())
+        {
+            integMessageTable = queryRun.get(tablenum(DEVIntegMessageTable));
+
+            messageProcessor.processMessage(integMessageTable);
+            
+            processedCounter++;
+        }
+        info(strfmt("Type %1. %2 record(s) processed", messageTypeId, processedCounter));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processThreadItem</Name>
+				<Source><![CDATA[
+    protected void processThreadItem()
+    {
+        DEVIntegMessagesProcess        childThread;
+        ;
+        if (! batchIdentifier)
+        {
+            return;
+        }
+                
+        childThread = RunBase::makeObject(classIdGet(this));
+        childThread.batchInfo().resetBatchHeader();
+        childThread.batchInfo().parmGroupId(this.parmCurrentBatch().GroupId);
+        childThread.batchInfo().parmConstraintType(BatchConstraintType::And);
+        childThread.batchInfo().parmDataareaId(this.parmCurrentBatch().Company);
+        childThread.batchInfo().parmCaption(childThread.caption() + ' (Helper)' + batchIdentifier);
+        childThread.unpack(this.pack());
+        
+        childThread.parmBatchIdentifier(batchIdentifier);
+        
+        if (this.isInBatch())
+        {
+            if (! batchHeader)
+            {
+                batchHeader = BatchHeader::construct(this.parmCurrentBatch().BatchJobId);
+            }
+            batchHeader.addRuntimeTask(childThread, this.parmCurrentBatch().ReciD);
+        
+        }
+        else
+        {
+            childThread.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getBatchIdentifiersRangeCon</Name>
+				<Source><![CDATA[
+    public container  getBatchIdentifiersRangeCon(int _maxTaskCount)
+    {
+        container  res;
+        QueryRun   queryRunLocal = new QueryRun(queryRun.query());
+
+        QueryBuildDataSource   qBDS = queryRunLocal.query().dataSourceTable(tablenum(DEVIntegMessageTable));
+        int                    totalRecords, curRecord, recordsPerBatch;
+        RecId                  fromRecId, toRecId;
+
+        qBDS.sortClear();
+        qBDS.addSortField(fieldnum(DEVIntegMessageTable, RecId));
+        qBDS.addSelectionField(fieldnum(DEVIntegMessageTable, RecId));
+        qBDS.addRange(fieldnum(DEVIntegMessageTable, RecId)).value(batchIdentifier);
+
+        totalRecords = SysQuery::countTotal(queryRunLocal);
+        recordsPerBatch = _maxTaskCount > 0 ? totalRecords div _maxTaskCount : totalRecords;
+        if (! recordsPerBatch)
+        {
+            recordsPerBatch = 1;
+        }
+
+        while (queryRunLocal.next())
+        {
+            DEVIntegMessageTable   messageTableLocal = queryRunLocal.get(tablenum(DEVIntegMessageTable));
+            if (! fromRecId)
+            {
+                fromRecId = messageTableLocal.RecId;
+            }
+            curRecord++;
+            toRecId = messageTableLocal.RecId;
+            if ((curRecord mod recordsPerBatch) == 0)
+            {
+                res += SysQuery::range(fromRecId, toRecId);
+                fromRecId = 0;
+                curRecord = 0;
+            }
+        }
+        if (curRecord && fromRecId && toRecId)
+        {
+            res += SysQuery::range(fromRecId, toRecId);
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSelectedTypes</Name>
+				<Source><![CDATA[
+    protected container getSelectedTypes()
+    {
+        Query                   q = new Query(queryRun.query().pack());
+        QueryBuildDataSource    qBDS;
+        QueryRun                qr;
+        DEVIntegMessageTable    tableLocal;
+        container               res;
+
+        qBDS = q.dataSourceTable(tableNum(DEVIntegMessageTable));
+        qBDS.sortClear();
+        qBDS.orderMode(OrderMode::GroupBy);
+        qBDS.addSortField(fieldnum(DEVIntegMessageTable, MessageTypeId));
+
+        qr = new QueryRun(q);
+        while (qr.next())
+        {
+            tableLocal = qr.get(tableNum(DEVIntegMessageTable));
+            res += tableLocal.MessageTypeId;
+        }
+        return res;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegMessagesProcess construct()
+    {
+        return new DEVIntegMessagesProcess();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Process messages";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegMessagesProcess    runObject = DEVIntegMessagesProcess::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        super();
+        this.initQuery();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

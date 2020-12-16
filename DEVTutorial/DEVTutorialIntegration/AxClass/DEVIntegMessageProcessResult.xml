@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageProcessResult</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegMessageProcessResult
+{
+    int         numOfRecordsProcessed;
+    int         numOfRecordsWithError;
+
+    str         processPrefix;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>clearValues</Name>
+				<Source><![CDATA[
+    public void clearValues()
+    {
+        numOfRecordsProcessed = 0;
+        numOfRecordsWithError = 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmProcessPrefix</Name>
+				<Source><![CDATA[
+    public str parmProcessPrefix(str _processPrefix = processPrefix)
+    {
+        processPrefix = _processPrefix;
+        return processPrefix;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>hasErrors</Name>
+				<Source><![CDATA[
+    public boolean  hasErrors()
+    {
+        return numOfRecordsWithError > 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProcessedCount</Name>
+				<Source><![CDATA[
+    public int getProcessedCount()
+    {
+        return numOfRecordsProcessed;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getErrorCount</Name>
+				<Source><![CDATA[
+    public int getErrorCount()
+    {
+        return numOfRecordsWithError;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>incErrorCount</Name>
+				<Source><![CDATA[
+    void  incErrorCount()
+    {
+        numOfRecordsWithError++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>incProcessedCount</Name>
+				<Source><![CDATA[
+    void  incProcessedCount()
+    {
+        numOfRecordsProcessed++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    static DEVIntegMessageProcessResult construct()
+    {
+        DEVIntegMessageProcessResult  res = new DEVIntegMessageProcessResult();
+        return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

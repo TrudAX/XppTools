@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
+	<HelpText>View Ledger journal staging</HelpText>
+	<Label>Ledger journal staging</Label>
+	<Object>DEVIntegTutorialLedgerJourHeaderStaging</Object>
+</AxMenuItemDisplay>

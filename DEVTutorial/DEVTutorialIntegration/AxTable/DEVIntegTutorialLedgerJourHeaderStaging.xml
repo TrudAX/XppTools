@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialLedgerJourHeaderStaging extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>findByMessageRecId</Name>
+				<Source><![CDATA[
+    public static DEVIntegTutorialLedgerJourHeaderStaging findByMessageRecId(DEVIntegMessageRefRecId  _messageId,
+                                                                             boolean                  _forUpdate = false)
+    {
+        DEVIntegTutorialLedgerJourHeaderStaging integTutorialLedgerJourHeaderStaging;
+        ;
+        if (_messageId)
+        {
+            integTutorialLedgerJourHeaderStaging.selectForUpdate(_forUpdate);
+            
+            select firstonly integTutorialLedgerJourHeaderStaging
+                where integTutorialLedgerJourHeaderStaging.MessageId  == _messageId;
+        }
+        
+        return integTutorialLedgerJourHeaderStaging;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>ledgerJournalTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public LedgerJournalTable ledgerJournalTable()
+    {
+        LedgerJournalTable  res;
+        if (this.CompanyId && this.LedgerJournalId)
+        {
+            changecompany(this.CompanyId)
+            {
+                res =  LedgerJournalTable::find(this.LedgerJournalId);
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Ledger staging import header</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>CompanyId</TitleField1>
+	<TitleField2>LedgerJournalId</TitleField2>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<ReplacementKey>MessageIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LedgerJournalId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Data</Name>
+			<Label>Data</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LedgerJournalId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Other</Name>
+			<Label>Other</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CompanyId</Name>
+			<ExtendedDataType>CompanyId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LedgerJournalId</Name>
+			<ExtendedDataType>LedgerJournalId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>MessageId</Name>
+			<ExtendedDataType>DEVIntegMessageRefRecId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MessageIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MessageId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegMessageTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DEVIntegMessageTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageId</Name>
+					<SourceEDT>DEVIntegMessageRefRecId</SourceEDT>
+					<Field>MessageId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

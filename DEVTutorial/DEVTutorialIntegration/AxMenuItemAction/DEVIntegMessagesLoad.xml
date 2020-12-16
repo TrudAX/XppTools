@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemAction xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVIntegMessagesLoad</Name>
+	<DisabledResource>0</DisabledResource>
+	<HelpText>Receive messages from the Azure storage</HelpText>
+	<Label>Load messages</Label>
+	<MaintainUserLicense>Universal</MaintainUserLicense>
+	<NormalResource>0</NormalResource>
+	<Object>DEVIntegMessagesLoad</Object>
+	<ObjectType>Class</ObjectType>
+	<SubscriberAccessLevel>
+		<Read xmlns="">Allow</Read>
+	</SubscriberAccessLevel>
+	<ViewUserLicense>Activity</ViewUserLicense>
+</AxMenuItemAction>

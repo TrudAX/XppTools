@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegProcessMessageBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class DEVIntegProcessMessageBase
+{
+    DEVIntegMessageTypeInbound        messageTypeTable;
+    DEVIntegMessageTable            messageTable;
+    DEVIntegMessageProcessResult    messageProcessResult;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processMessage</Name>
+				<Source><![CDATA[
+    abstract void  processMessage(DEVIntegMessageTable  _messageTable, DEVIntegMessageProcessResult _messageProcessResult)
+    {
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProcessResults</Name>
+				<Source><![CDATA[
+    DEVIntegMessageProcessResult getProcessResults()
+    {
+        return messageProcessResult;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParameters</Name>
+				<Source><![CDATA[
+    public void initParameters(DEVIntegMessageTypeInbound   _messageTypeTable)
+    {
+        messageTypeTable = _messageTypeTable;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

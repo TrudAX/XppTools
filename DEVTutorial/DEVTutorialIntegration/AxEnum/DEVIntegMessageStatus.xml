@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageStatus</Name>
+	<Help>Message status</Help>
+	<Label>Status</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>None</Name>
+			<Label>None</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Ready</Name>
+			<Label>Ready</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Hold</Name>
+			<Label>Hold</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Processing</Name>
+			<Label>Processing</Label>
+			<Value>3</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Error</Name>
+			<Label>Error</Label>
+			<Value>4</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Processed</Name>
+			<Label>Processed</Label>
+			<Value>5</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

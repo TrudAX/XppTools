@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEVIntegConnectionTypeId</Name>
+	<HelpText>Integration connection type</HelpText>
+	<Label>Connection type</Label>
+	<ReferenceTable>DEVIntegConnectionType</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>ConnectionTypeId</RelatedField>
+			<Table>DEVIntegConnectionType</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+	<StringSize>40</StringSize>
+</AxEdt>

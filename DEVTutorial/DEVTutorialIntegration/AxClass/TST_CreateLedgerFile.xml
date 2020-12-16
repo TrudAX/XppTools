@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TST_CreateLedgerFile</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.IO;
+
+class TST_CreateLedgerFile
+{
+    DEVTutorialCombinationGenerator   combinationAccountCred; 
+    DEVTutorialCombinationGenerator   combinationAccountDeb;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>generateFile</Name>
+				<Source><![CDATA[
+    public void generateFile(Filename _fileName, int _lineCountInFile)
+    {
+        int     linePerDeb = 4;
+        int     curLineInDeb;
+        int     i;
+        container  c;
+
+
+        DEVFileWriterExcel      writerExcel = new DEVFileWriterExcel();
+        c = ['MainAccount', 'BusinessUnit', 'Department', 'CostCenter', 'Amount'];
+        writerExcel.addContainerLine(c);
+
+        curLineInDeb = 1;
+        for (i = 1; i <= _lineCountInFile; i++)
+        {
+            combinationAccountCred.moveToNext();
+            //create cred
+            c = [combinationAccountCred.getLevelValue('MainAccount'), combinationAccountCred.getLevelValue('BusinessUnit'), 
+                    combinationAccountCred.getLevelValue('Department'), combinationAccountCred.getLevelValue('CostCenter'), -1];
+            writerExcel.addContainerLine(c);
+
+            curLineInDeb++;
+            if (curLineInDeb > linePerDeb)
+            {
+                combinationAccountDeb.moveToNext();
+                //create deb with curLineInDeb-1
+                c = [combinationAccountDeb.getLevelValue('MainAccount'), combinationAccountDeb.getLevelValue('BusinessUnit'),
+                    combinationAccountDeb.getLevelValue('Department'), combinationAccountDeb.getLevelValue('CostCenter'), curLineInDeb-1];
+                writerExcel.addContainerLine(c);
+
+                curLineInDeb = 1;
+                i++;
+            }
+        }
+        if (curLineInDeb > 1)
+        {
+            combinationAccountDeb.moveToNext();
+            //create deb with curLineInDeb-1
+            c = [combinationAccountDeb.getLevelValue('MainAccount'), combinationAccountDeb.getLevelValue('BusinessUnit'),
+                    combinationAccountDeb.getLevelValue('Department'), combinationAccountDeb.getLevelValue('CostCenter'), curLineInDeb-1];
+            writerExcel.addContainerLine(c);
+        }
+        writerExcel.createExcelDocument();
+        writerExcel.doExcelOutput('A1');
+
+        System.IO.MemoryStream   memStream;
+        memStream = writerExcel.finishOutputGetStream();
+        memStream.Position = 0;
+        FileStream fileStream = new FileStream(_fileName, FileMode::Create, System.IO.FileAccess::Write);
+        memStream.CopyTo(fileStream);
+        fileStream.Close();
+        memStream.Close();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        Query                             query;
+
+        combinationAccountCred = new DEVTutorialCombinationGenerator();
+        combinationAccountDeb = new DEVTutorialCombinationGenerator();
+
+        query = new Query();
+        query.addDataSource(tableNum(DimAttributeOMBusinessUnit));
+        combinationAccountCred.addLevelFromQuery('BusinessUnit', query, fieldNum(DimAttributeOMBusinessUnit, Value));
+        combinationAccountDeb.addLevelFromQuery('BusinessUnit', query, fieldNum(DimAttributeOMBusinessUnit, Value));
+
+        query = new Query();
+        query.addDataSource(tableNum(DimAttributeOMDepartment));
+        combinationAccountCred.addLevelFromQuery('Department',  query, fieldNum(DimAttributeOMDepartment, Value));
+        combinationAccountDeb.addLevelFromQuery('Department',  query, fieldNum(DimAttributeOMDepartment, Value));
+        
+        query = new Query();
+        query.addDataSource(tableNum(DimAttributeOMCostCenter));
+        combinationAccountCred.addLevelFromQuery('CostCenter',  query, fieldNum(DimAttributeOMCostCenter, Value));
+        combinationAccountDeb.addLevelFromQuery('CostCenter',  query, fieldNum(DimAttributeOMCostCenter, Value));
+
+        combinationAccountCred.addLevel('MainAccount', ['600150', '606300', '607200', '618170', '618700']);
+        combinationAccountDeb.addLevel('MainAccount', ['500100']);
+
+        this.generateFile(@"C:\AAA\Integ\Jour0001.xlsx", 10);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        TST_CreateLedgerFile  runObj = new TST_CreateLedgerFile();
+        runObj.run();
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TST_ViewAzureDir</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.File;
+
+class TST_ViewAzureDir
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Runs the class with the specified arguments.
+    /// </summary>
+    /// <param name = "_args">The specified arguments.</param>
+    public static void main(Args _args)
+    {
+        str  fileShare = "blog";
+        str  connectionString = DEVIntegConnectionType::find('Azure file share').AzureConnectionString;
+        str  directory = @"Incoming/LedgerJournalIncoming/";
+        CloudFileShare              share;
+        CloudFileDirectory          rootDir;
+        CloudStorageAccount storageAccount  ;
+        CloudFileClient     fileClient;
+        CloudFileDirectory fileDir;
+        CloudFile file;
+        str         fileName;
+
+        try
+        {
+            storageAccount    = CloudStorageAccount::Parse(connectionString);
+            fileClient        = storageAccount.CreateCloudFileClient();
+
+            share = fileClient.GetShareReference(fileShare);
+            if (! share.Exists(null, null))
+            {
+                throw error(strFmt("Share '%1' doesn't exists", fileShare));
+            }
+            rootDir = share.GetRootDirectoryReference();
+            if (! rootDir.Exists(null, null))
+            {
+                throw error(strFmt("Root directory '%1' doesn't exists", fileShare));
+            }
+            fileDir = rootDir.GetDirectoryReference(directory);
+
+            if (! fileDir || ! fileDir.Exists(null, null))
+            {
+                throw error(strFmt("Directory '%1' doesn't exists", directory));
+            }
+
+            var azureItems  = fileDir.ListFilesAndDirectories(null, null);
+            var enum1  = azureItems.GetEnumerator();
+        
+            while (enum1.MoveNext())
+            {
+                file = enum1.Current as CloudFile;
+                        
+                if (file != null && file.Exists(null, null))
+                {
+                    fileName = file.Name;
+                    info(fileName);
+                    
+                }
+            }
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

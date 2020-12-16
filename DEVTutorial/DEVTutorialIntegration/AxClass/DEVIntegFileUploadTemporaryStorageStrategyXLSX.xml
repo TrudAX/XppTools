@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegFileUploadTemporaryStorageStrategyXLSX</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegFileUploadTemporaryStorageStrategyXLSX extends FileUploadTemporaryStorageStrategy
+{
+}
+
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>allowedFileTypes</Name>
+				<Source><![CDATA[
+    public str allowedFileTypes()
+    {
+        return '.xlsx';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegAzureStorageConnectionHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.File;
+
+class DEVIntegAzureStorageConnectionHelper
+{
+    DEVIntegMessageTypeInbound   messageTypeTable;
+    CloudFileShare              share;
+    CloudFileDirectory          rootDir;
+    DEVIntegTmpFiles            fileList;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>testConnection</Name>
+				<Source><![CDATA[
+    void testConnection()
+    {
+        boolean testisOK = true;
+        try
+        {
+            this.connect();
+
+            this.getExistingDirectory(messageTypeTable.ReadLocation);
+            this.getExistingDirectory(messageTypeTable.ArchiveLocation);
+
+            this.fillFiles();
+
+            this.printFileList();
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+        catch
+        {
+            testisOK = false;
+        }
+        if (testisOK)
+        {
+            info("Test is OK");
+        }
+        else
+        {
+            throw error("Test Failed");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConnectionString</Name>
+				<Source><![CDATA[
+    str   getConnectionString()
+    {
+        str connectionString;
+        DEVIntegConnectionType connectionType = messageTypeTable.connectionType();
+        connectionString = connectionType.AzureConnectionString;
+
+        if (! connectionString)
+        {
+            throw error(strFmt("Connection string is not specified for message type %1", messageTypeTable.MessageTypeId));
+        }
+
+        return connectionString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connect</Name>
+				<Source><![CDATA[
+    void connect()
+    {
+        if (! messageTypeTable.AzureShareReference)
+        {
+            throw error(strFmt("Share reference is not specified for message type %1", messageTypeTable.MessageTypeId));
+        }
+        try
+        {
+            str                 connectionString  = this.getConnectionString();
+            CloudStorageAccount storageAccount    = CloudStorageAccount::Parse(connectionString);
+            CloudFileClient     fileClient        = storageAccount.CreateCloudFileClient();
+
+            share = fileClient.GetShareReference(messageTypeTable.AzureShareReference);
+            if (! share.Exists(null, null))
+            {
+                throw error(strFmt("Share '%1' doesn't exists (Type %2)", messageTypeTable.AzureShareReference, messageTypeTable.MessageTypeId));
+            }
+            rootDir = share.GetRootDirectoryReference();
+            if (! rootDir.Exists(null, null))
+            {
+                throw error(strFmt("Root directory '%1' doesn't exists (Type %2)", messageTypeTable.AzureShareReference, messageTypeTable.MessageTypeId));
+            }
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createFileInDirectory</Name>
+				<Source><![CDATA[
+    public void  createFileInDirectory(FileName  _fileName, FolderName  _archDir, System.IO.MemoryStream  _fileDataStream)
+    {
+        try
+        {
+            CloudFile           fileTo;
+            CloudFileDirectory  fileDirTo = rootDir.GetDirectoryReference(_archDir);
+
+            if (! fileDirTo.Exists(null, null))
+            {
+                throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _archDir, messageTypeTable.MessageTypeId));
+            }
+
+            _fileDataStream.Position = 0;
+            fileTo = fileDirTo.GetFileReference(_fileName);
+            fileTo.Create(_fileDataStream.Length + 1, null, null, null);
+            fileTo.UploadFromStream(_fileDataStream, null, null, null);
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>moveFileToDirectory</Name>
+				<Source><![CDATA[
+    public void  moveFileToDirectory(DEVIntegTmpFiles  _fileRef, FolderName  _archDir, System.IO.MemoryStream  _fileDataStream, boolean _appendTimeStamp = true)
+    {
+        try
+        {
+            CloudFileDirectory fileDir = rootDir.GetDirectoryReference(_fileRef.FolderName);
+            CloudFileDirectory fileDirTo = rootDir.GetDirectoryReference(_archDir);
+
+            if (! fileDirTo.Exists(null, null))
+            {
+                throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _archDir, messageTypeTable.MessageTypeId));
+            }
+
+            CloudFile file = fileDir.GetFileReference(_fileRef.FileName);
+            CloudFile fileTo;
+
+            _fileDataStream.Position = 0;
+
+            FileName  newFileName = _fileRef.FileName;
+
+            if (_appendTimeStamp)
+            {
+                container entityFileData = Docu::splitFilename(newFileName);
+
+                FileName            entityName = conPeek(entityFileData, 1);
+                DMFDefaultExtension extension = conPeek(entityFileData, 2);
+
+                System.DateTime dt = System.DateTime::Now;
+    
+                str timeStamp = dt.ToString("yyyy'-'MM'-'dd'T'HHmmss");
+
+                entityName = entityName + '_' + timeStamp;
+                entityName = subStr(entityName, 1, 254);
+
+                newFileName = entityName + (extension ? strFmt('.%1', extension) : '');
+            }
+
+            fileTo = fileDirTo.GetFileReference(newFileName);
+            fileTo.Create(_fileRef.FileSize, null, null, null);
+            fileTo.UploadFromStream(_fileDataStream, null, null, null);
+
+            file.Delete(null, null, null);
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readFile</Name>
+				<Source><![CDATA[
+    System.IO.MemoryStream  readFile(DEVIntegTmpFiles  _fileRef)
+    {
+        System.IO.MemoryStream memoryStream;
+
+        CloudFileDirectory fileDir = rootDir.GetDirectoryReference(_fileRef.FolderName);
+
+        CloudFile file = fileDir.GetFileReference(_fileRef.FileName);
+
+        // Ensure that the file exists.
+        if (file.Exists(null, null))
+        {
+            memoryStream = new System.IO.MemoryStream();
+            file.DownloadToStream(memoryStream, null, null, null);
+            memoryStream.Position = 0;
+        }
+        else
+        {
+            warning(strFmt("File '%1' doesn't exist", _fileRef.FileName));
+        }
+
+        return memoryStream;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExistingDirectory</Name>
+				<Source><![CDATA[
+    CloudFileDirectory  getExistingDirectory(FolderName  _folderName)
+    {
+        CloudFileDirectory fileDir = rootDir.GetDirectoryReference(_folderName);
+
+        if (! fileDir || ! fileDir.Exists(null, null))
+        {
+            throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _folderName, messageTypeTable.MessageTypeId));
+        }
+        return fileDir;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillFiles</Name>
+				<Source><![CDATA[
+    DEVIntegTmpFiles fillFiles(FolderName  _folderName = messageTypeTable.ReadLocation)
+    {
+        fileList = null;
+
+        CloudFileDirectory fileDir = this.getExistingDirectory(_folderName);
+
+        var azureItems  = fileDir.ListFilesAndDirectories(null, null);
+        var enum1  = azureItems.GetEnumerator();
+        
+        while (enum1.MoveNext())
+        {
+            CloudFile file = enum1.Current as CloudFile;
+                        
+            if (file != null && file.Exists(null, null))
+            {
+                fileList.FileName    = file.Name;
+                fileList.FolderName  = _folderName;
+                fileList.FileSize    = file.Properties.Length;
+                fileList.insert();                
+            }
+        }
+        return fileList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>printFileList</Name>
+				<Source><![CDATA[
+    void printFileList()
+    {
+        boolean     isAny;
+
+        fileList.clear();
+        while select fileList
+        {
+            info(strFmt("Name %1, Size %2", fileList.FileName, fileList.FileSize));
+            isAny = true;
+        }
+        if (! isAny)
+        {
+            info("No files found");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTypeTable</Name>
+				<Source><![CDATA[
+    DEVIntegMessageTypeInbound parmMessageTypeTable(DEVIntegMessageTypeInbound     _messageTypeTable = messageTypeTable)
+    {
+        messageTypeTable = _messageTypeTable;
+        return messageTypeTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructMessageTypeId</Name>
+				<Source><![CDATA[
+    static DEVIntegAzureStorageConnectionHelper constructMessageTypeId(DEVIntegMessageTypeId  _messageTypeId)
+    {
+        DEVIntegMessageTypeInbound             messageTypeTable;
+        DEVIntegAzureStorageConnectionHelper  res;
+        ;
+        messageTypeTable = DEVIntegMessageTypeInbound::find(_messageTypeId);
+        if (! messageTypeTable.RecId)
+        {
+            throw error(strFmt("Message type '%1' does not exist", _messageTypeId));
+        }
+
+        res = DEVIntegAzureStorageConnectionHelper::construct(messageTypeTable);
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    static DEVIntegAzureStorageConnectionHelper construct(DEVIntegMessageTypeInbound     _messageTypeTable)
+    {
+        DEVIntegAzureStorageConnectionHelper        res = new DEVIntegAzureStorageConnectionHelper();
+
+        res.parmMessageTypeTable(_messageTypeTable);
+        return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

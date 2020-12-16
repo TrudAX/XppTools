@@ -132,6 +132,23 @@ class DEVDimensionHelper
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>setValueToDefaultDimensionCon</Name>
+				<Source><![CDATA[
+    static DimensionDefault setValueToDefaultDimensionCon(DimensionDefault _dimensionDefault,container _dimensionNameValueCon)
+    {
+        DimensionDefault    res = _dimensionDefault;
+        int                 i;
+        
+        for (i = 1; i <= conLen(_dimensionNameValueCon); i += 2)
+        {
+            res = DEVDimensionHelper::setValueToDefaultDimension(res, conPeek(_dimensionNameValueCon, i), conPeek(_dimensionNameValueCon, i + 1));
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>setDefaultDimensionRecId</Name>
 				<Source><![CDATA[
     //FILTER VALUES

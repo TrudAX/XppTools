@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtInt64">
+	<Name>DEVIntegMessageRefRecId</Name>
+	<Extends>RefRecId</Extends>
+	<HelpText>File message Id</HelpText>
+	<Label>Message Id</Label>
+	<ReferenceTable>DEVIntegMessageTable</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>RecId</RelatedField>
+			<Table>DEVIntegMessageTable</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+</AxEdt>

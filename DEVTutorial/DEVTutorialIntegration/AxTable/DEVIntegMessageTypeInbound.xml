@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageTypeInbound</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegMessageTypeInbound extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEVIntegMessageTypeInbound find(DEVIntegMessageTypeId  _messageTypeId,
+                                                boolean                _forUpdate = false)
+    {
+        DEVIntegMessageTypeInbound integMessageTypeTable;
+        ;
+        if (_messageTypeId)
+        {
+            integMessageTypeTable.selectForUpdate(_forUpdate);
+            
+            select firstonly integMessageTypeTable
+                where integMessageTypeTable.MessageTypeId  == _messageTypeId;
+        }
+        
+        return integMessageTypeTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connectionType</Name>
+				<Source><![CDATA[
+    DEVIntegConnectionType connectionType()
+    {
+        DEVIntegConnectionType  connectionType;
+        select connectionType
+            where connectionType.ConnectionTypeId == this.ConnectionTypeId;
+
+        return connectionType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    public void initValue()
+    {
+        super();
+        this.FileColumnDelimiter = ',';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateField</Name>
+				<Source><![CDATA[
+    public boolean validateField(FieldId _fieldIdToCheck)
+    {
+        boolean ret;
+    
+        ret = super(_fieldIdToCheck);
+
+        if (ret)
+        {
+            switch (_fieldIdToCheck)
+            {
+                case fieldNum(DEVIntegMessageTypeInbound, ClassName):
+                    if (this.ClassName)
+                    {
+                        int classId = className2Id(this.ClassName);
+
+                        if (! classId || ! SysDictClass::isSuperclass(classId, classNum(DEVIntegProcessMessageBase)))
+                        {
+                            ret = checkFailed(strFmt("Class %1 does not exist.", this.ClassName));
+                        }
+                    }
+                    break;
+            }
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getActionClass</Name>
+				<Source><![CDATA[
+    DEVIntegProcessMessageBase getActionClass()
+    {
+        SysDictClass dc = new SysDictClass(className2Id(this.ClassName));
+        
+        return dc.makeObject();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>openFileReader</Name>
+				<Source><![CDATA[
+    public DEVFileReaderBase openFileReader(System.IO.MemoryStream  _memoryStream)
+    {
+        DEVFileReaderBase   fileReader;
+        if (this.FileFormat == DEVIntegFileFormat::CSV)
+        {
+            fileReader   = new DEVFileReaderCSV();
+            fileReader.openFile(_memoryStream);
+            fileReader.parmInFieldDelimiter(this.FileColumnDelimiter);
+        }
+        if (this.FileFormat == DEVIntegFileFormat::EXCEL)
+        {
+            fileReader   = new DEVFileReaderExcel();
+            fileReader.openFile(_memoryStream);
+        }
+        return fileReader;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<FormRef>DEVIntegMessageTypeInbound</FormRef>
+	<Label>Inbound message types</Label>
+	<TableGroup>Group</TableGroup>
+	<TitleField1>MessageTypeId</TitleField1>
+	<TitleField2>Description</TitleField2>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>MessageTypeIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>MessageTypeIdx</PrimaryIndex>
+	<ReplacementKey>MessageTypeIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>EntiryGroup</Name>
+			<Label>Processing</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ListGroup</Name>
+			<Label>List</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>LedgerImportParms</Name>
+			<Label>Ledger import parameters</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LedgerJournalNameId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsAutoPostJournal</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SourceGroup</Name>
+			<Label>Source files</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ConnectionTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AzureShareReference</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReadLocation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ArchiveLocation</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>FileFormat</Name>
+			<Label>File format</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>FileFormat</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileColumnDelimiter</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Performance</Name>
+			<Label>@SYS120223</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ThreadsCount</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AdvSettings</Name>
+			<Label>Settings</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>FileMoveNameChange</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MessageTypeId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegMessageTypeId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Enabled</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Interface is enabled</HelpText>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<HelpText>Name of the processing class</HelpText>
+			<Label>Class name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LedgerJournalNameId</Name>
+			<ExtendedDataType>LedgerJournalNameIdDaily</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsAutoPostJournal</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Post journal after import</HelpText>
+			<Label>Post journal</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ReadLocation</Name>
+			<ExtendedDataType>FolderName</ExtendedDataType>
+			<HelpText>Read location folder(e.g. ParentDir\ChildDir)</HelpText>
+			<Label>Read location</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ArchiveLocation</Name>
+			<ExtendedDataType>FolderName</ExtendedDataType>
+			<HelpText>Archive location path</HelpText>
+			<Label>Archive location</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>AzureShareReference</Name>
+			<ExtendedDataType>FolderName</ExtendedDataType>
+			<HelpText>Share reference for Azure storage</HelpText>
+			<Label>Share reference</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>FileFormat</Name>
+			<EnumType>DEVIntegFileFormat</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FileColumnDelimiter</Name>
+			<ExtendedDataType>char</ExtendedDataType>
+			<Label>CSV delimiter</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ConnectionTypeId</Name>
+			<ExtendedDataType>DEVIntegConnectionTypeId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ThreadsCount</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Max number of tasks to create for processing in batch mode</HelpText>
+			<Label>Number of batch tasks</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>FileMoveNameChange</Name>
+			<EnumType>DEVIntegFileMoveNameChange</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MessageTypeIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>LedgerJournalName</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>LedgerJournalName</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>LedgerJournalNameId</Name>
+					<SourceEDT>LedgerJournalNameIdDaily</SourceEDT>
+					<Field>LedgerJournalNameId</Field>
+					<RelatedField>JournalName</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>JournalType</Name>
+					<RelatedField>JournalType</RelatedField>
+					<ValueStr>LedgerJournalType::Daily</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegConnectionType</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DEVIntegConnectionType</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ConnectionTypeId</Name>
+					<SourceEDT>DEVIntegConnectionTypeId</SourceEDT>
+					<Field>ConnectionTypeId</Field>
+					<RelatedField>ConnectionTypeId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

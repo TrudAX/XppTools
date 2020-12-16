@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessagesLoad</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegMessagesLoad extends RunBaseBatch
+{
+    DEVIntegMessageTypeId      messageTypeId;
+    QueryRun                   queryRun;
+    DialogField                dlgMessageTypeId;
+
+    NoYesId      runProcessAfterLoad;
+    DialogField  dlgRunProcessAfterLoad;
+
+    DEVIntegAzureStorageConnectionHelper            azureStorageConnector;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        messageTypeId,
+        runProcessAfterLoad
+    #endmacro
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgMessageTypeId        = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeId), messageTypeId);
+        dlgRunProcessAfterLoad  = dialog.addFieldValue(extendedtypestr(NoYesId), runProcessAfterLoad, "Run processing", "Execute files processing after load");
+       
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        messageTypeId        = dlgMessageTypeId.value();
+        runProcessAfterLoad  = dlgRunProcessAfterLoad.value();
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        this.initQuery();
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initQuery</Name>
+				<Source><![CDATA[
+    public void initQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEVIntegMessageTypeInbound));
+        QueryBuildRange         qBR;
+        ;
+    
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTypeInbound, Enabled));
+        qBR.status(RangeStatus::Locked);
+        qBR.value(SysQuery::value(NoYes::Yes));
+    
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        ;
+    
+        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTypeId</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeId parmMessageTypeId(DEVIntegMessageTypeId _messageTypeId = messageTypeId)
+    {
+        ;
+    
+        messageTypeId = _messageTypeId;
+    
+        return messageTypeId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmRunProcessAfterLoad</Name>
+				<Source><![CDATA[
+    public NoYesId parmRunProcessAfterLoad(NoYesId _runProcessAfterLoad = runProcessAfterLoad)
+    {
+        runProcessAfterLoad = _runProcessAfterLoad;
+        return runProcessAfterLoad;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadMessageType</Name>
+				<Source><![CDATA[
+    public int loadMessageType(DEVIntegMessageTypeInbound   _messageTypeTable)
+    {
+        int                 recordCount;
+        DEVIntegTmpFiles    fileList;
+        ;
+        if (! _messageTypeTable.ArchiveLocation)
+        {
+            throw error(strFmt("Message type %1. Archive location is not specified", _messageTypeTable.messageTypeId));
+        }
+
+        azureStorageConnector = DEVIntegAzureStorageConnectionHelper::construct(_messageTypeTable);
+        azureStorageConnector.connect();      
+
+        fileList = azureStorageConnector.fillFiles();
+
+        fileList.clear();
+        while select fileList
+            order by Filename
+        {
+            this.handleIncomingFile(_messageTypeTable, fileList);
+            recordCount++;
+        }
+    
+        return recordCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processMessageType</Name>
+				<Source><![CDATA[
+    public void processMessageType(DEVIntegMessageTypeInbound   _messageTypeTable)
+    {
+        DEVIntegMessagesProcess   messagesProcess = DEVIntegMessagesProcess::construct();
+        BatchHeader               batchHeader;
+        ;
+        messagesProcess.parmMessageTypeId(_messageTypeTable.MessageTypeId);
+
+        if (this.isInBatch())
+        {
+            batchHeader = BatchHeader::construct(this.parmCurrentBatch().BatchJobId);
+            batchHeader.addRuntimeTask(messagesProcess, this.parmCurrentBatch().ReciD);
+            if (this.isInBatch() && batchHeader)
+            {
+                batchHeader.save();
+            }
+        }
+        else
+        {
+            messagesProcess.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleIncomingFile</Name>
+				<Source><![CDATA[
+    void handleIncomingFile(DEVIntegMessageTypeInbound   _messageTypeTable, DEVIntegTmpFiles     _fileRef)
+    {
+        System.IO.MemoryStream  memoryStream;
+
+        memoryStream = azureStorageConnector.readFile(_fileRef);
+        if (memoryStream != null)
+        {
+            ttsbegin;
+            DEVIntegMessageCreator messageCreator = DEVIntegMessageCreator::construct();
+            messageCreator.initFromStreamCopy(_fileRef, memoryStream).createMessage(_messageTypeTable);
+
+            azureStorageConnector.moveFileToDirectory(_fileRef, _messageTypeTable.ArchiveLocation, memoryStream,
+                _messageTypeTable.FileMoveNameChange == DEVIntegFileMoveNameChange::AppendDateTime ? true : false);
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        ;
+    
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        int                             processedCounter, processedIntCounter;
+        QueryBuildDataSource            qBDS;
+        DEVIntegMessageTypeInbound        messageTypeTable;
+        boolean                         isAnyErrors, isCurrentErrors;
+    
+        ;
+        qBDS = queryRun.query().dataSourceTable(tableNum(DEVIntegMessageTypeInbound));
+        if (messageTypeId)
+        {
+            SysQuery::findOrCreateRange(qBDS, fieldnum(DEVIntegMessageTypeInbound, messageTypeId)).value(queryValue(messageTypeId));
+        }
+  
+        setPrefix(RunBase::getDescription(classIdGet(this)));
+    
+        while (queryRun.next())
+        {
+            messageTypeTable = queryRun.get(tablenum(DEVIntegMessageTypeInbound));
+            setPrefix(strFmt("Loading message type %1", messageTypeTable.messageTypeId));
+    
+            isCurrentErrors     = false;
+            processedCounter    = 0;
+    
+            try
+            {
+                processedCounter = this.loadMessageType(messageTypeTable);
+            }
+            catch(Exception::Error)
+            {
+                isAnyErrors = true;
+                isCurrentErrors = true;
+            }
+            catch(Exception::CLRError)
+            {
+                error(AifUtil::getClrErrorMessage());
+                isAnyErrors = true;
+                isCurrentErrors = true;
+            }
+    
+            if (isCurrentErrors)
+            {
+                warning(strFmt("Message type %1 loaded with errors. Number of files: %2", messageTypeTable.messageTypeId, processedCounter));
+            }
+            else
+            {
+                info(strFmt("Message type %1 loaded successfully. Number of files: %2", messageTypeTable.messageTypeId, processedCounter));
+            }
+            if (runProcessAfterLoad)
+            {
+                this.processMessageType(messageTypeTable);
+            }
+    
+    
+            processedIntCounter++;
+    
+        }
+        if (isAnyErrors)
+        {
+            throw error(strfmt("%1 type(s) loaded. Errors found", processedIntCounter));
+        }
+        else
+        {
+            if (processedIntCounter > 1)
+            {
+                info(strfmt("%1 types(s) loaded", processedIntCounter));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        ;
+    
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        container  queryCon;
+        ;
+    
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList,queryCon] = _packedClass;
+                if (SysQuery::isPackedOk(queryCon))
+                {
+                    queryRun = new QueryRun(queryCon);
+                }
+                else
+                {
+                    this.initQuery();
+                }
+                break;
+            default:
+                return false;
+        }
+    
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegMessagesLoad construct()
+    {
+        return new DEVIntegMessagesLoad();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Load incoming files";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegMessagesLoad    runObject = DEVIntegMessagesLoad::construct();
+        ;
+    
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

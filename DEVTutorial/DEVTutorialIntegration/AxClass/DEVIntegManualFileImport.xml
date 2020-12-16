@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegManualFileImport</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegManualFileImport extends RunBaseBatch
+{
+    DEVIntegMessageTypeId      messageTypeId;
+    DialogField                dlgMessageTypeId;
+
+    DialogRunbase     dialog;
+    private const str FileUploadName  = 'FileUpload';
+    private const str OkButtonName    = 'OkButton';
+    FileUploadTemporaryStorageResult    fileUploadResult;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        messageTypeId
+    #endmacro
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        dialog = super();
+
+        DialogGroup      dialogGroup;
+        FormBuildControl formBuildControl;
+        FileUploadBuild  dialogFileUpload;
+
+        ;
+        dialogGroup = dialog.addGroup("File");
+        formBuildControl = dialog.formBuildDesign().control(dialogGroup.name());
+        dialogFileUpload = formBuildControl.addControlEx(classstr(FileUpload), FileUploadName);
+        dialogFileUpload.style(FileUploadStyle::MinimalWithFilename);
+        dialogFileUpload.baseFileUploadStrategyClassName(classstr(DEVIntegFileUploadTemporaryStorageStrategyAny));
+        dialogFileUpload.fileNameLabel("@SYS308842");
+    
+        dlgMessageTypeId             = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeId), messageTypeId);
+        dlgMessageTypeId.mandatory_RU(true);
+
+        dlgMessageTypeId.registerOverrideMethod(methodStr(FormStringControl, modified),
+            methodStr(DEVIntegManualFileImport, modifiedmessageTypeId),
+            this);
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialogPostRun</Name>
+				<Source><![CDATA[
+    public void dialogPostRun(DialogRunbase _dialog)
+    {
+        FileUpload fileUpload = this.getFormControl(_dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted += eventhandler(this.uploadCompleted);
+        this.setDialogOkButtonEnabled(_dialog, false);
+
+        this.modifiedMessageTypeId(dlgMessageTypeId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uploadCompleted</Name>
+				<Source><![CDATA[
+    protected void uploadCompleted()
+    {
+        FileUpload fileUpload = this.getFormControl(dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted -= eventhandler(this.uploadCompleted);
+        
+        this.setDialogOkButtonEnabled(dialog, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDialogOkButtonEnabled</Name>
+				<Source><![CDATA[
+    protected void setDialogOkButtonEnabled(DialogRunbase _dialog, boolean _isEnabled)
+    {
+        FormControl okButtonControl = this.getFormControl(_dialog, OkButtonName);
+
+        if (okButtonControl)
+        {
+            okButtonControl.enabled(_isEnabled);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifiedMessageTypeId</Name>
+				<Source><![CDATA[
+    public boolean modifiedMessageTypeId(Object _control)
+    {
+        if (dlgMessageTypeId.value())
+        {
+            DEVIntegMessageTypeInbound      messageTypeTable = DEVIntegMessageTypeInbound::find(dlgMessageTypeId.value());
+            if (messageTypeTable.RecId)
+            {
+                FileUpload fileUpload = this.getFormControl(dialog, FileUploadName);
+                if (messageTypeTable.FileFormat ==  DEVIntegFileFormat::EXCEL)
+                {
+                    fileUpload.setFileUploadStrategyInstance(classstr(DEVIntegFileUploadTemporaryStorageStrategyXLSX));
+                }
+                else
+                {
+                    fileUpload.setFileUploadStrategyInstance(classstr(DEVIntegFileUploadTemporaryStorageStrategyAny));
+                }
+              
+            }
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFormControl</Name>
+				<Source><![CDATA[
+    protected FormControl getFormControl(DialogRunbase _dialog, str _controlName)
+    {
+        return _dialog.formRun().control(_dialog.formRun().controlId( _controlName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        FileUpload  fileUploadControl = this.getFormControl(dialog, FileUploadName);
+        fileUploadResult = fileUploadControl.getFileUploadResult();
+
+        messageTypeId        = dlgMessageTypeId.value();
+    
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public boolean init()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTypeId</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeId parmMessageTypeId(DEVIntegMessageTypeId _messageTypeId = messageTypeId)
+    {
+        messageTypeId = _messageTypeId;
+        return messageTypeId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        DEVIntegMessageTypeInbound        messageTypeTable;
+        DEVIntegMessageTable            messageTable;
+        DEVIntegMessageCreator          messageCreator;
+        DEVIntegMessageProcessor        messageProcessor;
+        System.IO.MemoryStream          memoryStreamFile;
+        ;
+       
+        messageTypeTable = DEVIntegMessageTypeInbound::find(messageTypeId);
+        setPrefix(strFmt("Message type %1", messageTypeTable.messageTypeId));
+        try
+        {
+            if (! fileUploadResult)
+            {
+                throw error("File is empty");
+            }
+            //get file names
+            container fileNameCon = Docu::splitFilename(fileUploadResult.getFileName());
+            if (!fileNameCon)
+            {
+                throw error("File is empty");
+            }
+            str fileName   = strFmt('%1.%2', conPeek(fileNameCon, 1), conPeek(fileNameCon, 2));
+            str folderName = strFmt('%1', conPeek(fileNameCon, 3));
+            //get file data
+            memoryStreamFile = fileUploadResult.openResult();
+
+            //create message
+            messageCreator = DEVIntegMessageCreator::construct();
+            messageCreator.initFromStreamLocalFile(fileName, folderName, memoryStreamFile);
+            messageTable = messageCreator.createMessage(messageTypeTable);
+
+            //process message
+            messageProcessor = DEVIntegMessageProcessor::construct(messageTypeTable);
+            messageProcessor.processMessage(messageTable);
+        }
+        catch(Exception::Error)
+        {
+            exceptionTextFallThrough();
+        }
+        finally
+        {
+            fileUploadResult.deleteResult();
+            memoryStreamFile = null;
+        }   
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        if (messageTypeId)
+        {
+            return false;
+        }
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegManualFileImport construct()
+    {
+        return new DEVIntegManualFileImport();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Load file";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegManualFileImport    runObject = DEVIntegManualFileImport::construct();
+        ;
+        if (_args.dataset() == tablenum(DEVIntegMessageTypeInbound))
+        {
+            DEVIntegMessageTypeInbound      callerDEVIntegMessageTypeInbound = _args.record();
+            runObject.parmMessageTypeId(callerDEVIntegMessageTypeInbound.MessageTypeId);
+        }
+  
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

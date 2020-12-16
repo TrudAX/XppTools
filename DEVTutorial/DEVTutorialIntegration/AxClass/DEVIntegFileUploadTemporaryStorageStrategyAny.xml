@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegFileUploadTemporaryStorageStrategyAny</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegFileUploadTemporaryStorageStrategyAny extends FileUploadTemporaryStorageStrategy
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>allowedFileTypes</Name>
+				<Source><![CDATA[
+    public str allowedFileTypes()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

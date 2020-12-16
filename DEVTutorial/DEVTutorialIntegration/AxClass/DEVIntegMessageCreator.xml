@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageCreator</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegMessageCreator
+{
+    DEVIntegTmpFiles     fileRef; 
+    container            fileData;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createMessage</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTable createMessage(DEVIntegMessageTypeInbound  _messageType)
+    {
+        DEVIntegMessageTable      messageTable;
+        DEVIntegMessageData       messageData;
+
+        ttsbegin;
+        messageTable.initValue();
+        messageTable.MessageTypeId = _messageType.MessageTypeId;
+        messageTable.Name          = fileRef.FileName;
+        messageTable.Status        = DEVIntegMessageStatus::Ready;
+        messageTable.Path          = fileRef.FolderName;
+
+        DEV::validateWriteRecordCheck(messageTable);
+        messageTable.insert();
+
+        messageData.MessageRefRecId = messageTable.RecId;
+        messageData.FileData        = fileData;
+        messageData.insert();
+        ttscommit;
+
+        return messageTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFileDataFromStream</Name>
+				<Source><![CDATA[
+    protected container getFileDataFromStream(System.IO.MemoryStream  _memoryStream)
+    {
+        container res;
+
+        _memoryStream.Position = 0;
+        if (_memoryStream.Length)
+        {
+            Binary  b = Binary::constructFromMemoryStream(_memoryStream);
+            if (b)
+            {
+                res = b.getContainer();
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromStreamCopy</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageCreator initFromStreamCopy(DEVIntegTmpFiles  _fileRef, System.IO.MemoryStream  _memoryStream)
+    {
+        System.IO.MemoryStream memoryStreamFile = new System.IO.MemoryStream();
+        _memoryStream.CopyTo(memoryStreamFile);
+
+        fileData = this.getFileDataFromStream(memoryStreamFile);
+        fileRef = _fileRef;
+
+        return this;        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromStreamLocalFile</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageCreator initFromStreamLocalFile(Filename                _fileName,
+                                                          Filename                _filePath,
+                                                          System.IO.MemoryStream  _memoryStream)
+    {
+        fileData = this.getFileDataFromStream(_memoryStream);        
+        fileRef.FileName    = _fileName;
+        fileRef.FolderName  = _filePath;
+        return this;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegMessageCreator construct()
+	{
+        return new DEVIntegMessageCreator();
+	}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

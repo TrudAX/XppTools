@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegFileFormat</Name>
+	<Label>@SYS13747</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>CSV</Name>
+			<Label>@GLS1143</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>EXCEL</Name>
+			<Label>@DMF1704</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Custom</Name>
+			<Label>@DMF:DMFCustom</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

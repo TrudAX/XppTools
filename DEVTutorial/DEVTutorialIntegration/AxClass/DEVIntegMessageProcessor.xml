@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageProcessor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegMessageProcessor
+{
+    DEVIntegMessageTypeInbound        messageTypeTable;
+
+    DEVIntegProcessMessageBase      processMessageBase;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmMessageTypeTable</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeInbound parmMessageTypeTable(DEVIntegMessageTypeInbound _value = messageTypeTable)
+    {
+        messageTypeTable = _value;
+        return messageTypeTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createMessageClass</Name>
+				<Source><![CDATA[
+    void createMessageClass()
+    {
+        DictClass  dictClass = new DictClass(className2Id(messageTypeTable.ClassName));
+        processMessageBase = dictClass.makeObject();
+        processMessageBase.initParameters(messageTypeTable);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    static DEVIntegMessageProcessor  construct(DEVIntegMessageTypeInbound   _messageTypeTable)
+    {
+        DEVIntegMessageProcessor  res = new DEVIntegMessageProcessor();
+        res.parmMessageTypeTable(_messageTypeTable);
+        res.createMessageClass();
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processMessage</Name>
+				<Source><![CDATA[
+    public void processMessage(DEVIntegMessageTable   _messageTable)
+    {
+        DEVIntegMessageProcessResult  processResults;
+        DEVIntegMessageTable          messageTableUpd;
+        boolean                       skipRecord;
+
+        DEVIntegMessageStatus       curMessageStatus;
+        boolean                     isErrorCaught;
+        Exception                   exception = Exception::Info;
+        int         infoCnt ;
+        
+        setPrefix(strFmt("Message %1", _messageTable.Name));
+        skipRecord = false;
+        
+        ttsbegin; 
+        messageTableUpd = DEVIntegMessageTable::findRecId(_messageTable.RecId, true);
+            
+        if (messageTableUpd.RecVersion == _messageTable.RecVersion )
+        {
+            if (messageTableUpd.Status      == DEVIntegMessageStatus::Ready ||
+                messageTableUpd.Status      == DEVIntegMessageStatus::Error  || 
+                    (messageTableUpd.Status  == DEVIntegMessageStatus::Processing && ! messageTableUpd.isSessionActive()) )
+            {
+                messageTableUpd.setProcessing();
+                messageTableUpd.update();
+            }
+            else
+            {
+                skipRecord = true;
+            }
+        }
+        else
+        {
+            skipRecord = true;
+        }
+
+        ttscommit;
+
+        if (skipRecord)
+        {
+            return;
+        }
+
+
+        curMessageStatus    = _messageTable.Status;
+        processResults      = null;
+        isErrorCaught       = false;
+        DEVIntegErrorLog::clearMessageLog(_messageTable.RecId);
+        
+        infoCnt = infologLine();
+        try
+        {
+            processResults = DEVIntegMessageProcessResult::construct();
+            processMessageBase.processMessage(_messageTable, processResults);
+            if (processResults.hasErrors())
+            {
+                throw error(strFmt("File %1. Found %2 errors", _messageTable.Name, processResults.getErrorCount()));
+            }
+            curMessageStatus = DEVIntegMessageStatus::Processed;
+        }
+        catch (Exception::Info)
+        {
+            isErrorCaught   = true;
+            exception       = Exception::Info;
+        }
+        catch (Exception::Warning)
+        {
+            isErrorCaught   = true;
+            exception       = Exception::Warning;
+        }
+        catch (Exception::Deadlock)
+        {
+            isErrorCaught   = true;
+            exception       = Exception::Deadlock;
+        }
+        catch (Exception::Error)
+        {
+            isErrorCaught   = true;
+            exception       = Exception::Error;
+        }
+        catch (Exception::Internal)
+        {
+            isErrorCaught   = true;
+            exception       = Exception::Internal;
+        }
+        catch (Exception::Break)
+        {
+            isErrorCaught   = true;
+            exception       = Exception::Break;
+        }
+        catch (Exception::DDEerror)
+        {
+            isErrorCaught   = true;
+            exception       = Exception::DDEerror;
+        }
+        catch (Exception::Sequence)
+        {
+            isErrorCaught   = true;
+            exception       = Exception::Sequence;
+        }
+        catch (Exception::UpdateConflict)
+        {
+            if (appl.ttsLevel() == 0)
+            {
+                isErrorCaught   = true;
+                exception       = Exception::UpdateConflict;
+            }
+            else
+            {
+                throw Exception::UpdateConflict;
+            }
+        }
+        catch (Exception::UpdateConflictNotRecovered)
+        {
+            isErrorCaught   = true;
+            exception       = Exception::UpdateConflictNotRecovered;
+        }
+
+        catch(Exception::CLRError)
+        {
+            error(AifUtil::getClrErrorMessage());
+            isErrorCaught   = true;
+            exception       = Exception::CLRError;
+        }
+
+        if (isErrorCaught)
+        {
+            if (processResults && processResults.parmProcessPrefix())
+            {
+                error(processResults.parmProcessPrefix());
+            }
+            curMessageStatus = DEVIntegMessageStatus::Error;
+        }
+        
+
+        ttsbegin;
+        messageTableUpd = DEVIntegMessageTable::findRecId(_messageTable.RecId, true);
+        if (messageTableUpd.RecId)
+        {
+            messageTableUpd.Status                = curMessageStatus;
+            messageTableUpd.ProcessingEndDateTime = DateTimeUtil::utcNow();
+            if (processResults)
+            {
+                messageTableUpd.RecordsProcessed           = processResults.getProcessedCount();
+                messageTableUpd.RecordsWithErrors          = processResults.getErrorCount();
+            }
+            messageTableUpd.update();
+
+            DEVIntegErrorLog::insertErrorByMessage(messageTableUpd, infoCnt, exception);
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
