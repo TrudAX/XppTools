@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TST_DEVIntegPerfTestSettings</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class TST_DEVIntegPerfTestSettings extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static TST_DEVIntegPerfTestSettings find(DEVIntegMessageTypeId  _messageTypeId,
+                                                    boolean                _forUpdate = false)
+    {
+        TST_DEVIntegPerfTestSettings integPerfTestSettings;
+        ;
+        if (_messageTypeId)
+        {
+            integPerfTestSettings.selectForUpdate(_forUpdate);
+            
+            select firstonly integPerfTestSettings
+                where integPerfTestSettings.MessageTypeId  == _messageTypeId;
+        }
+        
+        return integPerfTestSettings;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///
+    /// </summary>
+    public void initValue()
+    {
+        super();
+
+        this.FilenameTemplate = 'usmf_Jour%1.csv';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Performance settings testing</Label>
+	<TableGroup>Group</TableGroup>
+	<TitleField1>MessageTypeId</TitleField1>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>MessageTypeIdIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>MessageTypeIdIdx</PrimaryIndex>
+	<ReplacementKey>MessageTypeIdIdx</ReplacementKey>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FilenameTemplate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>NumberOfFiles</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RecordInFile</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MessageTypeId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegMessageTypeId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FilenameTemplate</Name>
+			<ExtendedDataType>Filename</ExtendedDataType>
+			<Label>Template filename(use %1 as number)</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>NumberOfFiles</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Number of files to generate</HelpText>
+			<Label>Number of files</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>RecordInFile</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Number of Records in file</HelpText>
+			<Label>Records in file</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MessageTypeIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegMessageTypeInbound</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DEVIntegMessageTypeInbound</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageTypeId</Name>
+					<SourceEDT>DEVIntegMessageTypeId</SourceEDT>
+					<Field>MessageTypeId</Field>
+					<RelatedField>MessageTypeId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

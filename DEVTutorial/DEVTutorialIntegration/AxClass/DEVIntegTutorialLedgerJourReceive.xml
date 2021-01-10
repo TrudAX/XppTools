@@ -192,21 +192,21 @@ class DEVIntegTutorialLedgerJourReceive extends DEVIntegProcessMessageBase
                                                                                       tutorialLedgerJourLinesStaging.MainAccount));
             }
             if (tutorialLedgerJourLinesStaging.BusinessUnit && 
-               ! DimensionAttributeValue::findByDimensionAttributeAndValue(attribBU, tutorialLedgerJourLinesStaging.BusinessUnit))
+               ! DimensionAttributeValue::findByDimensionAttributeAndValue(attribBU, tutorialLedgerJourLinesStaging.BusinessUnit, false, true))
             {
                 isValidLine = checkFailed(strFmt("Line %1. Business Unit %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
                                                                                         tutorialLedgerJourLinesStaging.BusinessUnit));
 
             }
             if (tutorialLedgerJourLinesStaging.Department &&
-               ! DimensionAttributeValue::findByDimensionAttributeAndValue(attribDepartment, tutorialLedgerJourLinesStaging.Department))
+               ! DimensionAttributeValue::findByDimensionAttributeAndValue(attribDepartment, tutorialLedgerJourLinesStaging.Department, false, true))
             {
                 isValidLine = checkFailed(strFmt("Line %1. Department %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
                                                                                      tutorialLedgerJourLinesStaging.Department));
 
             }
             if (tutorialLedgerJourLinesStaging.CostCenter &&
-               ! DimensionAttributeValue::findByDimensionAttributeAndValue(attribCostCenter, tutorialLedgerJourLinesStaging.CostCenter))
+               ! DimensionAttributeValue::findByDimensionAttributeAndValue(attribCostCenter, tutorialLedgerJourLinesStaging.CostCenter, false, true))
             {
                 isValidLine = checkFailed(strFmt("Line %1. Cost Center %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
                                                                                       tutorialLedgerJourLinesStaging.CostCenter));

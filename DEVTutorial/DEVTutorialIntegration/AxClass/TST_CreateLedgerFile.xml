@@ -10,9 +10,24 @@ class TST_CreateLedgerFile
     DEVTutorialCombinationGenerator   combinationAccountCred; 
     DEVTutorialCombinationGenerator   combinationAccountDeb;
 
+    DEVIntegMessageTypeInbound          messageTypeInbound;
+
+    DEVIntegAzureStorageConnectionHelper        azureStorageConnectionHelper;
+
 }
 ]]></Declaration>
 		<Methods>
+			<Method>
+				<Name>parmMessageTypeInbound</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeInbound parmMessageTypeInbound(DEVIntegMessageTypeInbound _integMessageTypeInbound = messageTypeInbound)
+    {
+        messageTypeInbound = _integMessageTypeInbound;
+        return messageTypeInbound;
+    }
+
+]]></Source>
+			</Method>
 			<Method>
 				<Name>generateFile</Name>
 				<Source><![CDATA[
@@ -70,24 +85,35 @@ class TST_CreateLedgerFile
             writerExcel.doExcelOutput('A1');
             memStream = writerExcel.finishOutputGetStream();
         }
-
         memStream.Position = 0;
-        FileStream fileStream = new FileStream(_fileName, FileMode::Create, System.IO.FileAccess::Write);
-        //StreamWriter fileStream = new StreamWriter(_fileName, false, System.Text.Encoding::UTF8);
-        memStream.CopyTo(fileStream);
-        fileStream.Close();
+
+        if (messageTypeInbound.RecId) //create to Azure
+        {
+            if (! azureStorageConnectionHelper)
+            {
+                azureStorageConnectionHelper = DEVIntegAzureStorageConnectionHelper::construct(messageTypeInbound);
+                azureStorageConnectionHelper.connect();
+            }
+            azureStorageConnectionHelper.createFileInDirectory(_fileName, messageTypeInbound.ReadLocation, memStream);
+        }
+        else
+        {
+            FileStream fileStream = new FileStream(_fileName, FileMode::Create, System.IO.FileAccess::Write);
+            //StreamWriter fileStream = new StreamWriter(_fileName, false, System.Text.Encoding::UTF8);
+            memStream.CopyTo(fileStream);
+            fileStream.Close();
+        }
         memStream.Close();
     }
 
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>run</Name>
+				<Name>initCombinationData</Name>
 				<Source><![CDATA[
-    public void run()
+    public void initCombinationData()
     {
         Query                             query;
-
 
         combinationAccountCred = new DEVTutorialCombinationGenerator();
         combinationAccountDeb = new DEVTutorialCombinationGenerator();
@@ -110,8 +136,18 @@ class TST_CreateLedgerFile
         combinationAccountCred.addLevel('MainAccount', ['600120', '600150', '600155','600170', '600180', '600181',
                                                         '606300', '607200', '618170', '618700']);
         combinationAccountDeb.addLevel('MainAccount', ['500100', '500110', '500120', '500130', '500140']);
+        
+    }
 
-
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        
+        this.initCombinationData();
         //this.generateFile(@"C:\AAA\Integ\Jour0001.xlsx", 10);
         //this.generateFile(@"C:\AAA\Integ\Jour0001.csv", 20);
         this.createMultipleFiles(@"C:\AAA\Integ\BigTest\Jour%1.csv", 2000, 500);
@@ -122,7 +158,7 @@ class TST_CreateLedgerFile
 			<Method>
 				<Name>createMultipleFiles</Name>
 				<Source><![CDATA[
-    void createMultipleFiles(str _nameTemplate, int _numberOfFiles, int  _recordsInFile)
+    public void createMultipleFiles(str _nameTemplate, int _numberOfFiles, int  _recordsInFile)
     {
         int     i;
         str     fileName;
@@ -130,9 +166,8 @@ class TST_CreateLedgerFile
         {
             fileName = strFmt(_nameTemplate, num2Str0(i, 5, 0));
             this.generateFile(fileName, _recordsInFile);
-
-            
         }
+        info(strFmt("%1 files created", _numberOfFiles));
     }
 
 ]]></Source>

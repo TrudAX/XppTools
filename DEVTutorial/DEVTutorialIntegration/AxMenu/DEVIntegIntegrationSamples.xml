@@ -41,6 +41,18 @@
 		</AxMenuElement>
 		<AxMenuElement xmlns=""
 			i:type="AxMenuElementSubMenu">
+			<Name>PerfTesting</Name>
+			<Label>Perfromance testing</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>TST_DEVIntegPerfTestSettings</Name>
+					<MenuItemName>TST_DEVIntegPerfTestSettings</MenuItemName>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
 			<Name>Setup</Name>
 			<Label>Setup</Label>
 			<Elements>
