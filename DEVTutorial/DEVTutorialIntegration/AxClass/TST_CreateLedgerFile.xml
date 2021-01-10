@@ -58,13 +58,22 @@ class TST_CreateLedgerFile
                     combinationAccountDeb.getLevelValue('Department'), combinationAccountDeb.getLevelValue('CostCenter'), curLineInDeb-1];
             writerExcel.addContainerLine(c);
         }
-        writerExcel.createExcelDocument();
-        writerExcel.doExcelOutput('A1');
-
         System.IO.MemoryStream   memStream;
-        memStream = writerExcel.finishOutputGetStream();
+
+        if (conPeek(Docu::splitFilename(_filename), 2) == 'csv')
+        {
+            memStream = writerExcel.getCSVStream();
+        }
+        else
+        {
+            writerExcel.createExcelDocument();
+            writerExcel.doExcelOutput('A1');
+            memStream = writerExcel.finishOutputGetStream();
+        }
+
         memStream.Position = 0;
         FileStream fileStream = new FileStream(_fileName, FileMode::Create, System.IO.FileAccess::Write);
+        //StreamWriter fileStream = new StreamWriter(_fileName, false, System.Text.Encoding::UTF8);
         memStream.CopyTo(fileStream);
         fileStream.Close();
         memStream.Close();
@@ -78,6 +87,7 @@ class TST_CreateLedgerFile
     public void run()
     {
         Query                             query;
+
 
         combinationAccountCred = new DEVTutorialCombinationGenerator();
         combinationAccountDeb = new DEVTutorialCombinationGenerator();
@@ -97,10 +107,32 @@ class TST_CreateLedgerFile
         combinationAccountCred.addLevelFromQuery('CostCenter',  query, fieldNum(DimAttributeOMCostCenter, Value));
         combinationAccountDeb.addLevelFromQuery('CostCenter',  query, fieldNum(DimAttributeOMCostCenter, Value));
 
-        combinationAccountCred.addLevel('MainAccount', ['600150', '606300', '607200', '618170', '618700']);
-        combinationAccountDeb.addLevel('MainAccount', ['500100']);
+        combinationAccountCred.addLevel('MainAccount', ['600120', '600150', '600155','600170', '600180', '600181',
+                                                        '606300', '607200', '618170', '618700']);
+        combinationAccountDeb.addLevel('MainAccount', ['500100', '500110', '500120', '500130', '500140']);
 
-        this.generateFile(@"C:\AAA\Integ\Jour0001.xlsx", 10);
+
+        //this.generateFile(@"C:\AAA\Integ\Jour0001.xlsx", 10);
+        //this.generateFile(@"C:\AAA\Integ\Jour0001.csv", 20);
+        this.createMultipleFiles(@"C:\AAA\Integ\BigTest\Jour%1.csv", 2000, 500);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createMultipleFiles</Name>
+				<Source><![CDATA[
+    void createMultipleFiles(str _nameTemplate, int _numberOfFiles, int  _recordsInFile)
+    {
+        int     i;
+        str     fileName;
+        for (i = 1; i <= _numberOfFiles; i++)
+        {
+            fileName = strFmt(_nameTemplate, num2Str0(i, 5, 0));
+            this.generateFile(fileName, _recordsInFile);
+
+            
+        }
     }
 
 ]]></Source>

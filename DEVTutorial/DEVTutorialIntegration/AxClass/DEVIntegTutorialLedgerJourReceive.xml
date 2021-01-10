@@ -175,7 +175,7 @@ class DEVIntegTutorialLedgerJourReceive extends DEVIntegProcessMessageBase
     void validateDataFromStaging()
     {
 
-        boolean  isError;
+        boolean  isValidLine;
         DimensionAttribute  attribBU         = DimensionAttribute::findByName(DEVDimensionHelper::BusinessUnit());
         DimensionAttribute  attribDepartment = DimensionAttribute::findByName(DEVDimensionHelper::Department());
         DimensionAttribute  attribCostCenter = DimensionAttribute::findByName(DEVDimensionHelper::CostCenter());
@@ -185,34 +185,34 @@ class DEVIntegTutorialLedgerJourReceive extends DEVIntegProcessMessageBase
             order by LineNumber
             where tutorialLedgerJourLinesStaging.HeaderRefRecId ==  tutorialLedgerJourHeaderStaging.RecId
         {
-            isError = false;
+            isValidLine = true;
             if (! MainAccount::findByMainAccountId(tutorialLedgerJourLinesStaging.MainAccount))
             {
-                isError = checkFailed(strFmt("Line %1. Maint account %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
+                isValidLine = checkFailed(strFmt("Line %1. Maint account %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
                                                                                       tutorialLedgerJourLinesStaging.MainAccount));
             }
             if (tutorialLedgerJourLinesStaging.BusinessUnit && 
                ! DimensionAttributeValue::findByDimensionAttributeAndValue(attribBU, tutorialLedgerJourLinesStaging.BusinessUnit))
             {
-                isError = checkFailed(strFmt("Line %1. Business Unit %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
+                isValidLine = checkFailed(strFmt("Line %1. Business Unit %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
                                                                                         tutorialLedgerJourLinesStaging.BusinessUnit));
 
             }
             if (tutorialLedgerJourLinesStaging.Department &&
                ! DimensionAttributeValue::findByDimensionAttributeAndValue(attribDepartment, tutorialLedgerJourLinesStaging.Department))
             {
-                isError = checkFailed(strFmt("Line %1. Department %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
+                isValidLine = checkFailed(strFmt("Line %1. Department %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
                                                                                      tutorialLedgerJourLinesStaging.Department));
 
             }
             if (tutorialLedgerJourLinesStaging.CostCenter &&
                ! DimensionAttributeValue::findByDimensionAttributeAndValue(attribCostCenter, tutorialLedgerJourLinesStaging.CostCenter))
             {
-                isError = checkFailed(strFmt("Line %1. Cost Center %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
+                isValidLine = checkFailed(strFmt("Line %1. Cost Center %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
                                                                                       tutorialLedgerJourLinesStaging.CostCenter));
 
             }
-            if (isError)
+            if (! isValidLine)
             {
                 messageProcessResult.incErrorCount();
             }

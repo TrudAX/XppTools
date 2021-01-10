@@ -28,7 +28,6 @@ class DEVFileWriterExcel
     str                 workSheetNameStr = 'ExcelExport';
 
 }
-
 ]]></Declaration>
 		<Methods>
 			<Method>
@@ -311,6 +310,34 @@ class DEVFileWriterExcel
             }
         }
         this.formatRows();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCSVStream</Name>
+				<Source><![CDATA[
+    public System.IO.MemoryStream getCSVStream(str _inFieldDelimiter = ',')
+    {
+        #File
+
+        TextStreamIo    ioData;
+        int             i;
+        container       dataLine;
+        
+        ioData = TextStreamIo::constructForWrite(0);//65001);
+        ioData.inFieldDelimiter(_inFieldDelimiter);
+        ioData.outFieldDelimiter(_inFieldDelimiter);
+        ioData.inRecordDelimiter(#delimiterCRLF);
+
+        for(i = 1; i <= conLen(data); i++)
+        {
+            dataLine = conPeek(data, i);
+            ioData.writeExp(dataLine);
+        }
+     
+        return ioData.getStream();
+
     }
 
 ]]></Source>

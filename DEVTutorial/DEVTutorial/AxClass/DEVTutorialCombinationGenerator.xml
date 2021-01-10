@@ -77,7 +77,7 @@ class DEVTutorialCombinationGenerator
 
         if (levelDataLine == conNull())
         {
-            throw error(strFmt("No data for level %1", _levelName));
+            throw error(strFmt('No data for level %1', _levelName));
         }
         this.addLevel(_levelName, levelDataLine);
     }
@@ -133,15 +133,17 @@ class DEVTutorialCombinationGenerator
     {
         DEVTutorialCombinationGenerator   combinationGenerator = new DEVTutorialCombinationGenerator();
 
-        combinationGenerator.setMaxElements(10);
-        combinationGenerator.addLevel('ItemId', ['Item1', 'Item2', 'Item3']);
-        combinationGenerator.addLevel('DimId', ['Dim1', 'Dim2', 'Dim3', 'Dim4']);
-
+        combinationGenerator.setMaxElements(50);
+        combinationGenerator.addLevel('ItemId', ['Item1', 'Item2']);
+        combinationGenerator.addLevel('DimId', ['Dim1', 'Dim2', 'Dim3']);
+        combinationGenerator.addLevel('SiteId', ['Site1', 'Site2']);
+        
         while (combinationGenerator.moveToNext())
         {
-            info(strFmt("element %1: %2, %3", combinationGenerator.getCurElement(), 
+            info(strFmt('element %1: %2, %3, %4', combinationGenerator.getCurElement(), 
                                               combinationGenerator.getLevelValue('ItemId'),
-                                              combinationGenerator.getLevelValue('DimId') ));
+                                              combinationGenerator.getLevelValue('DimId'),
+                                              combinationGenerator.getLevelValue('SiteId') ));
         }
 
     }
