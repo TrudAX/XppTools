@@ -115,6 +115,9 @@ class TST_CreateLedgerFile
     {
         Query                             query;
 
+        MainAccount     mainAccount;
+        container       mainAccountCon;
+
         combinationAccountCred = new DEVTutorialCombinationGenerator();
         combinationAccountDeb = new DEVTutorialCombinationGenerator();
 
@@ -133,9 +136,27 @@ class TST_CreateLedgerFile
         combinationAccountCred.addLevelFromQuery('CostCenter',  query, fieldNum(DimAttributeOMCostCenter, Value));
         combinationAccountDeb.addLevelFromQuery('CostCenter',  query, fieldNum(DimAttributeOMCostCenter, Value));
 
-        combinationAccountCred.addLevel('MainAccount', ['600120', '600150', '600155','600170', '600180', '600181',
-                                                        '606300', '607200', '618170', '618700']);
-        combinationAccountDeb.addLevel('MainAccount', ['500100', '500110', '500120', '500130', '500140']);
+        mainAccountCon = conNull();
+        while select mainAccount
+            where mainAccount.MainAccountId like '60*' &&
+                  mainAccount.Type == DimensionLedgerAccountType::Expense  &&
+                  mainAccount.LedgerChartOfAccounts == LedgerChartOfAccounts::current() &&
+                  mainAccount.PostingType != LedgerPostingType::Tax
+        {
+            mainAccountCon += mainAccount.MainAccountId;
+        }
+        combinationAccountCred.addLevel('MainAccount', mainAccountCon);
+
+        mainAccountCon = conNull();
+        while select mainAccount
+            where mainAccount.MainAccountId like '500*' &&
+                  mainAccount.Type == DimensionLedgerAccountType::Expense   &&
+                  mainAccount.LedgerChartOfAccounts == LedgerChartOfAccounts::current() &&
+                  mainAccount.PostingType != LedgerPostingType::Tax
+        {
+            mainAccountCon += mainAccount.MainAccountId;
+        }
+        combinationAccountDeb.addLevel('MainAccount', mainAccountCon);
         
     }
 

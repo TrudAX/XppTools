@@ -228,6 +228,9 @@ public class DEVIntegMessageTable extends common
 			<Label>Processing</Label>
 			<Fields>
 				<AxTableFieldGroupField>
+					<DataField>CreatedDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>ProcessingStartDateTime</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
