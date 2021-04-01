@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSysTableBrowser</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+// This is a framework class. Customizing this class may cause problems with future upgrades to the software.
+public class DEVSysTableBrowser
+{
+    boolean     allowEdit;
+    boolean     allowDelete;
+    boolean     allowCreate;
+    indexId     defaultIndexId;
+
+    str         tableName;
+    DictTable   dictTable;
+    List        systemFieldControlIds;
+
+    FormRun                         tableBrowserFormRun;
+    FormBuildDesign                 formBuildDesign;
+    FormBuildDataSource             formBuildDataSource;
+    FormBuildGridControl            formBuildGridControl2;
+    FormGridControl                 formGridControl;
+    FormRadioControl                formRadioControl;    
+    FormBuildGridControl            allfieldsGridControl;
+
+
+    #DEFINE.FormWidth(500)
+    #DEFINE.FormHeight(300)
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addField</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds the specified field to the grid control.
+    /// </summary>
+    /// <param name="_tableId">
+    /// The <c>tableId</c> value that the field is on.
+    /// </param>
+    /// <param name="_fieldId">
+    /// The ID of the field.
+    /// </param>
+    /// <param name="_formBuildDataSource">
+    /// The <c>FormBuildDataSource</c> on the form.
+    /// </param>
+    /// <param name="_formBuildGridControl">
+    /// The grid control on the form.
+    /// </param>
+    /// <param name="_allowControlEdit">
+    /// A Boolean value that specifies whether to allow editing of the control.
+    /// </param>
+    /// <param name="_visible">
+    /// A Boolean value that specifies whether the control is visible.
+    /// </param>
+    protected void addField(tableId _tableId,
+        fieldId _fieldId,
+        FormBuildDataSource _formBuildDataSource,
+        FormBuildGridControl _formBuildGridControl,
+        boolean _allowControlEdit)
+    {
+        FormBuildStringControl formBuildStringControl;
+        FormBuildInt64Control formBuildInt64Control;
+        FormBuildIntControl formBuildIntControl;
+        FormBuildComboBoxControl formBuildComboBoxControl;
+        FormBuildCheckBoxControl formBuildCheckBoxControl;
+        FormBuildTimeControl formBuildTimeControl;
+        FormBuildDateControl formBuildDateControl;
+        FormBuildGuidControl formBuildGuidControl;
+        FormBuildDateTimeControl formBuildDateTimeControl;
+        FormBuildRealControl formBuildRealControl;
+        FormBuildSegmentedEntryControl formBuildSegmentedEntryControl;
+        FormBuildReferenceGroupControl formBuildReferenceGroupControl;
+
+        FormBuildControl formBuildControl;
+        SysDictField dictField;
+        int j;
+        tableId rootTableId;
+        str controlName;
+        UtilElementName utilElmName;
+        Types baseType;
+
+        dictField = new SysDictField(_tableId, _fieldId);
+        if(dictField.isSystem())
+        {
+            //System fields are only stored on the root table, so get the information from there.
+            rootTableId = SysDictTable::getRootTable(_tableId);
+            dictField = new SysDictField(rootTableId, _fieldId);
+        }
+
+        if (dictField.saveContents())
+        {
+            for(j = 1;j <= dictField.arraySize(); j++)
+            {
+                formBuildControl = null;
+
+                controlName = strfmt('%1_%2', dictField.name(), j);
+                baseType = dictField.baseType();
+                utilElmName = dictField.typeName();
+
+                switch (baseType)
+                {
+                    case Types::String:
+                    case Types::RString:
+                    case Types::VarString:
+                        formBuildStringControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
+                        formBuildStringControl.autoDeclaration(true);
+                        formBuildStringControl.label(dictField.name());
+
+                        formBuildStringControl.displayHeightMode(0);
+                        formBuildStringControl.displayHeightValue(1);
+
+                        formBuildControl = formBuildStringControl;
+                        break;
+
+                    case Types::Integer:
+
+                        if (Global::isTypeTime(utilElmName))
+                        {
+                            formBuildTimeControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
+                            formBuildTimeControl.autoDeclaration(true);
+                            formBuildTimeControl.label(dictField.name());
+
+                            formBuildControl = formBuildTimeControl;
+                        }
+                        else
+                        {
+                            formBuildIntControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
+                            formBuildIntControl.autoDeclaration(true);
+                            formBuildIntControl.label(dictField.name());
+
+                            formBuildControl = formBuildIntControl;
+                        }
+                        break;
+
+                    case Types::Int64:
+                        // Reference Controls are created by default for surrogate foreign keys. However, the raw 64-bit
+                        // integer should always be displayed. Force all Int64 type fields to use an Int64 Control.
+                        formBuildControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
+
+                        formBuildInt64Control = formBuildControl as formBuildInt64Control;
+                        if (formBuildInt64Control != null)
+                        {
+                            formBuildInt64Control.autoDeclaration(true);
+                            formBuildInt64Control.label(dictField.name());
+                            
+                            formBuildControl = formBuildInt64Control;
+                        }
+                        else
+                        {
+                            formBuildReferenceGroupControl = formbuildControl as FormBuildReferenceGroupControl;
+                            if (formBuildReferenceGroupControl != null)
+                            {
+                                formBuildReferenceGroupControl.autoDeclaration(true);
+                                formBuildReferenceGroupControl.label(dictField.name());
+
+                                formBuildControl = formBuildReferenceGroupControl;
+                            }
+                            else
+                            {
+                                formBuildSegmentedEntryControl = formBuildControl as formBuildSegmentedEntryControl;
+                                if (formBuildSegmentedEntryControl != null)
+                                {
+                                    formBuildSegmentedEntryControl.autoDeclaration(true);
+                                    formBuildSegmentedEntryControl.label(dictField.name());
+
+                                    formBuildControl = formBuildSegmentedEntryControl;
+                                }
+                            }
+                        }
+
+                        break;
+
+                    case Types::Enum:
+                        formBuildControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
+
+                        formBuildComboBoxControl = formBuildControl as formBuildComboBoxControl;
+                        if (formBuildComboBoxControl != null)
+                        {
+                            formBuildComboBoxControl.autoDeclaration(true);
+                            formBuildComboBoxControl.label(dictField.name());
+
+                            formBuildControl = formBuildComboBoxControl;
+                        }
+                        else
+                        {
+                            formBuildCheckBoxControl = formBuildControl as FormBuildCheckBoxControl;
+                            if (formBuildCheckBoxControl != null)
+                            {
+                                formBuildCheckBoxControl.autoDeclaration(true);
+                                formBuildCheckBoxControl.label(dictField.name());
+
+                                formBuildControl = formBuildCheckBoxControl;
+                            }
+                        }
+
+                        break;
+
+                    case Types::Real:
+                        formBuildRealControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
+                        formBuildRealControl.autoDeclaration(true);
+                        formBuildRealControl.label(dictField.name());
+                        
+                        formBuildControl = formBuildComboBoxControl;
+
+                        break;
+
+                    case Types::Guid:
+                        formBuildGuidControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
+                        formBuildGuidControl.autoDeclaration(true);
+                        formBuildGuidControl.label(dictField.name());
+
+                        formBuildControl = formBuildGuidControl;
+
+                        break;
+
+                    case Types::Date:
+                        formBuildDateControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
+                        formBuildDateControl.autoDeclaration(true);
+                        formBuildDateControl.label(dictField.name());
+                       
+                        formBuildControl = formBuildDateControl;
+                        
+                        break;
+
+                    case Types::UtcDateTime:
+                        formBuildDateTimeControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
+                        formBuildDateTimeControl.autoDeclaration(true);
+                        formBuildDateTimeControl.label(dictField.name());
+
+                        formBuildControl = formBuildDateTimeControl;
+
+                        break;
+                }
+
+
+                if (formbuildControl != null)
+                {
+                    formbuildControl.name(controlName);
+                    formbuildControl.helpText(dictField.label());
+
+                    formBuildSegmentedEntryControl = formBuildControl as FormBuildSegmentedEntryControl;
+                    if (formBuildSegmentedEntryControl != null)
+                    {
+                        // Segmented Entry controls should never be editable in the Table Browser.
+                        // There is no way to specify a Controller class so the user would see errors.
+                        formBuildSegmentedEntryControl.allowEdit(false);
+                    }
+                    else
+                    {
+                        formbuildControl.allowEdit(_allowControlEdit);
+                    }
+
+                    if (dictField.isSystem())
+                    {
+                        systemFieldControlIds.addEnd(formbuildControl.id());
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DEVisUserInRole</Name>
+				<Source><![CDATA[
+    public boolean DEVisUserInRole(Description  _roleName)
+    {
+        boolean                 res;
+        SecurityUserRole        securityUserRole;
+        SecurityRole            securityRole;
+        ;
+        select firstonly RecId from securityUserRole
+            where  securityUserRole.User    == curUserId()
+            join RecId from securityRole
+                where  securityRole.RecId == securityUserRole.SecurityRole
+                    && (   securityRole.AotName == _roleName
+                    )    ;
+        if (securityUserRole.RecId)
+        {
+            res = true;
+        }
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        systemFieldControlIds = new List(Types::Integer);
+
+        defaultIndexId = 0;
+        if (this.DEVisUserInRole(roleStr(DEVSysTableBrowserExt)))
+        {
+            allowEdit   = true;
+            allowDelete = true;
+            allowCreate = true;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run(TableId _tableId)
+    {
+        Form                            tableBrowserForm;
+        Args                            args;
+        Args                            browserArgs;
+        int                             idx;
+        boolean                         hasAutoReportGroup;
+        SqlDataDictionary               sqlDataDict = new SqlDataDictionary();
+        SqlDictionary                   sqlDict;
+        str                             sqlTableName;
+        
+        if (!_tableId)
+        {
+            // Throw an exception here would not help since it would not show to end users when the form has not loaded.
+            this.showError(strfmt("@ApplicationFoundation:SysTableBrowser_TableNotSynced", this.parmTablename()));
+            return;
+        }
+
+        try
+        {
+            /* Even if the _tableId != 0 there may be still error like:
+                Table has not been fully sync'd.
+                It is actually a View, not a table.
+                Etc.
+            */
+            SysDictTable dictT = new SysDictTable(_tableId);
+
+            // The table must be compiled to pass this check, otherwise it would fail later on when the form loads its data source for the same reason.
+            Common table = dictT.makeRecord(); 
+
+            select firstonly * from table;
+        }
+        catch
+        {
+            this.showError(strfmt("@ApplicationFoundation:SysTableBrowser_TableNotSynced", this.parmTablename()));
+            return;
+        }
+
+        this.dictTable = new DictTable(_tableId);
+
+        browserArgs = new Args();
+        browserArgs.name(formstr(DEVSysTableBrowser));
+        tableBrowserFormRun = classfactory.formRunClass(browserArgs);
+        tableBrowserForm = tableBrowserFormRun.form();
+
+        if (!tableBrowserForm)
+        {
+            throw error(strfmt("@ApplicationFoundation:SysTableBrowser_MissingForm"));
+        }
+
+        //If the table is abstract, don't allow creates in SysTableBrowser.
+        if(dictTable.isAbstract())
+        {
+            allowCreate = false;
+        }
+        
+        formBuildDataSource = tableBrowserForm.dataSource(1);
+        formBuildDataSource.table(dictTable.Id());
+        formBuildDataSource.name(dictTable.name());
+        formBuildDataSource.autoQuery(true);
+        formBuildDataSource.linkType(0);
+        formBuildDataSource.allowCreate(allowCreate);
+        formBuildDataSource.allowDelete(allowDelete);
+        formBuildDataSource.allowEdit(allowEdit);
+        formBuildDataSource.validTimeStateAutoQuery(ValidTimeStateAutoQuery::DateRange);
+        formBuildDataSource.validTimeStateUpdate(ValidTimeStateUpdate::Correction);
+        
+        if (defaultIndexId)
+        {
+            formBuildDataSource.index(defaultIndexId);
+        }
+
+        formBuildDesign = tableBrowserForm.design();
+        formBuildDesign.caption("@SYS54191" + ': ' + dictTable.name());
+        formBuildDesign.widthMode(-1);
+        formBuildDesign.widthValue(#FormWidth);
+        formBuildDesign.heightMode(-1);
+        formBuildDesign.heightValue(#FormHeight);
+        
+        allfieldsGridControl = formBuildDesign.control('allFieldsGrid');
+        allfieldsGridControl.dataSource(formBuildDataSource.id());
+        allfieldsGridControl.allowEdit(allowEdit);
+        idx = allfieldsGridControl.id();
+
+        this.showAllFields();
+        
+        /*
+        formBuildGridControl2 = formBuildDesign.control('autoReportGrid');
+        formBuildGridControl2.dataSource(dictTable.name());
+        formBuildGridControl2.allowEdit(allowEdit);
+        formBuildGridControl2.visible(false);
+
+        hasAutoReportGroup = this.showAutoFields(dictTable.Id(), formBuildGridControl2, formBuildDataSource);
+        */
+
+        args = new Args();
+        args.object(tableBrowserForm);
+        tableBrowserFormRun = classfactory.formRunClass(args);
+
+        tableBrowserFormRun.enableCountryRegion(false);
+        tableBrowserFormRun.init();
+        tableBrowserFormRun.parmSysTableBrowser(this);
+        tableBrowserFormRun.run();
+
+        /*
+        formRadioControl = formRun.getRadioControl();
+        formRadioControl.visible(hasAutoReportGroup);
+
+        formGridControl = formRun.control(idx);
+        formGridControl.setFocus();
+
+        // This call is here as a hack fix (AXSE:4564 or AX6:18807) for performance issue around Table Browser
+        // loading time, and should be removed once a proper fix is in place.
+        formGridControl.autoSizeColumns(false);
+
+        formRun.detach();
+
+        */
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showError</Name>
+				<Source><![CDATA[
+    private void showError(str error)
+    {        
+        var args = new Args();
+        args.name(formstr(DEVSysTableBrowser));
+
+        FormRun tableBrowserForm = classfactory.formRunClass(args);
+        tableBrowserForm.parmError(error);
+        tableBrowserForm.enableCountryRegion(false);
+        tableBrowserForm.init();
+        tableBrowserForm.run();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDefaultIndexId</Name>
+				<Source><![CDATA[
+    public void setDefaultIndexId(indexId newValue)
+    {
+        defaultIndexId = newValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showAllFields</Name>
+				<Source><![CDATA[
+    //AOSRunMode::Client
+    protected void showAllFields()
+    {
+        DictField                       dictField;
+        fieldId                         fieldId;
+        int                             i;
+        int                             fieldCnt;
+        Map                             userDefinedFields;
+        List                            systemFields;
+        MapEnumerator                   mapIt;
+        ListEnumerator                  listIt;
+
+        userDefinedFields = new Map(Types::String, Types::Integer);
+        systemFields      = new List(Types::Integer);
+
+        //Include all of the base table fields so we have "complete records".
+        fieldCnt = dictTable.fieldCnt(TableScope::IncludeBaseTables);
+        for (i = 1; i <= fieldCnt; i++)
+        {
+            fieldId = dictTable.fieldCnt2Id(i, TableScope::IncludeBaseTables);
+
+            dictField = new dictField(dictTable.id(), fieldId);
+            if (dictField)
+            {
+                if (dictField.isSystem())
+                {
+                    systemFields.addEnd(fieldId);
+                }
+                else
+                {
+                    userDefinedFields.insert(dictField.name(), fieldId);
+                }
+            }
+        }
+
+        mapIt = userDefinedFields.getEnumerator();
+        while (mapIt.moveNext())
+        {
+            this.AddField(dictTable.id(), mapIt.currentValue(), formBuildDataSource, allfieldsGridControl, this.allowEdit);
+        }
+
+        listIt = systemFields.getEnumerator();
+        while (listIt.moveNext())
+        {
+            this.AddField(dictTable.id(), listIt.current(), formBuildDataSource, allfieldsGridControl, this.allowEdit);
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showSystemFields</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Hides or shows the system fields.
+    /// </summary>
+    /// <param name = "_showSystemFields">A Boolean value indicating if the system fields should be hidden or shown.</param>
+    public void showSystemFields(boolean _showSystemFields)
+    {
+        int controlId;
+        FormControl formControl;
+        ListEnumerator systemFieldControlIdsEnumerator = systemFieldControlIds.getEnumerator();
+
+        while (systemFieldControlIdsEnumerator.moveNext())
+        {
+            controlId = systemFieldControlIdsEnumerator.current();
+
+            if (controlId)
+            {
+                formControl = tableBrowserFormRun.control(controlId);
+                if (formControl != null)
+                {
+                    formControl.visible(_showSystemFields);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmTablename</Name>
+				<Source><![CDATA[
+    public TableName parmTablename(TableName _tableName = tableName)
+    {
+        tableName = _tableName;
+        return tableName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>treeNode2TableId</Name>
+				<Source><![CDATA[
+    public static tableId treeNode2TableId(TreeNode treeNode)
+    {
+        #TreeNodeSysNodeType
+        tableId tableId;
+        QueryBuildDataSource    queryBuildDataSource;
+        Form                    form;
+        FormBuildDataSource     formBuildDataSource;
+        TreeNode                treeNodeDatasource;
+        int                     datasourceCnt, i;
+
+        switch (treeNode.TreeNodeType().id())
+        {
+            case #NT_DBTABLE:
+            case #NT_DBVIEW:
+            case #NT_DBMAP:
+            case #SysNodeTypeSystemTable:
+            case #SysNodeTypeTableCollection:
+                tableId = tablename2id(treeNode.treeNodeName());
+                break;
+
+            case #SysNodeTypeQueryDatasource:                 //Query DataSource
+                queryBuildDataSource = treeNode;
+                tableId = queryBuildDataSource.table();
+                break;
+
+            case #SysNodeTypeFormDatasource:
+                treeNodeDatasource = treeNode;
+                treenode = SysTreeNode::getRootElement(treenode);
+
+                if (treeNode.utilElement().RecordType == UtilElementType::Form ||
+                    treeNode.utilElement().RecordType == UtilElementType::WebForm ||
+                    treeNode.utilElement().RecordType == UtilElementType::DataSet)
+                {
+                    form = treeNode;
+                    datasourceCnt = form.dataSourceCount();
+                    for (i = 1; i <= datasourceCnt; i++)
+                    {
+                        formBuildDataSource = form.dataSource(i);
+                        if (formBuildDataSource.name() == treeNodeDatasource.treeNodeName())
+                        {
+                            tableId = formBuildDataSource.table();
+                            break;
+                        }
+                    }
+                }
+                break;
+        }
+        return tableId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    client static void main(Args args)
+    {
+        DEVSysTableBrowser sysTableBrowser;
+        URLUtility urlUtil = new URLUtility();
+
+        str tName;
+
+        tName = urlUtil.getQueryParamValue('TableName');
+        if (!tName)
+        {
+            throw error(strfmt("@ApplicationFoundation:SysTableBrowser_MissingTableName"));
+        }
+
+        sysTableBrowser = new DEVSysTableBrowser();
+        sysTableBrowser.parmTableName(tName);
+        sysTableBrowser.run(tablename2id(tName));        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

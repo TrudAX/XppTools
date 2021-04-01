@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVSysTableBrowser</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVSysTableBrowser extends FormRun
+{
+    tableId tableId;
+    DEVSysTableBrowser tableBrowser;
+    boolean showSystemFields;
+    str         error;
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createRecord</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Allows us to override which type will be created upon CTRL-N.
+    /// </summary>
+    /// <param name="_formDataSourceName">
+    /// The name of the FormDataSource upon which create is being called.
+    /// </param>
+    /// <param name="_append">
+    /// Whether to append the new record.
+    /// </param>
+    /// <remarks>
+    /// This method allows the suppression of the CreateTypes dialog and forces
+    /// only the current type to be created when it is non-abstract.
+    /// Disallows polymorphic creates.
+    /// </remarks>
+    public void createRecord(str _formDataSourceName, boolean _append = false)
+    {
+        Map typeToCreate = new Map(types::String, Types::String);
+        typeToCreate.insert(ds_ds.name(), tableId2name(ds_ds.table()));
+
+        //Create only the currently modeled table type, ignore derived types.
+        ds_ds.createTypes(typeToCreate, _append);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSysTableBrowser</Name>
+				<Source><![CDATA[
+    public DEVSysTableBrowser parmSysTableBrowser(DEVSysTableBrowser _sysTableBrowser = tableBrowser)
+    {
+        tableBrowser = _sysTableBrowser;
+        return tableBrowser;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmError</Name>
+				<Source><![CDATA[
+    public str parmError(str _error = error)
+    {
+        error = _error;
+        return error;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+        showSystemFields = true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tableBrowserContainer_lookup</Name>
+				<Source><![CDATA[
+    public void tableBrowserContainer_lookup()
+    {
+        FormStringControl   formStringControl = this.controlCallingMethod();
+        FormObjectSet       formObjectSet = element.dataSource(1);
+        Common              common = formObjectSet.cursor();
+
+        SysUtil::conView(common.(formStringControl.dataField()),
+            strfmt("@SYS26868", element.design().caption(), strfmt("@SYS53184", formStringControl.name(), common.caption())));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        if (this.error != '')
+        {
+            AppBar.visible(false);
+            CustomFilter.visible(false);
+            AllFieldsGrid.visible(false);
+            this.showError(this.error);
+        }
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showError</Name>
+				<Source><![CDATA[
+    private void showError(str err)
+    {
+        this.design().caption(err);
+        error(err);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>ShowHideSystemFields</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        /// Toggles the system fields on or off.
+        /// </summary>
+        public void clicked()
+        {
+            super();
+
+            showSystemFields = !showSystemFields;
+            tableBrowser.showSystemFields(showSystemFields);
+
+            if (showSystemFields)
+            {
+                this.text("@ApplicationFoundation:SysTableBrowser_HideSystemFields");
+            }
+            else
+            {
+                this.text("@ApplicationFoundation:SysTableBrowser_ShowSystemFields");
+            }
+
+
+            element.reload();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>ds</Name>
+			<Table>Common</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">@SYS54191</Caption>
+		<ColumnSpace xmlns="">0</ColumnSpace>
+		<ColumnSpaceMode xmlns="">Fixed</ColumnSpaceMode>
+		<Pattern xmlns="">SimpleList</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<Style xmlns="">SimpleList</Style>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>AppBar</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>EnableSystemFields</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ShowHideSystemFields</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>@ApplicationFoundation:SysTableBrowser_HideSystemFields</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>CustomFilter</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Pattern>CustomAndQuickFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterControl1</Name>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+									<Value>AllFieldsGrid</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>AllFieldsGrid</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<Type>Grid</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<DataSource>ds</DataSource>
+				<Style>Tabular</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>
