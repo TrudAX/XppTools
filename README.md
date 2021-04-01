@@ -65,6 +65,8 @@ Sub-model name: DEVSysQueryFormAddRelInfo
 
 Extension for the standard D365FO table browser that allows root navigation and editing for non-development environments.
 
+Test link https://usnconeboxax1aos.cloud.onebox.dynamics.com/?cmp=USMF&mi=DEVSysTableBrowser&tablename=custgroup. A user should be in the group "DEV Editable table browser"
+
 Full description: [Editable table browser](https://denistrunin.com/xpptools-devtablebrowser/). Sub-model name: DEVSysTableBrowser
 
 ### -List of Values to Range 
