@@ -172,6 +172,8 @@ A sample code for implementing file-based integration in Dynamics 365 FinOps usi
 
 If you want to contribute - change the objects using Visual Studio in the **DEVTools** model, copy the changed elements(xml files) back into the Temp folder and create GitHub pull request from this Temp folder.
 
+If you want to rename elements prefix you can use this tool that can change multiple file names - **Bulk Rename Utility**. (From DEV to YourPrefix). Then run **Replace in files** in Notepad++ .
+
 ## Contribution
 
 Feel free to create issues and PRs 😃
