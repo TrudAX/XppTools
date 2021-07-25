@@ -72,7 +72,8 @@ class DEVIntegMessageProcessor
         {
             if (messageTableUpd.Status      == DEVIntegMessageStatus::Ready ||
                 messageTableUpd.Status      == DEVIntegMessageStatus::Error  || 
-                    (messageTableUpd.Status  == DEVIntegMessageStatus::Processing && ! messageTableUpd.isSessionActive()) )
+               (messageTableUpd.Status      == DEVIntegMessageStatus::Processing && (
+                 messageTableUpd.isBlockedByCurrentSession() || ! messageTableUpd.isSessionActive())) )
             {
                 messageTableUpd.setProcessing();
                 messageTableUpd.update();

@@ -29,6 +29,10 @@ public class DEVIntegMessageTypeInbound extends FormRun
     void enableDSFields()
     {
         LedgerImportParms.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegTutorialLedgerJourReceive));
+        FileFormatGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegTutorialLedgerJourReceive));
+
+        ParmDMFImportGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegProcessDMF));
+        
     }
 
 ]]></Source>
@@ -181,6 +185,9 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParmDMFEntityRecId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>Partition</DataField>
@@ -535,7 +542,8 @@ public class DEVIntegMessageTypeInbound extends FormRun
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormGroupControl">
-								<Name>FileFormat</Name>
+								<Name>FileFormatGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
 								<Type>Group</Type>
 								<FormControlExtension
 									i:nil="true" />
@@ -562,6 +570,29 @@ public class DEVIntegMessageTypeInbound extends FormRun
 								</Controls>
 								<Breakable>No</Breakable>
 								<DataGroup>FileFormat</DataGroup>
+								<DataSource>DEVIntegMessageTypeInbound</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ParmDMFImportGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormReferenceGroupControl">
+										<Name>ParmDMFImport_ParmDMFEntityRecId</Name>
+										<Type>ReferenceGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls />
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+										<ReferenceField>ParmDMFEntityRecId</ReferenceField>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>ParmDMFImport</DataGroup>
 								<DataSource>DEVIntegMessageTypeInbound</DataSource>
 							</AxFormControl>
 						</Controls>

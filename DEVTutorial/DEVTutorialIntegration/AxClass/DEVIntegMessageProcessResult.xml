@@ -66,6 +66,26 @@ class DEVIntegMessageProcessResult
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>setProcessedCount</Name>
+				<Source><![CDATA[
+    public void setProcessedCount(int _numOfRecordsProcessed)
+    {
+        numOfRecordsProcessed = _numOfRecordsProcessed;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setErrorCount</Name>
+				<Source><![CDATA[
+    public void setErrorCount(int _numOfRecordsWithError)
+    {
+        numOfRecordsWithError = _numOfRecordsWithError;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>incErrorCount</Name>
 				<Source><![CDATA[
     void  incErrorCount()

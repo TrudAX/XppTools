@@ -282,6 +282,15 @@ public class DEVIntegMessageTypeInbound extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ParmDMFImport</Name>
+			<Label>DMF</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ParmDMFEntityRecId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -374,6 +383,13 @@ public class DEVIntegMessageTypeInbound extends common
 			<Name>FileMoveNameChange</Name>
 			<EnumType>DEVIntegFileMoveNameChange</EnumType>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>ParmDMFEntityRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<HelpText>Entity reference</HelpText>
+			<Label>Entity ref</Label>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>
@@ -428,6 +444,23 @@ public class DEVIntegMessageTypeInbound extends common
 					<SourceEDT>DEVIntegConnectionTypeId</SourceEDT>
 					<Field>ConnectionTypeId</Field>
 					<RelatedField>ConnectionTypeId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DMFDefinitionGroupEntity</Name>
+			<Cardinality>ZeroOne</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DMFDefinitionGroupEntity</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ParmDMFEntityRecId</Name>
+					<Field>ParmDMFEntityRecId</Field>
+					<RelatedField>RecId</RelatedField>
 				</AxTableRelationConstraint>
 			</Constraints>
 		</AxTableRelation>

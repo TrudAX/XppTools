@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegProcessDMF</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegProcessDMF extends DEVIntegProcessMessageBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processMessage</Name>
+				<Source><![CDATA[
+    void  processMessage(DEVIntegMessageTable  _messageTable, DEVIntegMessageProcessResult _messageProcessResult)
+    {
+        messageTable         =  _messageTable;
+        messageProcessResult =  _messageProcessResult;
+
+        container conFileParts = str2con_RU(messageTable.Name, '_');
+        if (conLen(conFileParts) < 2)
+        {
+            throw error(strFmt("File name %1 should contain CompanyId and Number separated by '_'", messageTable.Name));
+        }
+        CompanyId  companyId = conPeek(conFileParts, 1);
+        if (! CompanyInfo::findDataArea(companyId))
+        {
+            throw error(strFmt("File %1. Company %2 doesn't exist", messageTable.Name, companyId));
+        }
+
+        changecompany(companyId)
+        {
+            str fileId = this.readFileToStorage();
+
+            this.executeDMFImport(fileId);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeDMFImport</Name>
+				<Source><![CDATA[
+    public void executeDMFImport(str  _fileId)
+    {
+        DMFDefinitionGroupEntity definitionGroupEntity;
+
+        select definitionGroupEntity
+            where definitionGroupEntity.RecId == messageTypeTable.ParmDMFEntityRecId;
+        if (!definitionGroupEntity.RecId)
+        {
+            throw error(strFmt("@DMF:DMFNoEntityExists", messageTypeTable.MessageTypeId));
+        }
+
+        DMFExecutionId executionId = DMFUtil::setupNewExecution(definitionGroupEntity.DefinitionGroup);
+
+        // Find execution
+        DMFDefinitionGroupExecution execution;
+        ttsbegin;
+        while select forupdate execution
+            where execution.ExecutionId == executionId
+        {
+            if (execution.Entity          == definitionGroupEntity.Entity &&
+                execution.DefinitionGroup == definitionGroupEntity.DefinitionGroup)
+            {
+                execution.FilePath = _fileId;
+                execution.Company  = curExt();
+                execution.update();
+            }
+            else
+            {
+                execution.delete();
+            }
+        }
+
+        messageTable = DEVIntegMessageTable::findRecId(messageTable.RecId, true);
+        messageTable.DocumentDescription = executionId;
+        messageTable.CompanyId = curExt();
+        messageTable.update();
+        ttscommit;
+        
+        DMFStagingWriter::execute(
+                        executionId, //_executionId
+                        0, //_batchId
+                        true, //_runOnService
+                        false, //_calledFrom
+                        DateTimeUtil::getUserPreferredTimeZone(), //_timeZone
+                        false //_compareData
+                    );
+
+
+        execution = null;
+        select firstonly execution
+                where execution.ExecutionId == executionId;
+        if ( execution.RecId)
+        {
+            messageProcessResult.setErrorCount(execution.StagingErrorCount + execution.TargetErrorCount);
+            messageProcessResult.setProcessedCount(execution.NoOfRecords);
+
+            if (execution.TargetStatus != DMFBatchJobStatus::Finished)
+            {
+                messageProcessResult.incErrorCount();
+            }
+
+            if (execution.StagingStatus == DMFBatchJobStatus::Finished)
+            {
+                ttsbegin;
+                messageTable = DEVIntegMessageTable::findRecId(messageTable.RecId, true);
+                messageTable.IsParsed = true;
+                messageTable.update();
+                ttscommit;
+            }
+        }
+        else
+        {
+            messageProcessResult.incErrorCount();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readFileToStorage</Name>
+				<Source><![CDATA[
+    str readFileToStorage()
+    {
+        DEVFileReaderBase       fileReader;
+        System.IO.MemoryStream  fileStream = messageTable.getFileStream();
+        CompanyId               companyId;
+        if (! fileStream)
+        {
+            throw error(strFmt("File %1 is empty", messageTable.Name));
+        }
+        FileUploadTemporaryStorageStrategy  fileUploadStrategy;
+        FileUploadTemporaryStorageResult    fileUploadResult;
+        str                                 fileId = "";
+        
+        fileUploadStrategy =  new FileUploadTemporaryStorageStrategy();
+
+        fileUploadResult = fileUploadStrategy.uploadFile(fileStream, messageTable.Name);
+
+        if (fileUploadResult == null || !fileUploadResult.getUploadStatus())
+        {
+            throw error("@ApplicationPlatform:FileUploadFailed");
+        }
+        fileId = fileUploadResult.getFileId();
+        
+        return  fileId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "DMF Import";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -47,6 +47,9 @@ public class DEVIntegMessageTable extends FormRun
                                          DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Processing ||
                                          DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Error);
     
+            ViewDMFResultButton.visible(DEVIntegMessageTable.DocumentDescription &&
+                        DEVIntegMessageTable.messageTypeTable().ClassName == classId2Name(classNum(DEVIntegProcessDMF)));
+
             return ret;
         }
 
@@ -144,6 +147,41 @@ public class DEVIntegMessageTable extends FormRun
             finally
             {
                 DEV::dsResearch(DEVIntegMessageTable);
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>ViewDMFResultButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            DMFExecution execution;
+
+            select firstonly execution
+                where execution.ExecutionId == DEVIntegMessageTable.DocumentDescription;
+            if (! execution.RecId)
+            {
+                warning(strFmt("Can't find execution history %1", DEVIntegMessageTable.DocumentDescription));
+            }
+            else
+            {
+                changecompany(DEVIntegMessageTable.CompanyId)
+                {
+                    Args args = new Args();
+                    args.record(execution);
+
+                    MenuFunction mf = new MenuFunction(menuItemDisplayStr(DMFExecutionHistoryWorkspace), MenuItemType::Display);
+                    mf.run(args);
+                }
+
             }
         }
 
@@ -353,6 +391,16 @@ public class DEVIntegMessageTable extends FormRun
 									i:nil="true" />
 								<MenuItemName>DEVIntegTutorialLedgerJourHeaderStaging</MenuItemName>
 								<Text>View staging data</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ViewDMFResultButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NeedsRecord>Yes</NeedsRecord>
+								<Text>View DMF history</Text>
 							</AxFormControl>
 						</Controls>
 						<DataSource>DEVIntegMessageTable</DataSource>

@@ -141,6 +141,28 @@ public class DEVIntegMessageTable extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>isBlockedByCurrentSession</Name>
+				<Source><![CDATA[
+    public boolean isBlockedByCurrentSession()
+    {
+        DEVIntegMessageTable        integMessageTable;
+        boolean                     res;
+        ;
+        if (this.SessionId)
+        {
+            integMessageTable.setSession();
+            if (this.SessionId == integMessageTable.SessionId &&
+                    this.SessionLoginDateTime == integMessageTable.SessionLoginDateTime)
+            {
+                res = true;
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>File messages</Label>
@@ -340,7 +362,7 @@ public class DEVIntegMessageTable extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>DocumentDescription</Name>
-			<ExtendedDataType>Description</ExtendedDataType>
+			<ExtendedDataType>NotesLine</ExtendedDataType>
 			<Label>Document</Label>
 		</AxTableField>
 		<AxTableField xmlns=""

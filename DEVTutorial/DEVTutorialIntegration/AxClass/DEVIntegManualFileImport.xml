@@ -305,6 +305,17 @@ class DEVIntegManualFileImport extends RunBaseBatch
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+
+        return false;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 </AxClass>
