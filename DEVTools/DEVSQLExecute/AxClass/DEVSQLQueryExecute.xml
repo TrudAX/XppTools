@@ -146,7 +146,8 @@ class DEVSQLQueryExecute
         permission = new SqlStatementExecutePermission(_strQuery);
         permission.assert();
 
-        statement.executeUpdate(_strQuery);
+        Map paramMap = SqlParams::create();
+        statement.executeUpdateWithParameters(_strQuery, paramMap);
     }
 
 ]]></Source>
@@ -165,7 +166,8 @@ class DEVSQLQueryExecute
         permission = new SqlStatementExecutePermission(_strQuery);
         permission.assert();
 
-        resultSet = statement.executeQuery(_strQuery);
+        Map paramMap = SqlParams::create();
+        resultSet = statement.executeQueryWithParameters(_strQuery, paramMap);
 
         return resultSet;
     }
