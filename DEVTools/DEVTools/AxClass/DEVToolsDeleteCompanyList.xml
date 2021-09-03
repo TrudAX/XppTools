@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVToolsDeleteCompanyList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVToolsDeleteCompanyList
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        Dialog          dialog = new Dialog("Delete company data");
+        DialogField     dfCompanyList = dialog.addField(extendedTypeStr(NotesLine), "Companies to delete");
+
+        Dictionary      dictionary  = new Dictionary();
+        DictTable       dictTableMacro;
+        Set             tableSet = new Set(Types::Integer);
+
+        str             sSQL;
+        str             sSQLGlobal;
+
+        str             companyDeleteList;
+        container       companyDeleteCon;
+
+        int             i;
+        DataArea        dataArea;
+        TextBuffer      tb = new TextBuffer();
+
+        boolean checkTable(DictTable dictTable, boolean _silent = false)
+        {
+            DictTable       dt;
+            boolean         tst;
+            TableId         currentTableId;
+            ;
+            tst = dictTable.isMap();
+            tst = dictTable.isTmp();
+            tst = dictTable.isView();
+            tst = tableSet.in(dictTable.id());
+            
+
+            if (! dictTable.isMap() && ! dictTable.isTmp() && !  dictTable.isTempDb() && ! dictTable.isView() &&
+             dictTable.dataPrCompany() && ! dictTable.extends() &&
+             dictTable.name(DbBackend::Sql) )
+            {
+                for (i = 1; i <= conlen(companyDeleteCon); i++)
+                {
+                    sSQL = strFmt("DELETE FROM %1 WHERE DataAreaId = '%2' ; ",
+                                dictTable.name(DbBackend::Sql),
+                                conpeek(companyDeleteCon, i)
+                        
+                        ,dictTable.name(), dictTable.id());
+                    //sSQLGlobal += sSQL + '\r\n';
+                    tb.appendText(sSQL + '\r\n');
+
+                }
+            }
+            return true;
+        }
+        ;
+        str  helpCompanyText;
+        while select dataArea
+            where dataArea.isVirtual == false
+        {
+            helpCompanyText += (helpCompanyText ? ',' : '') + dataArea.id;
+        }
+        dialog.addText(helpCompanyText);
+
+        if (! dialog.run())
+        {
+            return;
+        }
+        companyDeleteCon = str2con_RU(strRem(dfCompanyList.value(), ' '), ',');
+
+        companyDeleteList = '(';
+        for (i = 1; i <= conlen(companyDeleteCon); i++)
+        {
+            companyDeleteList += strFmt("%1'%2'", i == 1 ? '' : ',', conpeek(companyDeleteCon, i));
+        }
+        companyDeleteList += ')';
+    
+        //dictTableMacro = new DictTable(tablename2id('BUSINESSEVENTSENDPOINT'));
+        TableId tableId;
+        tableId = dictionary.tableNext(0);
+        while (tableId)
+        {
+            checkTable(dictionary.tableObject(tableId));
+
+            tableId = dictionary.tableNext(TableId);
+        }
+        sSQLGlobal = tb.getText();
+        sSQL = strFmt("DELETE FROM VIRTUALDATAAREALIST WHERE ID<>'dat' and ID in %1; ", companyDeleteList);
+        sSQLGlobal += sSQL + '\r\n';
+    
+        sSQL = strFmt("UPDATE USERINFO SET COMPANY = 'DAT' WHERE COMPANY IN %1; ", companyDeleteList);
+        sSQLGlobal += sSQL + '\r\n';
+
+        sSQL = strFmt("DELETE FROM DirPartyTable WHERE DataArea<>'dat' and DataArea in %1; ", companyDeleteList);
+        sSQLGlobal += sSQL + '\r\n';
+
+        sSQL = strFmt("DELETE FROM DATAAREA WHERE DATAAREA.ID<>'dat' and DATAAREA.ID in %1; ", companyDeleteList);
+        sSQLGlobal += sSQL + '\r\n';
+    
+        File::SendStringAsFileToUser(sSQLGlobal, 'DeleteCompany.txt');
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
