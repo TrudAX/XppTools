@@ -2,7 +2,7 @@
 <AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
 	<Name>DEVCSXppCallStackTable</Name>
 	<HelpText>@SYS65092</HelpText>
-	<Label>@SYS65092</Label>
+	<Label>DEV Tools - Call stack</Label>
 	<MaintainUserLicense>Universal</MaintainUserLicense>
 	<Object>DEVCSXppCallStackTable</Object>
 	<SubscriberAccessLevel>

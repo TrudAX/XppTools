@@ -20,7 +20,6 @@ public class DEVCSXppCallStackTable extends common
 	<CreatedBy>Yes</CreatedBy>
 	<CreatedDateTime>Yes</CreatedDateTime>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
-	<TableType>InMemory</TableType>
 	<DeleteActions />
 	<FieldGroups>
 		<AxTableFieldGroup>

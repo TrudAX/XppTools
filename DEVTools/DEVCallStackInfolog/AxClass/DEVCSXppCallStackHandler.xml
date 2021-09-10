@@ -5,178 +5,56 @@
 		<Declaration><![CDATA[
 // VSUH, 25.05.2018, Xpp call stack to infolog (version 23.12.2005)
 //https://github.com/TrudAX/XppTools
-class DEVCSXppCallStackHandler implements SysSaveable
+class DEVCSXppCallStackHandler 
 {
-    static boolean                    isEnabled;
-    static boolean                    isIgnoreSysAdminCheck;
-    static DEVCSXppCallStackTable     xppCallStackTable;
 
-    Exception   minimumExceptionLevel;
-    NoYesId     enableMinimumLevelInfologRaiseMessageEvent;
+  
 
 }
 ]]></Declaration>
 		<Methods>
 			<Method>
-				<Name>unpack</Name>
+				<Name>Info_onInfoLogMessageAdd</Name>
 				<Source><![CDATA[
-    public boolean unpack(container packedClass)
+    [SubscribesTo(classStr(Info), delegateStr(Info, onInfoLogMessageAdd))]
+    public static void Info_onInfoLogMessageAdd(InfoLogMessageAddEventArgs _eventArgs)
     {
-        return true;
-    }
+        DEVCSXppCallStackTable       callStackTable;
+        boolean                      isEnabled;
+        DEVCSXppCallStackUserSetup   callStackUserSetup;
 
-]]></Source>
-			</Method>
-			<Method>
-				<Name>initParmDefault</Name>
-				<Source><![CDATA[
-    public void initParmDefault()
-    {
-    }
+        callStackUserSetup = DEVCSXppCallStackUserSetup::findCurrent();
 
-]]></Source>
-			</Method>
-			<Method>
-				<Name>getLast</Name>
-				<Source><![CDATA[
-    public void getLast()
-    {
-        xSysLastValue::getLast(this);
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>saveLast</Name>
-				<Source><![CDATA[
-    public void saveLast()
-    {
-        xSysLastValue::saveLast(this);
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>lastValueDataAreaId</Name>
-				<Source><![CDATA[
-    public dataAreaId lastValueDataAreaId()
-    {
-        return '';
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>lastValueDesignName</Name>
-				<Source><![CDATA[
-    public identifierName lastValueDesignName()
-    {
-        return '';
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>lastValueElementName</Name>
-				<Source><![CDATA[
-    public identifierName lastValueElementName()
-    {
-        return classId2Name(classIdGet(this));
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>lastValueType</Name>
-				<Source><![CDATA[
-    public UtilElementType lastValueType()
-    {
-        return UtilElementType::Class;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>lastValueUserId</Name>
-				<Source><![CDATA[
-    public userId lastValueUserId()
-    {
-        return curUserId();
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>pack</Name>
-				<Source><![CDATA[
-    public container pack()
-    {
-        return conNull();
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>Info_onMessageAdd</Name>
-				<Source><![CDATA[
-    [SubscribesTo(classStr(Info), delegateStr(Info, onMessageAdd))]
-    public static void Info_onMessageAdd(Exception _exception, str _message)
-    {
-        if (DEVCSXppCallStackHandler::isEnabled)
+        if (callStackUserSetup.RecId && callStackUserSetup.IsEnabled)
         {
-            xppCallStackTable.clear();
-            xppCallStackTable.initValue();
-            xppCallStackTable.Exception = _exception;
-            xppCallStackTable.InfologStr = _message;
-            xppCallStackTable.CallStack = xSession::xppCallStack();
-            xppCallStackTable.insert();
-        }
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>raiseInfologMessageEvent</Name>
-				<Source><![CDATA[
-    public void raiseInfologMessageEvent()
-    {
-        if (enableMinimumLevelInfologRaiseMessageEvent)
-        {
-            boolean isSystemAdministrator = isSystemAdministrator();
-            if (!isSystemAdministrator)
+            isEnabled = true;
+            switch (callStackUserSetup.SysInfologLevel)
             {
-                DEVCSXppCallStackHandler::isIgnoreSysAdminCheck = true;
+                case SysInfologLevel::None:
+                    isEnabled = false;
+                    break;
+                case SysInfologLevel::Warning:
+                    if (_eventArgs.exception== Exception::Info)
+                    isEnabled = false;
+                    break;
+                case SysInfologLevel::Error:
+                    if (_eventArgs.exception == Exception::Info || 
+                        _eventArgs.exception == Exception::Warning)
+                    isEnabled = false;
+                    break;
             }
-            infolog.parmRaiseInfologMessageEvent(minimumExceptionLevel, enableMinimumLevelInfologRaiseMessageEvent);
-            DEVCSXppCallStackHandler::isIgnoreSysAdminCheck = false;
-            
         }
-    }
 
-]]></Source>
-			</Method>
-			<Method>
-				<Name>Info_onPostStartup</Name>
-				<Source><![CDATA[
-    [SubscribesTo(classStr(Info), delegateStr(Info, onPostStartup))]
-    public static void Info_onPostStartup(str startUpCommand)
-    {
-        DEVCSXppCallStackHandler  xppCallStackHandler = new DEVCSXppCallStackHandler();
-        xppCallStackHandler.getLast();
-        xppCallStackHandler.raiseInfologMessageEvent();
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>Global_Post_isSystemAdministrator</Name>
-				<Source><![CDATA[
-    [PostHandlerFor(classStr(Global), staticMethodStr(Global, isSystemAdministrator))]
-    public static void Global_Post_isSystemAdministrator(XppPrePostArgs _args)
-    { 
-        if (DEVCSXppCallStackHandler::isIgnoreSysAdminCheck)
+        if (isEnabled)
         {
-            _args.setReturnValue(true);
+            UserConnection       userConnection = new UserConnection();
+            callStackTable.setConnection(userConnection);
+            callStackTable.clear();
+            callStackTable.initValue();
+            callStackTable.Exception = _eventArgs.exception;
+            callStackTable.InfologStr = _eventArgs.message;
+            callStackTable.CallStack = xSession::xppCallStack();
+            callStackTable.insert();
         }
     }
 
