@@ -172,8 +172,7 @@ public class DEVCSXppCallStackTable extends FormRun
 		</AxFormDataSource>
 	</DataSources>
 	<Design>
-		<Pattern xmlns="">SimpleListDetails-Grid</Pattern>
-		<PatternVersion xmlns="">1.4</PatternVersion>
+		<Pattern xmlns="">Custom</Pattern>
 		<Style xmlns="">SimpleListDetails</Style>
 		<UseCaptionFromMenuItem xmlns="">Yes</UseCaptionFromMenuItem>
 		<Controls xmlns="">
@@ -421,7 +420,6 @@ public class DEVCSXppCallStackTable extends FormRun
 					<AxFormControl xmlns=""
 						i:type="AxFormTabPageControl">
 						<Name>TabGeneral</Name>
-						<Pattern>Custom</Pattern>
 						<Type>TabPage</Type>
 						<FormControlExtension
 							i:nil="true" />
