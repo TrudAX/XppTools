@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessagesLoadAzureFileShare</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegMessagesLoadAzureFileShare extends DEVIntegMessagesLoadBaseType
+{
+    DEVIntegAzureStorageConnectionHelper            azureStorageConnector;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>loadMessageType</Name>
+				<Source><![CDATA[
+    public int loadMessageType()
+    {
+        int                 recordCount;
+        DEVIntegTmpFiles    fileList;
+        ;
+        if (! messageTypeTable.ArchiveLocation)
+        {
+            throw error(strFmt("Message type %1. Archive location is not specified", messageTypeTable.messageTypeId));
+        }
+
+        azureStorageConnector = DEVIntegAzureStorageConnectionHelper::construct(messageTypeTable);
+        azureStorageConnector.connect();
+
+        fileList = azureStorageConnector.fillFiles();
+
+        fileList.clear();
+        while select fileList
+            order by Filename
+        {
+            this.handleIncomingFile(messageTypeTable, fileList);
+            recordCount++;
+        }
+    
+        return recordCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleIncomingFile</Name>
+				<Source><![CDATA[
+    void handleIncomingFile(DEVIntegMessageTypeInbound   _messageTypeTable, DEVIntegTmpFiles     _fileRef)
+    {
+        System.IO.MemoryStream  memoryStream;
+
+        memoryStream = azureStorageConnector.readFile(_fileRef);
+        if (memoryStream != null)
+        {
+            ttsbegin;
+            DEVIntegMessageCreator messageCreator = DEVIntegMessageCreator::construct();
+            messageCreator.initFromStreamCopy(_fileRef, memoryStream).createMessage(_messageTypeTable);
+
+            azureStorageConnector.moveFileToDirectory(_fileRef, _messageTypeTable.ArchiveLocation, memoryStream,
+                _messageTypeTable.FileMoveNameChange == DEVIntegFileMoveNameChange::AppendDateTime ? true : false);
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testConnection</Name>
+				<Source><![CDATA[
+    void testConnection()
+    {
+        DEVIntegAzureStorageConnectionHelper     azureStorageConnectionHelper =  DEVIntegAzureStorageConnectionHelper::construct(messageTypeTable);
+        azureStorageConnectionHelper.testConnection();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

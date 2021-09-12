@@ -94,6 +94,9 @@ public class DEVIntegConnectionType extends common
 				<AxTableFieldGroupField>
 					<DataField>Name</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ConnectionTypeResource</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -123,6 +126,11 @@ public class DEVIntegConnectionType extends common
 			i:type="AxTableFieldString">
 			<Name>AzureConnectionString</Name>
 			<ExtendedDataType>DEVIntegAzureConnectionString</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ConnectionTypeResource</Name>
+			<EnumType>DEVIntegConnectionTypeResource</EnumType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

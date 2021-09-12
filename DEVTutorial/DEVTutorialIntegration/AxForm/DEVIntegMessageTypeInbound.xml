@@ -17,8 +17,8 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				<Source><![CDATA[
     private void testConnection()
     {
-        DEVIntegAzureStorageConnectionHelper     azureStorageConnectionHelper =  DEVIntegAzureStorageConnectionHelper::construct(DEVIntegMessageTypeInbound);
-        azureStorageConnectionHelper.testConnection();
+        DEVIntegMessagesLoadBaseType loadFileShare = DEVIntegMessagesLoadBaseType::constructFromMessageType(DEVIntegMessageTypeInbound);
+        loadFileShare.testConnection();
     }
 
 ]]></Source>
@@ -32,6 +32,11 @@ public class DEVIntegMessageTypeInbound extends FormRun
         FileFormatGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegTutorialLedgerJourReceive));
 
         ParmDMFImportGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegProcessDMF));
+
+        DEVIntegConnectionType connectionType = DEVIntegMessageTypeInbound.connectionType();
+
+        SourceGroupServiceBus.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
+        SourceGroupFileShare.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
         
     }
 
@@ -103,6 +108,22 @@ public class DEVIntegMessageTypeInbound extends FormRun
                 sysTableLookup.parmQuery(query);
 
                 sysTableLookup.performFormLookup();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+					<Field>
+						<DataField>ConnectionTypeId</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                element.enableDSFields();
             }
 
 ]]></Source>
@@ -197,6 +218,9 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ServiceBusQueueName</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>TableId</DataField>
@@ -430,13 +454,14 @@ public class DEVIntegMessageTypeInbound extends FormRun
 							<AxFormControl xmlns=""
 								i:type="AxFormGroupControl">
 								<Name>SourceGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
 								<Type>Group</Type>
 								<FormControlExtension
 									i:nil="true" />
 								<Controls>
 									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
-										<Name>SourceGroup_ConnectionTypeId</Name>
+										<Name>DEVIntegMessageTypeInbound_ConnectionTypeId</Name>
 										<Type>String</Type>
 										<FormControlExtension
 											i:nil="true" />
@@ -444,35 +469,92 @@ public class DEVIntegMessageTypeInbound extends FormRun
 										<DataSource>DEVIntegMessageTypeInbound</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>SourceGroup_AzureShareReference</Name>
-										<Type>String</Type>
+										i:type="AxFormGroupControl">
+										<Name>SourceGroupServiceBus</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>Group</Type>
+										<Visible>No</Visible>
 										<FormControlExtension
 											i:nil="true" />
-										<DataField>AzureShareReference</DataField>
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SourceGroupServiceBus_ConnectionTypeId</Name>
+												<Type>String</Type>
+												<Visible>No</Visible>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ConnectionTypeId</DataField>
+												<DataSource>DEVIntegMessageTypeInbound</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SourceGroupServiceBus_ServiceBusQueueName</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ServiceBusQueueName</DataField>
+												<DataSource>DEVIntegMessageTypeInbound</DataSource>
+											</AxFormControl>
+										</Controls>
+										<Breakable>No</Breakable>
+										<DataGroup>SourceGroupServiceBus</DataGroup>
 										<DataSource>DEVIntegMessageTypeInbound</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>SourceGroup_ReadLocation</Name>
-										<Type>String</Type>
+										i:type="AxFormGroupControl">
+										<Name>SourceGroupFileShare</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>Group</Type>
+										<Visible>No</Visible>
 										<FormControlExtension
 											i:nil="true" />
-										<DataField>ReadLocation</DataField>
-										<DataSource>DEVIntegMessageTypeInbound</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>SourceGroup_ArchiveLocation</Name>
-										<Type>String</Type>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>ArchiveLocation</DataField>
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SourceGroupFileShare_ConnectionTypeId</Name>
+												<Type>String</Type>
+												<Visible>No</Visible>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ConnectionTypeId</DataField>
+												<DataSource>DEVIntegMessageTypeInbound</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SourceGroupFileShare_AzureShareReference</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>AzureShareReference</DataField>
+												<DataSource>DEVIntegMessageTypeInbound</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SourceGroupFileShare_ReadLocation</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ReadLocation</DataField>
+												<DataSource>DEVIntegMessageTypeInbound</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SourceGroupFileShare_ArchiveLocation</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ArchiveLocation</DataField>
+												<DataSource>DEVIntegMessageTypeInbound</DataSource>
+											</AxFormControl>
+										</Controls>
+										<Breakable>No</Breakable>
+										<DataGroup>SourceGroupFileShare</DataGroup>
 										<DataSource>DEVIntegMessageTypeInbound</DataSource>
 									</AxFormControl>
 								</Controls>
 								<Breakable>No</Breakable>
-								<DataGroup>SourceGroup</DataGroup>
+								<Caption>Source</Caption>
 								<DataSource>DEVIntegMessageTypeInbound</DataSource>
 							</AxFormControl>
 							<AxFormControl xmlns=""

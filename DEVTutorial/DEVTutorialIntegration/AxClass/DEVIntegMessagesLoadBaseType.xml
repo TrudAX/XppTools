@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessagesLoadBaseType</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegMessagesLoadBaseType
+{
+    DEVIntegMessageTypeInbound						messageTypeTable;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmMessageTypeTable</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeInbound parmMessageTypeTable(DEVIntegMessageTypeInbound _messageTypeTable = messageTypeTable)
+    {
+        messageTypeTable = _messageTypeTable;
+        return messageTypeTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadMessageType</Name>
+				<Source><![CDATA[
+    public int loadMessageType()
+    {
+        return 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testConnection</Name>
+				<Source><![CDATA[
+    void testConnection()
+    {
+        throw error(Error::missingOverload(funcName()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructFromMessageType</Name>
+				<Source><![CDATA[
+    static  DEVIntegMessagesLoadBaseType constructFromMessageType(DEVIntegMessageTypeInbound   _messageTypeTable)
+    {
+        DEVIntegMessagesLoadBaseType  shareClass;
+
+        switch(_messageTypeTable.connectionType().ConnectionTypeResource)
+        {
+            case DEVIntegConnectionTypeResource::AzureFileShare:
+                shareClass = new DEVIntegMessagesLoadAzureFileShare();
+                break;
+            case DEVIntegConnectionTypeResource::AzureServiceBus:
+                shareClass = new DEVIntegMessagesLoadAzureServiceBus();
+                break;
+        }
+
+        shareClass.parmMessageTypeTable(_messageTypeTable);
+        return shareClass;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

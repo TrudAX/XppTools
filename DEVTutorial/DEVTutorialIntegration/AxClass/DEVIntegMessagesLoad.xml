@@ -12,7 +12,7 @@ class DEVIntegMessagesLoad extends RunBaseBatch
     NoYesId      runProcessAfterLoad;
     DialogField  dlgRunProcessAfterLoad;
 
-    DEVIntegAzureStorageConnectionHelper            azureStorageConnector;
+
 
     #define.CurrentVersion(1)
     #localmacro.CurrentList
@@ -122,26 +122,10 @@ class DEVIntegMessagesLoad extends RunBaseBatch
     public int loadMessageType(DEVIntegMessageTypeInbound   _messageTypeTable)
     {
         int                 recordCount;
-        DEVIntegTmpFiles    fileList;
         ;
-        if (! _messageTypeTable.ArchiveLocation)
-        {
-            throw error(strFmt("Message type %1. Archive location is not specified", _messageTypeTable.messageTypeId));
-        }
-
-        azureStorageConnector = DEVIntegAzureStorageConnectionHelper::construct(_messageTypeTable);
-        azureStorageConnector.connect();      
-
-        fileList = azureStorageConnector.fillFiles();
-
-        fileList.clear();
-        while select fileList
-            order by Filename
-        {
-            this.handleIncomingFile(_messageTypeTable, fileList);
-            recordCount++;
-        }
-    
+        DEVIntegMessagesLoadBaseType loadFileShare = DEVIntegMessagesLoadBaseType::constructFromMessageType(_messageTypeTable);
+        recordCount = loadFileShare.loadMessageType();
+        
         return recordCount;
     }
 
@@ -169,28 +153,6 @@ class DEVIntegMessagesLoad extends RunBaseBatch
         else
         {
             messagesProcess.runOperation();
-        }
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>handleIncomingFile</Name>
-				<Source><![CDATA[
-    void handleIncomingFile(DEVIntegMessageTypeInbound   _messageTypeTable, DEVIntegTmpFiles     _fileRef)
-    {
-        System.IO.MemoryStream  memoryStream;
-
-        memoryStream = azureStorageConnector.readFile(_fileRef);
-        if (memoryStream != null)
-        {
-            ttsbegin;
-            DEVIntegMessageCreator messageCreator = DEVIntegMessageCreator::construct();
-            messageCreator.initFromStreamCopy(_fileRef, memoryStream).createMessage(_messageTypeTable);
-
-            azureStorageConnector.moveFileToDirectory(_fileRef, _messageTypeTable.ArchiveLocation, memoryStream,
-                _messageTypeTable.FileMoveNameChange == DEVIntegFileMoveNameChange::AppendDateTime ? true : false);
-            ttscommit;
         }
     }
 
@@ -253,11 +215,11 @@ class DEVIntegMessagesLoad extends RunBaseBatch
     
             if (isCurrentErrors)
             {
-                warning(strFmt("Message type %1 loaded with errors. Number of files: %2", messageTypeTable.messageTypeId, processedCounter));
+                warning(strFmt("Message type %1 loaded with errors. Number of messages: %2", messageTypeTable.messageTypeId, processedCounter));
             }
             else
             {
-                info(strFmt("Message type %1 loaded successfully. Number of files: %2", messageTypeTable.messageTypeId, processedCounter));
+                info(strFmt("Message type %1 loaded successfully. Number of messages: %2", messageTypeTable.messageTypeId, processedCounter));
             }
             if (runProcessAfterLoad)
             {

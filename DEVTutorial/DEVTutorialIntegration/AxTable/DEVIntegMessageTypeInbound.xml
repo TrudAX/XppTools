@@ -235,7 +235,7 @@ public class DEVIntegMessageTypeInbound extends common
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
-			<Name>SourceGroup</Name>
+			<Name>SourceGroupFileShare</Name>
 			<Label>Source files</Label>
 			<Fields>
 				<AxTableFieldGroupField>
@@ -291,6 +291,18 @@ public class DEVIntegMessageTypeInbound extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SourceGroupServiceBus</Name>
+			<Label>Service Bus</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ConnectionTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ServiceBusQueueName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -338,7 +350,6 @@ public class DEVIntegMessageTypeInbound extends common
 			<ExtendedDataType>FolderName</ExtendedDataType>
 			<HelpText>Read location folder(e.g. ParentDir\ChildDir)</HelpText>
 			<Label>Read location</Label>
-			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
@@ -389,6 +400,12 @@ public class DEVIntegMessageTypeInbound extends common
 			<ExtendedDataType>RefRecId</ExtendedDataType>
 			<HelpText>Entity reference</HelpText>
 			<Label>Entity ref</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ServiceBusQueueName</Name>
+			<ExtendedDataType>BusinessEventsServiceBusQueueEndpointQueueName</ExtendedDataType>
+			<Label>Queue name</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

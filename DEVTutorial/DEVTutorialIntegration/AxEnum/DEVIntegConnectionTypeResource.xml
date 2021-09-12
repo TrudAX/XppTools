@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegConnectionTypeResource</Name>
+	<Help>Integration connection type</Help>
+	<Label>Connection type</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>AzureFileShare</Name>
+			<Label>Azure file share</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>AzureServiceBus</Name>
+			<Label>Azure service bus</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>
