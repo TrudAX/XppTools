@@ -10,6 +10,8 @@
 [Form]
 public class DEVCSXppCallStackTable extends FormRun
 {
+
+
 }
 ]]></Source>
 			</Method>
@@ -20,7 +22,7 @@ public class DEVCSXppCallStackTable extends FormRun
     {
         int             i;
         container       xppCallStack = SysXppCallStackTable.CallStack;
-        str             s;
+        str             s, sNext;
         ;
         StackList.clear();
         for (i = 9; i <= conlen(xppCallStack); i += 4)
@@ -28,6 +30,11 @@ public class DEVCSXppCallStackTable extends FormRun
             s = conpeek(xppCallStack, i);
             if (strStartsWith(s, @'Info[class]\`add(') ||
                 strStartsWith(s, @'Info[class]\add('))
+            {
+                continue;
+            }
+            sNext = conpeek(xppCallStack, i - 4 );
+            if (strRem(s, @'`') == strRem(sNext, @'`'))
             {
                 continue;
             }
@@ -90,6 +97,67 @@ public class DEVCSXppCallStackTable extends FormRun
             delete_from callStackTableLocal;
 
             SysXppCallStackTable_ds.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AddCurrentUser</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            ttsbegin;
+            DEVCSXppCallStackUserSetup  callStackUserSetup = DEVCSXppCallStackUserSetup::findCurrent();
+            if (! callStackUserSetup.RecId)
+            {
+                callStackUserSetup.UserId     = curUserId();
+                callStackUserSetup.IsEnabled  = true;
+                callStackUserSetup.SysInfologLevel = SysInfologLevel::All;
+                callStackUserSetup.insert();
+                info(strFmt("User %1 added", callStackUserSetup.UserId));
+            }
+    
+            ttscommit;
+            XppCallStackUserSetup_ds.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>AddAllUsers</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        /// <summary>
+        ///
+        /// </summary>
+        public void clicked()
+        {
+            UserInfo  userInfo;
+            while select userInfo
+                where userInfo.enable
+            {
+                DEVCSXppCallStackUserSetup  callStackUserSetup = DEVCSXppCallStackUserSetup::find(userInfo.Id);
+                if (! callStackUserSetup.RecId)
+                {
+                    callStackUserSetup.UserId     = userInfo.Id;
+                    callStackUserSetup.IsEnabled  = true;
+                    callStackUserSetup.SysInfologLevel = SysInfologLevel::Warning;
+                    callStackUserSetup.insert();
+                    info(strFmt("User %1 added", callStackUserSetup.UserId));
+                }
+            }
+            XppCallStackUserSetup_ds.executeQuery();
         }
 
 ]]></Source>
@@ -296,7 +364,6 @@ public class DEVCSXppCallStackTable extends FormRun
 											</AxFormControl>
 										</Controls>
 										<DataSource>SysXppCallStackTable</DataSource>
-										<MultiSelect>No</MultiSelect>
 										<ShowRowLabels>No</ShowRowLabels>
 										<Style>Tabular</Style>
 									</AxFormControl>
@@ -310,6 +377,40 @@ public class DEVCSXppCallStackTable extends FormRun
 								<FormControlExtension
 									i:nil="true" />
 								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormActionPaneControl">
+										<Name>FormActionPaneControl1</Name>
+										<Type>ActionPane</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonGroupControl">
+												<Name>FormButtonGroupControl2</Name>
+												<Type>ButtonGroup</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonControl">
+														<Name>AddCurrentUser</Name>
+														<Type>Button</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Text>Add current user</Text>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormButtonControl">
+														<Name>AddAllUsers</Name>
+														<Type>Button</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<Text>Add all(Warning level)</Text>
+													</AxFormControl>
+												</Controls>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormGridControl">
 										<Name>FormGridControl1</Name>
