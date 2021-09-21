@@ -115,6 +115,7 @@ public class DEVIntegConnectionType extends common
 			<Name>ConnectionTypeId</Name>
 			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>DEVIntegConnectionTypeId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""

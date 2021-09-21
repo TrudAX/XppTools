@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialSOHeaderContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// DEVIntegTutorialSOHeaderContract class.
+/// </summary>
+[DataContractAttribute('DEVIntegTutorialSOHeaderContract')]
+class DEVIntegTutorialSOHeaderContract
+{
+    private str             storeId;
+    private str             orderDateTimeUTC;
+    private str             customerId;
+    private str             customerFirstname;
+    private str             customerLastname;
+    private str             customerPhone;
+    private str             customerEmail;
+    private str             magentoOrderId;
+    private str             webOrderNumber;
+    private real            shippingAmount;
+    private str             shippingMethod;
+    private real            orderTax;
+    private real            orderTotal;
+    private str             paymentGateway;
+    private str             paymentCardType;
+    private str             paymentTransationId;
+    private str             couponCode;
+    private str             orderType;
+    private str             orderState;
+    private str             version;
+    private List            lines;
+    private DEVIntegTutorialSOHeaderBillingaddressContract billingaddress;
+    private DEVIntegTutorialSOHeaderShippingAddressContract shippingAddress;
+    private DEVIntegTutorialSOHeaderErrorContract error;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmStoreId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('storeId')]
+    public str parmStoreId(str _storeId = storeId)
+    {
+        storeId = _storeId;
+    
+        return storeId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderDateTimeUTC</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('orderDateTimeUTC')]
+    public str parmOrderDateTimeUTC(str _orderDateTimeUTC = orderDateTimeUTC)
+    {
+        orderDateTimeUTC = _orderDateTimeUTC;
+    
+        return orderDateTimeUTC;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCustomerId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('customerId')]
+    public str parmCustomerId(str _customerId = customerId)
+    {
+        customerId = _customerId;
+    
+        return customerId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCustomerFirstname</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('customerFirstname')]
+    public str parmCustomerFirstname(str _customerFirstname = customerFirstname)
+    {
+        customerFirstname = _customerFirstname;
+    
+        return customerFirstname;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCustomerLastname</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('customerLastname')]
+    public str parmCustomerLastname(str _customerLastname = customerLastname)
+    {
+        customerLastname = _customerLastname;
+    
+        return customerLastname;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCustomerPhone</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('customerPhone')]
+    public str parmCustomerPhone(str _customerPhone = customerPhone)
+    {
+        customerPhone = _customerPhone;
+    
+        return customerPhone;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCustomerEmail</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_customerEmail">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('customerEmail')]
+    public str parmCustomerEmail(str _customerEmail = customerEmail)
+    {
+        customerEmail = _customerEmail;
+    
+        return customerEmail;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMagentoOrderId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_magentoOrderId">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('magentoOrderId')]
+    public str parmMagentoOrderId(str _magentoOrderId = magentoOrderId)
+    {
+        magentoOrderId = _magentoOrderId;
+    
+        return magentoOrderId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmWebOrderNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_webOrderNumber">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('webOrderNumber')]
+    public str parmWebOrderNumber(str _webOrderNumber = webOrderNumber)
+    {
+        webOrderNumber = _webOrderNumber;
+    
+        return webOrderNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmShippingAmount</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_shippingAmount">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('shippingAmount')]
+    public real parmShippingAmount(real _shippingAmount = shippingAmount)
+    {
+        shippingAmount = _shippingAmount;
+    
+        return shippingAmount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmShippingMethod</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_shippingMethod">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('shippingMethod')]
+    public str parmShippingMethod(str _shippingMethod = shippingMethod)
+    {
+        shippingMethod = _shippingMethod;
+    
+        return shippingMethod;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderTax</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_orderTax">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('orderTax')]
+    public real parmOrderTax(real _orderTax = orderTax)
+    {
+        orderTax = _orderTax;
+    
+        return orderTax;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderTotal</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_orderTotal">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('orderTotal')]
+    public real parmOrderTotal(real _orderTotal = orderTotal)
+    {
+        orderTotal = _orderTotal;
+    
+        return orderTotal;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPaymentGateway</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_paymentGateway">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('paymentGateway')]
+    public str parmPaymentGateway(str _paymentGateway = paymentGateway)
+    {
+        paymentGateway = _paymentGateway;
+    
+        return paymentGateway;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPaymentCardType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_paymentCardType">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('paymentCardType')]
+    public str parmPaymentCardType(str _paymentCardType = paymentCardType)
+    {
+        paymentCardType = _paymentCardType;
+    
+        return paymentCardType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPaymentTransationId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_paymentTransationId">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('paymentTransationId')]
+    public str parmPaymentTransationId(str _paymentTransationId = paymentTransationId)
+    {
+        paymentTransationId = _paymentTransationId;
+    
+        return paymentTransationId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCouponCode</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_couponCode">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('couponCode')]
+    public str parmCouponCode(str _couponCode = couponCode)
+    {
+        couponCode = _couponCode;
+    
+        return couponCode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderType</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_orderType">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('orderType')]
+    public str parmOrderType(str _orderType = orderType)
+    {
+        orderType = _orderType;
+    
+        return orderType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderState</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_orderState">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('orderState')]
+    public str parmOrderState(str _orderState = orderState)
+    {
+        orderState = _orderState;
+    
+        return orderState;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmVersion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_version">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('version')]
+    public str parmVersion(str _version = version)
+    {
+        version = _version;
+    
+        return version;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLines</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_lines">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('lines'),
+        DataCollectionAttribute(Types::Class, classStr(DEVIntegTutorialSOHeaderLinesContract))]
+    public List parmLines(List _lines = lines)
+    {
+        lines = _lines;
+    
+        return lines;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBillingaddress</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_billingaddress">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('billingaddress')]
+    public DEVIntegTutorialSOHeaderBillingaddressContract parmBillingaddress(DEVIntegTutorialSOHeaderBillingaddressContract _billingaddress = billingaddress)
+    {
+        billingaddress = _billingaddress;
+    
+        return billingaddress;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmShippingAddress</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_shippingAddress">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('shippingAddress')]
+    public DEVIntegTutorialSOHeaderShippingAddressContract parmShippingAddress(DEVIntegTutorialSOHeaderShippingAddressContract _shippingAddress = shippingAddress)
+    {
+        shippingAddress = _shippingAddress;
+    
+        return shippingAddress;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmError</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Standard parm method.
+    /// </summary>
+    /// <param name = "_error">Value to set.</param>
+    /// <returns>Return value.</returns>
+    [DataMemberAttribute('error')]
+    public DEVIntegTutorialSOHeaderErrorContract parmError(DEVIntegTutorialSOHeaderErrorContract _error = error)
+    {
+        error = _error;
+    
+        return error;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

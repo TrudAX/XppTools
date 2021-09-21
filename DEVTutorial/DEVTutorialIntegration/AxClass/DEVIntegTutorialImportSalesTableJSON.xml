@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialImportSalesTableJSON</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/*
+{
+    "storeId": "USMF",
+    "customerId": "US-002",
+    "webOrderNumber": "ABCDEFG",
+    "lines": [
+        {
+            "lineQuantity": 1,
+            "linePrice": 11,
+            "lineItemBarcode": "M0001"
+        },
+        {
+            "lineQuantity": 2,
+            "linePrice": 22,
+            "lineItemBarcode": "M0004"
+        },
+        {
+            "lineQuantity": 3,
+            "linePrice": 33,
+            "lineItemBarcode": "M0007"
+        }
+    ]
+}
+*/
+
+class DEVIntegTutorialImportSalesTableJSON extends DEVIntegProcessMessageBase
+{
+
+    DEVIntegTutorialSalesTableStaging      salesTableStaging;
+    DEVIntegTutorialSalesLineStaging       salesLineStaging;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processMessage</Name>
+				<Source><![CDATA[
+    void  processMessage(DEVIntegMessageTable  _messageTable, DEVIntegMessageProcessResult _messageProcessResult)
+    {
+        salesTableStaging = null;
+        salesLineStaging  = null;
+
+        messageTable         =  _messageTable;
+        messageProcessResult =  _messageProcessResult;
+   
+        if (! messageTable.IsParsed) //reading to staging tables
+        {
+            ttsbegin;
+            delete_from salesTableStaging
+                where salesTableStaging.MessageId == _messageTable.RecId;
+            delete_from salesLineStaging
+                where salesLineStaging.MessageId == _messageTable.RecId;
+            ttscommit;
+
+            this.readFileToStaging();
+        }
+        this.createDataFromStaging();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDataFromStaging</Name>
+				<Source><![CDATA[
+    void createDataFromStaging()
+    {
+        SalesTable      salesTable;
+
+        salesTableStaging =  DEVIntegTutorialSalesTableStaging::findByMessageRecId(messageTable.RecId);
+        if (! salesTableStaging.RecId)
+        {
+            throw error(strFmt("Message %1. Can't find staging data", messageTable.Name));
+        }
+        if (! CompanyInfo::findDataArea(salesTableStaging.CompanyId))
+        {
+            throw error(strFmt("Message %1. Company %2 doesn't exist", messageTable.Name, salesTableStaging.CompanyId));
+        }
+        changecompany(salesTableStaging.CompanyId)
+        {
+            messageProcessResult.parmProcessPrefix("Data validation");
+            this.validateDataFromStaging();
+
+            ttsbegin;
+            messageProcessResult.parmProcessPrefix("Sales order creation");
+            salesTable = this.createSalesTable();
+
+            salesTableStaging.selectForUpdate(true);
+            salesTableStaging.SalesId = salesTable.SalesId;
+            salesTableStaging.update();
+            info(strFmt("Sales order %1 created", salesTable.SalesId));
+            
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createSalesTable</Name>
+				<Source><![CDATA[
+    SalesTable createSalesTable()
+    {
+        SalesTable                      salesTable;
+        SalesLine                       salesLine;
+
+        int                     numLines;
+        
+        ttsbegin;
+
+        while select salesLineStaging
+            order by RecId
+            where salesLineStaging.MessageId ==  salesTableStaging.MessageId
+        {
+            numLines++;
+            if (!salesTable.RecId)
+            {
+                salesTable.initValue(SalesType::Sales);
+                salesTable.SalesId              = NumberSeq::newGetNum(SalesParameters::numRefSalesId()).num();
+                salesTable.CustAccount          = salesTableStaging.CustAccount;
+                salesTable.initFromCustTable();
+
+                DEV::validateWriteRecordCheck(salesTable);
+                salesTable.insert();
+
+            }
+            InventItemBarcode  inventItemBarcode = InventItemBarcode::findInputBarcode(salesLineStaging.ItemBarCode);
+            if (inventItemBarcode.RecId) //just for testing
+            {
+                salesLineStaging.ItemId = inventItemBarcode.ItemId;
+            }
+            else
+            {
+                salesLineStaging.ItemId = salesLineStaging.ItemBarCode;
+            }
+            salesLineStaging.selectForUpdate(true);
+            salesLineStaging.update();
+
+            salesLine.clear();
+            salesLine.initValue();
+            salesLine.ItemId = salesLineStaging.ItemId;
+            salesLine.initFromSalesTable(salesTable);
+            salesLine.initFromInventTable(InventTable::find(salesLine.ItemId));
+            salesLine.SalesQty              = salesLineStaging.SalesQty;
+            salesLine.QtyOrdered            = SalesLine.calcQtyOrdered();
+            salesLine.SalesDeliverNow       = salesLine.SalesQty;
+            salesLine.setInventDeliverNow();
+            salesLine.RemainSalesPhysical   = salesLine.SalesQty;
+            salesLine.RemainInventPhysical  = salesLine.QtyOrdered;
+            salesLine.SalesPrice            = salesLineStaging.SalesPrice;
+            salesLine.LineAmount            = salesLine.calcLineAmount(salesLine.SalesQty);
+            //SalesLine.Name              = strfmt("%1 %2", SalesLine.Name, _name);
+
+            if (!salesLine.lineNum)
+            {
+                salesLine.lineNum = numLines;
+            }
+            DEV::validateWriteRecordCheck(salesLine);
+
+            salesLine.createLine(true,false,false,true);
+
+        }       
+
+        ttscommit;
+
+        return salesTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateDataFromStaging</Name>
+				<Source><![CDATA[
+    void validateDataFromStaging()
+    {
+
+        boolean  isValidLine;
+        int      numLines;
+        ;
+        messageProcessResult.clearValues();
+
+        if (! CustTable::exist(salesTableStaging.CustAccount))
+        {
+            checkFailed(strFmt("Customer %1 doesn't exist", salesTableStaging.CustAccount));
+            messageProcessResult.incErrorCount();
+        }
+        while select salesLineStaging
+            order by RecId
+            where salesLineStaging.MessageId ==  salesTableStaging.MessageId
+        {
+            isValidLine = true;
+            numLines++;
+
+            if (! InventItemBarcode::findInputBarcode(salesLineStaging.ItemBarCode) &&
+                 ! InventTable::exist(salesLineStaging.ItemBarCode) )
+            {
+                isValidLine = checkFailed(strFmt("Line %1. Barcode %2 doesn't exist", numLines,
+                                                                                   salesLineStaging.ItemBarCode));
+            }
+            
+            //if (! InventTable::exist(salesLineStaging.ItemId))
+            //{
+            //    isValidLine = checkFailed(strFmt("Line %1. Item %2 doesn't exist", numLines,
+            //                                                                       salesLineStaging.ItemId));
+            //}
+            
+            if (! isValidLine)
+            {
+                messageProcessResult.incErrorCount();
+            }
+            else
+            {
+                messageProcessResult.incProcessedCount();
+            }
+        }
+        if (messageProcessResult.hasErrors())
+        {
+            throw error(strFmt("Message %1 has %2 validation errors", messageTable.Name, messageProcessResult.getErrorCount()));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readFileToStaging</Name>
+				<Source><![CDATA[
+    void readFileToStaging()
+    {
+        DEVIntegTutorialSOHeaderContract        tutorialSOHeaderContract ;
+        DEVIntegTutorialSOHeaderLinesContract   tutorialSOHeaderLinesContract;
+        
+        str serializedJSONstr;
+        serializedJSONstr = messageTable.getDataString();
+        if (! serializedJSONstr)
+        {
+            throw error(strFmt("Message %1 is empty", messageTable.Name));
+        }
+        tutorialSOHeaderContract = FormJsonSerializer::deserializeObject(classNum(DEVIntegTutorialSOHeaderContract), serializedJSONstr);
+
+        ttsbegin;
+        int lineNum;
+
+        salesTableStaging = null;
+        salesTableStaging.CompanyId    = tutorialSOHeaderContract.parmStoreId();
+        salesTableStaging.CustAccount  = tutorialSOHeaderContract.parmCustomerId();
+        salesTableStaging.MessageId    = messageTable.RecId;
+
+        DEV::validateWriteRecordCheck(salesTableStaging);
+        salesTableStaging.insert();
+
+        List            linesList = tutorialSOHeaderContract.parmLines();
+        ListEnumerator  le;
+
+        if (linesList && linesList.elements())
+        {
+            le = linesList.getEnumerator();
+            while(le.moveNext())
+            {
+                tutorialSOHeaderLinesContract = le.current();
+
+                salesLineStaging.clear();
+                lineNum++;
+                //salesLineStaging.LineNumber     = lineNum;
+                salesLineStaging.MessageId   = salesTableStaging.MessageId;
+                salesLineStaging.ItemBarCode = tutorialSOHeaderLinesContract.parmLineItemBarcode();
+                salesLineStaging.SalesPrice  = tutorialSOHeaderLinesContract.parmLinePrice();
+                salesLineStaging.SalesQty    = tutorialSOHeaderLinesContract.parmLineQuantity();
+                
+                DEV::validateWriteRecordCheck(salesLineStaging);
+                salesLineStaging.insert();
+            }
+        }
+
+        if (! lineNum)
+        {
+            throw error(strFmt("Message %1 is empty", messageTable.Name));
+        }
+        messageTable = DEVIntegMessageTable::findRecId(messageTable.RecId, true);
+        messageTable.IsParsed = true;
+        messageTable.update();
+
+        ttscommit;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "Sales order import JSON sample";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

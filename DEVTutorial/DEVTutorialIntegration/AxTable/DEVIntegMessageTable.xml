@@ -29,12 +29,42 @@ public class DEVIntegMessageTable extends common
         DEVIntegMessageData     messageData;
         ;
         messageData = this.getMessageData();
-        if (messageData.RecId && messageData.FileData != conNull())
+        if (messageData.RecId)
         {
-            Binary b = Binary::constructFromContainer(messageData.FileData);
-            res = b.getMemoryStream();
+            if (messageData.FileData != conNull())
+            {
+                Binary b = Binary::constructFromContainer(messageData.FileData);
+                res = b.getMemoryStream();
+            }
+            else if (messageData.FileDataStr)
+            {
+                res = new System.IO.MemoryStream();
+                var writer = new System.IO.StreamWriter(res);
+                writer.Write(messageData.FileDataStr);
+                writer.Flush();
+                res.Position = 0;
+            }
         }
 
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataString</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    display public Notes getDataString()
+    {
+        str     res;
+        DEVIntegMessageData     messageData;
+        ;
+        messageData = this.getMessageData();
+        if (messageData.RecId && messageData.FileDataStr)
+        {
+            res = messageData.FileDataStr;
+        }
         return res;
     }
 

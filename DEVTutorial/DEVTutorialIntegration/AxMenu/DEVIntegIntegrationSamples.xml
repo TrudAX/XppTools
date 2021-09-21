@@ -13,6 +13,18 @@
 					<Name>DEVIntegMessageTable</Name>
 					<MenuItemName>DEVIntegMessageTable</MenuItemName>
 				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>Inquiries</Name>
+			<Label>Inquiries</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegTutorialSalesTableStaging</Name>
+					<MenuItemName>DEVIntegTutorialSalesTableStaging</MenuItemName>
+				</AxMenuElement>
 				<AxMenuElement xmlns=""
 					i:type="AxMenuElementMenuItem">
 					<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>

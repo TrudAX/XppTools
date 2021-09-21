@@ -44,7 +44,7 @@ class DEVIntegProcessDMF extends DEVIntegProcessMessageBase
     {
         DMFDefinitionGroupEntity definitionGroupEntity;
 
-        select definitionGroupEntity
+        select firstonly definitionGroupEntity
             where definitionGroupEntity.RecId == messageTypeTable.ParmDMFEntityRecId;
         if (!definitionGroupEntity.RecId)
         {
@@ -123,9 +123,7 @@ class DEVIntegProcessDMF extends DEVIntegProcessMessageBase
 				<Source><![CDATA[
     str readFileToStorage()
     {
-        DEVFileReaderBase       fileReader;
         System.IO.MemoryStream  fileStream = messageTable.getFileStream();
-        CompanyId               companyId;
         if (! fileStream)
         {
             throw error(strFmt("File %1 is empty", messageTable.Name));

@@ -41,6 +41,7 @@ public class DEVIntegMessageData extends common
 	<CreatedDateTime>Yes</CreatedDateTime>
 	<ModifiedBy>Yes</ModifiedBy>
 	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>MessageRefRecIdIdx</PrimaryIndex>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
 	<DeleteActions />
 	<FieldGroups>
@@ -89,6 +90,9 @@ public class DEVIntegMessageData extends common
 				<AxTableFieldGroupField>
 					<DataField>FileData</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileDataStr</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 	</FieldGroups>
@@ -105,6 +109,11 @@ public class DEVIntegMessageData extends common
 			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>DEVIntegMessageRefRecId</ExtendedDataType>
 			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FileDataStr</Name>
+			<ExtendedDataType>Notes</ExtendedDataType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

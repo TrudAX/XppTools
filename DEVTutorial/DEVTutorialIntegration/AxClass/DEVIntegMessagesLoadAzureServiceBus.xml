@@ -32,17 +32,21 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
 
         BrokeredMessage  brokeredMessage;
 		
-        brokeredMessage = serviceBusClient.Receive();
+        brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(10));
         while (brokeredMessage != null)
         {
 			//process message
-			ttsbegin;
+            ttsbegin;
 			Stream   streamLocal = this.getBodyMessage(brokeredMessage);
 
 			DEVIntegMessageCreator messageCreator = DEVIntegMessageCreator::construct();
-			messageCreator.initFromStreamLocalFile(strFmt('%1.txt', brokeredMessage.MessageId),
+
+            StreamReader reader = new StreamReader(streamLocal);
+            str dataStr = reader.ReadToEnd();
+
+            messageCreator.initFromStringData(strFmt('%1.txt', brokeredMessage.MessageId),
 													messageTypeTable.ServiceBusQueueName,
-													streamLocal);
+                                                    dataStr);
 
 			messageCreator.createMessage(messageTypeTable);
 			ttscommit;
@@ -50,7 +54,7 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
 			brokeredMessage.Complete();
             recordCount++;
 
-            brokeredMessage = serviceBusClient.Receive();
+            brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(10));
         }
         serviceBusClient.Close();
 

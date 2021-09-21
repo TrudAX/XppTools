@@ -28,8 +28,8 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				<Source><![CDATA[
     void enableDSFields()
     {
-        LedgerImportParms.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegTutorialLedgerJourReceive));
-        FileFormatGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegTutorialLedgerJourReceive));
+        LedgerImportParms.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegTutorialImportLedgerJournal));
+        FileFormatGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegTutorialImportLedgerJournal));
 
         ParmDMFImportGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegProcessDMF));
 
@@ -38,6 +38,8 @@ public class DEVIntegMessageTypeInbound extends FormRun
         SourceGroupServiceBus.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
         SourceGroupFileShare.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
         
+        DEVIntegManualTextImport.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
+        DEVIntegManualFileImport.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
     }
 
 ]]></Source>
@@ -238,8 +240,7 @@ public class DEVIntegMessageTypeInbound extends FormRun
 	<Design>
 		<Caption xmlns="">Inbound message types</Caption>
 		<HeightMode xmlns="">Column</HeightMode>
-		<Pattern xmlns="">SimpleListDetails-Grid</Pattern>
-		<PatternVersion xmlns="">1.4</PatternVersion>
+		<Pattern xmlns="">Custom</Pattern>
 		<SetCompany xmlns="">No</SetCompany>
 		<Style xmlns="">SimpleListDetails</Style>
 		<TitleDataSource xmlns="">DEVIntegMessageTypeInbound</TitleDataSource>
@@ -273,12 +274,27 @@ public class DEVIntegMessageTypeInbound extends FormRun
 							<AxFormControl xmlns=""
 								i:type="AxFormMenuFunctionButtonControl">
 								<Name>DEVIntegManualFileImport</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
 								<Type>MenuFunctionButton</Type>
 								<FormControlExtension
 									i:nil="true" />
 								<DataSource>DEVIntegMessageTypeInbound</DataSource>
 								<MenuItemName>DEVIntegManualFileImport</MenuItemName>
 								<MenuItemType>Action</MenuItemType>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegManualTextImport</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>MenuFunctionButton</Type>
+								<Visible>No</Visible>
+								<FormControlExtension
+									i:nil="true" />
+								<DataSource>DEVIntegMessageTypeInbound</DataSource>
+								<MenuItemName>DEVIntegManualTextImport</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+								<MultiSelect>No</MultiSelect>
+								<NeedsRecord>Yes</NeedsRecord>
 							</AxFormControl>
 						</Controls>
 					</AxFormControl>
@@ -445,8 +461,6 @@ public class DEVIntegMessageTypeInbound extends FormRun
 					<AxFormControl xmlns=""
 						i:type="AxFormTabPageControl">
 						<Name>DetailsTabPage</Name>
-						<Pattern>FieldsFieldGroups</Pattern>
-						<PatternVersion>1.1</PatternVersion>
 						<Type>TabPage</Type>
 						<FormControlExtension
 							i:nil="true" />

@@ -303,7 +303,7 @@ class DEVIntegMessagesLoad extends RunBaseBatch
 				<Source><![CDATA[
     static ClassDescription description()
     {
-        return "Load incoming files";
+        return "Load incoming messages";
     }
 
 ]]></Source>
