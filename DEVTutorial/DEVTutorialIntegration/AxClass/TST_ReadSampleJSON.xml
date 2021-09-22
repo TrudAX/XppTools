@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TST_ReadSampleJSON</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class TST_ReadSampleJSON
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Runs the class with the specified arguments.
+    /// </summary>
+    /// <param name = "_args">The specified arguments.</param>
+    public static void main(Args _args)
+    {
+        str serializedJSONstr;
+        serializedJSONstr = 
+       @' {
+            "storeId": "USMF",
+                "orderDateTimeUTC": "ABCDEFG",
+                "customerId": "US-002",
+                "customerFirstname": "ABCDEFGHIJKLMN",
+                "customerLastname": "ABCDEFGHIJKLMNOPQ",
+                "customerPhone": "ABCDEFGHIJKLMNOPQ",
+                "customerEmail": "ABCDEFG",
+                "magentoOrderId": "ABCDEFGHIJKLMNOPQRSTUVWXYZABC",
+                "webOrderNumber": "ABCDEFG",
+                "shippingAmount": 351.25,
+                "shippingMethod": "ABCDEFGHIJKLMNOPQRS",
+                "orderTax": 270.0,
+                "orderTotal": 190.0,
+                "paymentGateway": "ABCDEFG",
+                "paymentCardType": "ABCDE",
+                "paymentTransationId": "ABCDEFGH",
+                "couponCode": "ABCDEFGHIJKLMNOPQRSTUV",
+                "orderType": "ABCDEFGHI",
+                "orderState": "ABCDEFGHIJKLMNO",
+                "version": "ABCDEFGHI",
+                "lines": [
+            {
+                "lineQuantity": 1,
+      "linePrice": 11,
+      "lineMagentoId": "Excepteur",
+      "lineDiscountAmount": 84023280.09006551,
+      "lineDescription": "laborum sit",
+      "lineItemBarcode": "M0001"
+            }
+                ,
+                {
+                    "lineQuantity": 2,
+      "linePrice": 22,
+      "lineMagentoId": "Excepteur",
+      "lineDiscountAmount": 84023280.09006551,
+      "lineDescription": "laborum sit",
+      "lineItemBarcode": "M0004"
+                }
+,
+                {
+                    "lineQuantity": 3,
+      "linePrice": 33,
+      "lineMagentoId": "Excepteur",
+      "lineDiscountAmount": 84023280.09006551,
+      "lineDescription": "laborum sit",
+      "lineItemBarcode": "M0007"
+                }
+                    ],
+                        "billingaddress":
+                    {
+                        "billingSourceId": "ABCDEFGHIJKLMNOPQRST",
+    "billingCompany": "ABCDE",
+    "billingFirstname": "ABCDEFGHIJKLMNO",
+    "billingLastname": "ABCDEFGHIJKLMNOPQRS",
+    "billingAddress1": "ABCDE",
+    "billingAddress2": "ABCDEFGHIJ",
+    "billingCity": "ABCDEFGHIJKLMN",
+    "billingState": "ABCDEFGHIJKLM",
+    "billingCountry": "ABCDEFGHIJKLMNOPQRSTUVWXYZABC",
+    "billingPostcode": "ABCDEFGHIJKLM",
+    "billingEmail": "ABCDEFGHI",
+    "billingPhone": "ABCDEF"
+                    }
+                        ,
+                            "shippingAddress":
+                        {
+                            "shippingSourceId": "ABCDEFGHIJKLMNOPQRSTUVWXYZAB",
+    "shippingCompany": "ABCDEFGHIJKLMN",
+    "shippingFirstname": "ABCDEFGHIJKLMNOPQRSTUVWXYZABC",
+    "shippingLastname": "ABCDEFGHIJKLMNOPQRS",
+    "shippingAddress1": "ABCDEFGHIJKLMNOPQRSTU",
+    "shippingAddress2": "ABCDEFGHIJKLMNOPQRSTUVWXYZAB",
+    "shippingCity": "ABCDEFGHIJ",
+    "shippingState": "ABCDEF",
+    "shippingCountry": "ABCDEF",
+    "shippingPostcode": "ABCDEFGHIJKLM",
+    "shippingEmail": "ABCDEFGHIJKLMNOPQRSTUVWXYZAB",
+    "shippingPhone": "ABCDEFGHIJKLMNOPQRSTUVW"
+                        }
+                            ,
+                                "error":
+                            {
+                                "errorCode": "ABCDEFGHI",
+    "errorDescription": "ABCDEFGHIJKLMN"
+                            }
+        }
+        ';
+
+        DEVIntegTutorialSOHeaderContract        tutorialSOHeaderContract = FormJsonSerializer::deserializeObject(classNum(DEVIntegTutorialSOHeaderContract), serializedJSONstr);
+        DEVIntegTutorialSOHeaderLinesContract   tutorialSOHeaderLinesContract;
+        info(strFmt("%1", tutorialSOHeaderContract.parmCustomerId()));
+
+        List            linesList = tutorialSOHeaderContract.parmLines();
+        ListEnumerator  le;
+
+        if (linesList && linesList.elements())
+        {
+            le = linesList.getEnumerator();
+            while(le.moveNext())
+            {
+                tutorialSOHeaderLinesContract = le.current();
+                info(strFmt("Lines %1", tutorialSOHeaderLinesContract.parmLineItemBarcode()));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

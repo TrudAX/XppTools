@@ -5,8 +5,8 @@
 		<Declaration><![CDATA[
 class DEVIntegManualTextImport extends RunBaseBatch
 {
-    DEVIntegMessageTypeId      messageTypeId;
-    DialogField                dlgMessageTypeId;
+    DEVIntegMessageTypeIdInbound      messageTypeId;
+    DialogField                      dlgMessageTypeId;
 
     DEVIntegMessageDataText    messsageData;
     DialogField                dlgMesssageData;
@@ -30,7 +30,7 @@ class DEVIntegManualTextImport extends RunBaseBatch
 
         ;
     
-        dlgMessageTypeId             = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeId), messageTypeId);
+        dlgMessageTypeId             = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeIdInbound), messageTypeId);
         dlgMessageTypeId.mandatory_RU(true);
 
         dlgMesssageData  = dialog.addFieldValue(extendedtypestr(DEVIntegMessageDataText), messsageData);
@@ -78,7 +78,7 @@ class DEVIntegManualTextImport extends RunBaseBatch
 			<Method>
 				<Name>parmMessageTypeId</Name>
 				<Source><![CDATA[
-    public DEVIntegMessageTypeId parmMessageTypeId(DEVIntegMessageTypeId _messageTypeId = messageTypeId)
+    public DEVIntegMessageTypeIdInbound parmMessageTypeId(DEVIntegMessageTypeIdInbound _messageTypeId = messageTypeId)
     {
         messageTypeId = _messageTypeId;
         return messageTypeId;
@@ -91,13 +91,13 @@ class DEVIntegManualTextImport extends RunBaseBatch
 				<Source><![CDATA[
     public void run()
     {
-        DEVIntegMessageTypeInbound        messageTypeTable;
+        DEVIntegMessageTypeInbound      messageTypeTable;
         DEVIntegMessageTable            messageTable;
         DEVIntegMessageCreator          messageCreator;
         DEVIntegMessageProcessor        messageProcessor;
         ;
        
-        messageTypeTable = DEVIntegMessageTypeInbound::find(messageTypeId);
+        messageTypeTable = DEVIntegMessageTypeInbound::find(messageTypeId); 
         setPrefix(strFmt("Message type %1", messageTypeTable.messageTypeId));
         try
         {
@@ -109,7 +109,7 @@ class DEVIntegManualTextImport extends RunBaseBatch
             //create message
             messageCreator = DEVIntegMessageCreator::construct();
             messageCreator.initFromStringData(strFmt("ManualImport_%1%2", 
-                date2str(DEV::systemdateget(), 321, 2, 0, 2, 0,4 ), time2StrHMLeadingZero(timeNow())), 'local', messsageData);
+                date2str(DEV::systemdateget(), 321, 2, 0, 2, 0,4 ), time2StrHMLeadingZero(DEV::timeNow())), 'local', messsageData);
             messageTable = messageCreator.createMessage(messageTypeTable);
 
             //process message

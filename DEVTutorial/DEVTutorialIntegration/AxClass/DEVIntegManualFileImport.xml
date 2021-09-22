@@ -5,7 +5,7 @@
 		<Declaration><![CDATA[
 class DEVIntegManualFileImport extends RunBaseBatch
 {
-    DEVIntegMessageTypeId      messageTypeId;
+    DEVIntegMessageTypeIdInbound      messageTypeId;
     DialogField                dlgMessageTypeId;
 
     DialogRunbase     dialog;
@@ -41,7 +41,7 @@ class DEVIntegManualFileImport extends RunBaseBatch
         dialogFileUpload.baseFileUploadStrategyClassName(classstr(DEVIntegFileUploadTemporaryStorageStrategyAny));
         dialogFileUpload.fileNameLabel("@SYS308842");
     
-        dlgMessageTypeId             = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeId), messageTypeId);
+        dlgMessageTypeId             = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeIdInbound), messageTypeId);
         dlgMessageTypeId.mandatory_RU(true);
 
         dlgMessageTypeId.registerOverrideMethod(methodStr(FormStringControl, modified),
@@ -170,7 +170,7 @@ class DEVIntegManualFileImport extends RunBaseBatch
 			<Method>
 				<Name>parmMessageTypeId</Name>
 				<Source><![CDATA[
-    public DEVIntegMessageTypeId parmMessageTypeId(DEVIntegMessageTypeId _messageTypeId = messageTypeId)
+    public DEVIntegMessageTypeIdInbound parmMessageTypeId(DEVIntegMessageTypeIdInbound _messageTypeId = messageTypeId)
     {
         messageTypeId = _messageTypeId;
         return messageTypeId;

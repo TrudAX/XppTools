@@ -296,7 +296,7 @@ class DEVIntegAzureStorageConnectionHelper
 			<Method>
 				<Name>constructMessageTypeId</Name>
 				<Source><![CDATA[
-    static DEVIntegAzureStorageConnectionHelper constructMessageTypeId(DEVIntegMessageTypeId  _messageTypeId)
+    static DEVIntegAzureStorageConnectionHelper constructMessageTypeId(DEVIntegMessageTypeIdInbound  _messageTypeId)
     {
         DEVIntegMessageTypeInbound             messageTypeTable;
         DEVIntegAzureStorageConnectionHelper  res;

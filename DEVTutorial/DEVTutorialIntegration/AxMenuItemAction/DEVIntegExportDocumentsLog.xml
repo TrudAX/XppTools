@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemAction xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVIntegExportDocumentsLog</Name>
+	<DisabledResource>0</DisabledResource>
+	<HelpText>Export vendor master to file share</HelpText>
+	<Label>Export vendor from log</Label>
+	<NormalResource>0</NormalResource>
+	<Object>DEVIntegExportDocumentsLog</Object>
+	<ObjectType>Class</ObjectType>
+</AxMenuItemAction>

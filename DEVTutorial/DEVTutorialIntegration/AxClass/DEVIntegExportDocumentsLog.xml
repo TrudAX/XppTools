@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExportDocumentsLog</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegExportDocumentsLog extends RunBaseBatch
+{
+    PositiveNumber         dummy;
+    DEVIntegExportDocumentLog     exportDocumentLogCaller;
+
+    QueryRun            queryRun;
+
+    DialogField            dlgDummy;
+
+    DEVIntegMessageTypeTableOutbound       messageTypeTableOutbound;
+
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        dummy
+    #endmacro
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+    
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        ;
+    
+        this.initQuery();
+    
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initQuery</Name>
+				<Source><![CDATA[
+    public void initQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEVIntegExportDocumentLog));
+        QueryBuildRange         qBR;
+        ;
+    
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegExportDocumentLog, ExportStatus));
+        qBR.status(RangeStatus::Locked);
+        qBR.value(SysQuery::value(DEVIntegExportStatus::ToSend));
+    
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        ;
+    
+        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDummy</Name>
+				<Source><![CDATA[
+    public PositiveNumber parmDummy(PositiveNumber _dummy = dummy)
+    {
+        ;
+    
+        dummy = _dummy;
+    
+        return dummy;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmExportDocumentLogCaller</Name>
+				<Source><![CDATA[
+    public DEVIntegExportDocumentLog parmExportDocumentLogCaller(DEVIntegExportDocumentLog _exportDocumentLogCaller = exportDocumentLogCaller)
+    {
+        ;
+    
+        exportDocumentLogCaller = _exportDocumentLogCaller;
+    
+        return exportDocumentLogCaller;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processExportDocumentLog</Name>
+				<Source><![CDATA[
+    public void processExportDocumentLog(DEVIntegExportDocumentLog _exportDocumentLog)
+    {
+        messageTypeTableOutbound = DEVIntegMessageTypeTableOutbound::findByType(_exportDocumentLog.MessageTypeOutbound);
+    
+        if (! messageTypeTableOutbound.OutputFolder)
+        {
+            throw error(strFmt("Export directory is not specified"));
+        }
+    
+        if (_exportDocumentLog.RefTableId == tableNum(VendTable))
+        {
+            this.processVendorVendTableLog(_exportDocumentLog);
+        }
+        else if (_exportDocumentLog.RefTableId == tableNum(VendInvoiceJour))
+        {
+            this.processVendorVendInvoiceJourLog(_exportDocumentLog);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processVendorVendInvoiceJourLog</Name>
+				<Source><![CDATA[
+    public void processVendorVendInvoiceJourLog(DEVIntegExportDocumentLog    _exportDocumentLog)
+    {
+        /*
+
+        RefRecId                        refRecIf;
+        DEVIntegExportDocumentLog              exportDocumentLogUpd;
+        DEVVendorXMLFileSequence       messageId;
+
+        DEVVendorInvoiceXMLExport      vendorInvoiceXMLExport;
+        VendInvoiceJour                 vendInvoiceJour = VendInvoiceJour::findRecId(_exportDocumentLog.RefRecId);
+        ;
+        setPrefix(strFmt("Vendor invoice journal %1-%2, Company %3", vendInvoiceJour.PurchId, vendInvoiceJour.InvoiceId, _exportDocumentLog.CompanyId));
+    
+        ttsBegin;
+    
+        vendorInvoiceXMLExport = new DEVVendorInvoiceXMLExport();
+    
+        messageId = vendorInvoiceXMLExport.getFileSequenceNumber();
+        vendorInvoiceXMLExport.parmFileSequenceNum(messageId);
+        vendorInvoiceXMLExport.parmFilePath(messageTypeTableOutbound.OutputFolder);
+        vendorInvoiceXMLExport.initFromExportDocumentLog(_exportDocumentLog);
+        vendorInvoiceXMLExport.run();
+    
+        refRecIf = _exportDocumentLog.recVersion;
+        exportDocumentLogUpd = DEVIntegExportDocumentLog::findRecId(_exportDocumentLog.RecId, true);
+        if (exportDocumentLogUpd.RecId && exportDocumentLogUpd.recVersion == refRecIf)
+        {
+            exportDocumentLogUpd.ExportStatus     = DEVIntegExportStatus::Sent;
+            exportDocumentLogUpd.SendMessageID    = messageId;
+            exportDocumentLogUpd.StatusChangeDate = DateTimeUtil::utcNow();
+            exportDocumentLogUpd.update();
+    
+        }
+    
+        ttsCommit;
+    */
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processVendorVendTableLog</Name>
+				<Source><![CDATA[
+    void processVendorVendTableLog(DEVIntegExportDocumentLog    _exportDocumentLog)
+    {
+        /*
+        RefRecId                refRecIf;
+        DEVIntegExportDocumentLog      exportDocumentLogUpd;
+        DEVVendorXMLFileSequence       messageId;
+
+        DEVVendorXMLExport    vendorXMLExport;
+        ;
+        setPrefix(strFmt("Vendor %1, Company %2", _exportDocumentLog.VendAccount, _exportDocumentLog.CompanyId));
+    
+        ttsBegin;
+    
+        vendorXMLExport = new DEVVendorXMLExport();
+    
+        messageId = vendorXMLExport.getFileSequenceNumber();
+        vendorXMLExport.parmFileSequenceNum(messageId);
+        vendorXMLExport.parmFilePath(messageTypeTableOutbound.OutputFolder);
+        vendorXMLExport.initFromExportDocumentLog(_exportDocumentLog);
+        vendorXMLExport.run();
+    
+        refRecIf = _exportDocumentLog.recVersion;
+        exportDocumentLogUpd = DEVIntegExportDocumentLog::findRecId(_exportDocumentLog.RecId, true);
+        if (exportDocumentLogUpd.RecId && exportDocumentLogUpd.recVersion == refRecIf)
+        {
+            exportDocumentLogUpd.ExportStatus     = DEVIntegExportStatus::Sent;
+            exportDocumentLogUpd.SendMessageID    = messageId;
+            exportDocumentLogUpd.StatusChangeDate = DateTimeUtil::utcNow();
+            exportDocumentLogUpd.update();
+    
+        }
+    
+        ttsCommit;
+*/
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        ;
+    
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        int                     processedCounter;
+        DEVIntegExportDocumentLog      exportDocumentLog;
+        ;
+        setPrefix(RunBase::getDescription(classIdGet(this)));
+    
+        this.progressInit(RunBase::getDescription(classIdGet(this)),
+                          SysQuery::countTotal(queryRun),
+                          #AviSearch);
+    
+        while (queryRun.next())
+        {
+            exportDocumentLog = queryRun.get(tablenum(DEVIntegExportDocumentLog));
+            changeCompany(exportDocumentLog.CompanyId)
+            {
+                this.processExportDocumentLog(exportDocumentLog);
+            }
+            processedCounter++;
+            progress.incCount();
+    
+        }
+        info(strfmt("%1 record(s) processed", processedCounter));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        ;
+    
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        container  queryCon;
+        ;
+    
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList,queryCon] = _packedClass;
+                if (SysQuery::isPackedOk(queryCon))
+                {
+                    queryRun = new QueryRun(queryCon);
+                }
+                else
+                {
+                    this.initQuery();
+                }
+                break;
+            default:
+                return false;
+        }
+    
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegExportDocumentsLog construct()
+    {
+        return new DEVIntegExportDocumentsLog();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        ;
+    
+        return "Export vendor from log";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportSelectedRecords</Name>
+				<Source><![CDATA[
+    static void exportSelectedRecords(DEVIntegExportDocumentLog    _exportDocumentLog)
+    {
+        FormDataSource          exportDocumentLogDS;
+        DEVIntegExportDocumentLog      exportDocumentLog;
+        DEVIntegExportDocumentsLog  integExportVendors = DEVIntegExportDocumentsLog::construct();
+        int                     processedCounter;
+        ;
+        exportDocumentLogDS = FormDataUtil::getFormDataSource(_exportDocumentLog);
+    
+        for(exportDocumentLog = exportDocumentLogDS.getFirst(true) ? exportDocumentLogDS.getFirst(true) : exportDocumentLogDS.cursor();
+            exportDocumentLog.RecId;
+            exportDocumentLog = exportDocumentLogDS.getNext())
+        {
+            integExportVendors.processExportDocumentLog(exportDocumentLog);
+            processedCounter++;
+        }
+        DEV::dsResearch(_exportDocumentLog);
+    
+        info(strfmt("%1 record(s) processed", processedCounter));
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegExportDocumentsLog    runObject = DEVIntegExportDocumentsLog::construct();
+        QueryBuildDataSource  qbds;
+        ;
+    
+        if (_args && _args.dataset() && _args.record().TableId == tablenum(DEVIntegExportDocumentLog))
+        {
+            qbds = runObject.queryRun().query().dataSourceTable(tablenum(DEVIntegExportDocumentLog));
+            qbds.clearRanges();
+            qbds.addRange(fieldnum(DEVIntegExportDocumentLog, RecId)).value(queryValue(runObject.parmExportDocumentLogCaller().RecId));
+            //runObject.parmIsDisableUnpackQuery(true);
+        }
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

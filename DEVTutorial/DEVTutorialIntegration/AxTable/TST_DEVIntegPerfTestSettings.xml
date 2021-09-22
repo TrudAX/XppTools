@@ -11,7 +11,7 @@ public class TST_DEVIntegPerfTestSettings extends common
 			<Method>
 				<Name>find</Name>
 				<Source><![CDATA[
-    public static TST_DEVIntegPerfTestSettings find(DEVIntegMessageTypeId  _messageTypeId,
+    public static TST_DEVIntegPerfTestSettings find(DEVIntegMessageTypeIdInbound  _messageTypeId,
                                                     boolean                _forUpdate = false)
     {
         TST_DEVIntegPerfTestSettings integPerfTestSettings;
@@ -116,7 +116,7 @@ public class TST_DEVIntegPerfTestSettings extends common
 			i:type="AxTableFieldString">
 			<Name>MessageTypeId</Name>
 			<AllowEdit>No</AllowEdit>
-			<ExtendedDataType>DEVIntegMessageTypeId</ExtendedDataType>
+			<ExtendedDataType>DEVIntegMessageTypeIdInbound</ExtendedDataType>
 			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
@@ -173,7 +173,7 @@ public class TST_DEVIntegPerfTestSettings extends common
 				<AxTableRelationConstraint xmlns=""
 					i:type="AxTableRelationConstraintField">
 					<Name>MessageTypeId</Name>
-					<SourceEDT>DEVIntegMessageTypeId</SourceEDT>
+					<SourceEDT>DEVIntegMessageTypeIdInbound</SourceEDT>
 					<Field>MessageTypeId</Field>
 					<RelatedField>MessageTypeId</RelatedField>
 				</AxTableRelationConstraint>

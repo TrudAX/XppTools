@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEVIntegMessageTypeIdInbound</Name>
+	<Extends>Num</Extends>
+	<HelpText>Inbound Message type Id</HelpText>
+	<Label>Message type</Label>
+	<ReferenceTable>DEVIntegMessageTypeInbound</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>MessageTypeId</RelatedField>
+			<Table>DEVIntegMessageTypeInbound</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+	<StringSize>20</StringSize>
+</AxEdt>

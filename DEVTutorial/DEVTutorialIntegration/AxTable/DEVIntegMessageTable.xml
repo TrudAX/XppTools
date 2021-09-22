@@ -412,7 +412,7 @@ public class DEVIntegMessageTable extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>MessageTypeId</Name>
-			<ExtendedDataType>DEVIntegMessageTypeId</ExtendedDataType>
+			<ExtendedDataType>DEVIntegMessageTypeIdInbound</ExtendedDataType>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 	</Fields>
@@ -463,7 +463,7 @@ public class DEVIntegMessageTable extends common
 				<AxTableRelationConstraint xmlns=""
 					i:type="AxTableRelationConstraintField">
 					<Name>MessageTypeId</Name>
-					<SourceEDT>DEVIntegMessageTypeId</SourceEDT>
+					<SourceEDT>DEVIntegMessageTypeIdInbound</SourceEDT>
 					<Field>MessageTypeId</Field>
 					<RelatedField>MessageTypeId</RelatedField>
 				</AxTableRelationConstraint>

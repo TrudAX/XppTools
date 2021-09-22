@@ -3,7 +3,7 @@
 	<Name>DEVIntegMessageProcessor</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-class DEVIntegMessageProcessor
+public class DEVIntegMessageProcessor
 {
     DEVIntegMessageTypeInbound        messageTypeTable;
 
@@ -197,6 +197,7 @@ class DEVIntegMessageProcessor
             {
                 messageTableUpd.RecordsProcessed           = processResults.getProcessedCount();
                 messageTableUpd.RecordsWithErrors          = processResults.getErrorCount();
+                messageTableUpd.RecordsSkipped             = processResults.getSkippedCount();
             }
             messageTableUpd.update();
 

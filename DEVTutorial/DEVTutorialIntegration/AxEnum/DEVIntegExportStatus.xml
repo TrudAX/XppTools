@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExportStatus</Name>
+	<Help>Export status for message</Help>
+	<Label>Export status</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>ToSend</Name>
+			<Label>To send</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Sent</Name>
+			<Label>Sent</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

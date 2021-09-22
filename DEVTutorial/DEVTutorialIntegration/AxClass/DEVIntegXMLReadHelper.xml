@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegXMLReadHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegXMLReadHelper
+{
+    System.Xml.XmlNamespaceManager  xmlNamespaceManager;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>initNamespace</Name>
+				<Source><![CDATA[
+    void initNamespace(System.Xml.XmlDataDocument  _xmldoc, str _namespaceAlias, str _namespacePath)
+    {
+        ;
+        xmlNamespaceManager = new System.Xml.XmlNamespaceManager(_xmldoc.get_NameTable());
+        xmlNamespaceManager.AddNamespace(_namespaceAlias, _namespacePath);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlGetNodeByPath</Name>
+				<Source><![CDATA[
+    System.Xml.XmlNode xmlGetNodeByPath(System.Xml.XmlNode  _node, str _path, boolean _checkNodeExist = true)
+    {
+        int                 i;
+        container           c;
+        str                 curElement;
+        System.Xml.XmlNode  nodeInner = _node;
+        System.Xml.XmlNode  nodeNull;
+        ;
+        c = str2con_RU(_path, @'/');
+        for(i = 1; i <= conLen(c); i++)
+        {
+            curElement = conPeek(c, i);
+            if (curElement)
+            {
+                nodeInner = nodeInner.get_Item(curElement);
+                if (! nodeInner)
+                {
+                    if (_checkNodeExist)
+                    {
+                        throw error(strFmt("Can't find %1 element for path %2", curElement, _path));
+                    }
+                    else
+                    {
+                        return nodeNull;
+                    }
+                }
+            }
+        }
+        return nodeInner;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlGetValueNodeDate</Name>
+				<Source><![CDATA[
+    TransDate xmlGetValueNodeDate(System.Xml.XmlNode  _node, str _path)
+    {
+        TransDate           res;
+        str                 curElement;
+        System.Xml.XmlNode  nodeInner;
+    
+        System.Globalization.CultureInfo provider = System.Globalization.CultureInfo::get_InvariantCulture();
+        ;
+        nodeInner = this.xmlGetNodeByPath(_node, _path);
+        curElement = nodeInner.get_InnerText();
+    
+        res = System.DateTime::ParseExact(curElement, 'yyyy-MM-dd', provider);
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlGetValueNodeDateTime</Name>
+				<Source><![CDATA[
+    TransDateTime xmlGetValueNodeDateTime(System.Xml.XmlNode  _node, str _path)
+    {
+        TransDateTime       res;
+        str                 curElement;
+        System.Xml.XmlNode  nodeInner;
+    
+        System.Globalization.CultureInfo provider = System.Globalization.CultureInfo::get_InvariantCulture();
+        ;
+        nodeInner = this.xmlGetNodeByPath(_node, _path);
+        curElement = nodeInner.get_InnerText();
+    
+        res = System.DateTime::Parse(curElement, provider);
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlGetValueNodeReal</Name>
+				<Source><![CDATA[
+    real xmlGetValueNodeReal(System.Xml.XmlNode  _node, str _path, boolean _checkNodeExist = true)
+    {
+        System.Xml.XmlNode  nodeInner;
+        real                res;
+        ;
+        nodeInner = this.xmlGetNodeByPath(_node, _path, _checkNodeExist);
+        if (nodeInner)
+        {
+            res = this.xmlStr2Real(nodeInner.get_InnerText());
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlGetValueNodeStr</Name>
+				<Source><![CDATA[
+    str xmlGetValueNodeStr(System.Xml.XmlNode  _node, str _path)
+    {
+        System.Xml.XmlNode  nodeInner;
+        str                 s;
+        ;
+        nodeInner = this.xmlGetNodeByPath(_node, _path);
+    
+        s = nodeInner.get_InnerText();
+        return s;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlSelectSingleNode</Name>
+				<Source><![CDATA[
+    System.Xml.XmlNode xmlSelectSingleNode(System.Xml.XmlNode  _parentNode, str _path)
+    {
+        System.Xml.XmlNode          node;
+        ;
+        node = _parentNode.SelectSingleNode(_path, xmlNamespaceManager);
+        if (! node)
+        {
+            throw error(strFmt("Can't find path %1", _path));
+        }
+        return node;
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlStr2Real</Name>
+				<Source><![CDATA[
+    real xmlStr2Real(str _text)
+    {
+        return str2num(_text);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

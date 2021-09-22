@@ -3,10 +3,11 @@
 	<Name>DEVIntegMessageProcessResult</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-class DEVIntegMessageProcessResult
+public class DEVIntegMessageProcessResult
 {
     int         numOfRecordsProcessed;
     int         numOfRecordsWithError;
+    int         numOfRecordsSkipped;
 
     str         processPrefix;
 
@@ -20,6 +21,7 @@ class DEVIntegMessageProcessResult
     {
         numOfRecordsProcessed = 0;
         numOfRecordsWithError = 0;
+        numOfRecordsSkipped   = 0;
     }
 
 ]]></Source>
@@ -45,6 +47,16 @@ class DEVIntegMessageProcessResult
 
 ]]></Source>
 			</Method>
+<Method>
+				<Name>getSkippedCount</Name>
+				<Source><![CDATA[
+    public int getSkippedCount()
+    {
+        return numOfRecordsSkipped;
+    }
+
+]]></Source>
+			</Method>			
 			<Method>
 				<Name>getProcessedCount</Name>
 				<Source><![CDATA[
@@ -85,6 +97,16 @@ class DEVIntegMessageProcessResult
 
 ]]></Source>
 			</Method>
+<Method>
+				<Name>incSkippedCount</Name>
+				<Source><![CDATA[
+    void  incSkippedCount()
+    {
+        numOfRecordsSkipped++;
+    }
+
+]]></Source>
+			</Method>			
 			<Method>
 				<Name>incErrorCount</Name>
 				<Source><![CDATA[

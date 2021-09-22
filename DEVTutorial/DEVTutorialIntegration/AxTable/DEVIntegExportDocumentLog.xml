@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExportDocumentLog</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegExportDocumentLog extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>calcInProgress</Name>
+				<Source><![CDATA[
+    void calcInProgress()
+    {
+        ;
+        if (this.ExportStatus == DEVIntegExportStatus::Sent &&
+            this.SendMessageID == this.ConfirmedMessageID)
+        {
+            this.InProgress = false;
+        }
+        else
+        {
+            this.InProgress = true;
+        }
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromCommon</Name>
+				<Source><![CDATA[
+    public void initFromCommon(Common _common, DEVIntegMessageTypeOutbound _messageTypeOutbound)
+    {
+        VendInvoiceJour         vendInvoiceJour;
+        VendTable               vendTable;
+    
+        this.RefTableId     =   _common.TableId;
+        this.RefRecId       =   _common.RecId;
+        this.CompanyId      =   _common.dataAreaId;
+        this.MessageTypeOutbound    =   _messageTypeOutbound;
+    
+        if (_common.TableId == tableNum(VendInvoiceJour))
+        {
+            vendInvoiceJour = _common;
+            this.VendAccount = vendInvoiceJour.InvoiceAccount;
+        }
+        else if (_common.TableId == tableNum(VendTable))
+        {
+            vendTable = _common;
+            this.VendAccount = vendTable.AccountNum;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        this.calcInProgress();
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setToSend</Name>
+				<Source><![CDATA[
+    void setToSend()
+    {
+        ;
+        this.ExportStatus     = DEVIntegExportStatus::ToSend;
+        this.StatusChangeDate = DateTimeUtil::utcNow();
+        this.SendMessageID    = '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        this.calcInProgress();
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEVIntegExportDocumentLog find(CompanyId   _companyId,
+                                          VendAccount _vendAccount,
+                                          DEVIntegMessageTypeOutbound      _messageTypeOutbound,
+                                          boolean     _forUpdate = false)
+    {
+        DEVIntegExportDocumentLog DEVIntegExportDocumentLog;
+    
+        if (_companyId && _vendAccount)
+        {
+            DEVIntegExportDocumentLog.selectForUpdate(_forUpdate);
+    
+            select firstonly DEVIntegExportDocumentLog
+                where DEVIntegExportDocumentLog.CompanyId   == _companyId
+                   && DEVIntegExportDocumentLog.VendAccount == _vendAccount
+                   && DEVIntegExportDocumentLog.MessageTypeOutbound == _messageTypeOutbound;
+        }
+    
+        return DEVIntegExportDocumentLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findFromCommon</Name>
+				<Source><![CDATA[
+    static DEVIntegExportDocumentLog findFromCommon(Common _common, DEVIntegMessageTypeOutbound _messageTypeOutbound, boolean _forupdate = false)
+    {
+        DEVIntegExportDocumentLog integExportDocumentLog;
+        ;
+        if (_common.RecId)
+        {
+            integExportDocumentLog.selectForUpdate(_forupdate);
+    
+            select integExportDocumentLog
+                where integExportDocumentLog.RefTableId == _common.TableId
+                    && integExportDocumentLog.RefRecId == _common.RecId
+                    && integExportDocumentLog.MessageTypeOutbound == _messageTypeOutbound;
+        }
+        return integExportDocumentLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findRecId</Name>
+				<Source><![CDATA[
+    static DEVIntegExportDocumentLog findRecId(RecId _recId, boolean _forupdate = false)
+    {
+        DEVIntegExportDocumentLog integExportDocumentLog;
+        ;
+        if ( _recId)
+        {
+            integExportDocumentLog.selectForUpdate(_forupdate);
+            select integExportDocumentLog where
+                integExportDocumentLog.RecId == _recId;
+        }
+        return integExportDocumentLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sentRecordExists</Name>
+				<Source><![CDATA[
+    public static boolean sentRecordExists(Common _common, DEVIntegMessageTypeOutbound _messageOutboundType)
+    {
+        DEVIntegExportDocumentLog integExportDocumentLog;
+    
+        select RecId from integExportDocumentLog
+            where integExportDocumentLog.RefTableId == _common.TableId
+                && integExportDocumentLog.RefRecId == _common.RecId
+                && integExportDocumentLog.MessageTypeOutbound == _messageOutboundType
+                && integExportDocumentLog.ExportStatus   == DEVIntegExportStatus::ToSend;
+    
+        if (integExportDocumentLog.RecId)
+        {
+            return true;
+        }
+    
+        return false;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Vendor Log</Label>
+	<TableGroup>Group</TableGroup>
+	<TitleField1>VendAccount</TitleField1>
+	<TitleField2>CompanyId</TitleField2>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>CompanyVendIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>VendAccount</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExportStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StatusChangeDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Confirmed</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ConfirmedDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsRemoved</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InProgress</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>VendAccount</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExportStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StatusChangeDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Confirmed</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ConfirmedDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsRemoved</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InProgress</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>VendAccount</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExportStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SendMessageID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StatusChangeDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ConfirmedMessageID</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Confirmed</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ConfirmedDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsRemoved</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InProgress</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeOutbound</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CompanyId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>CompanyId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Confirmed</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>ConfirmedDate</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TransDateTime</ExtendedDataType>
+			<Label>Confirmed date</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ConfirmedMessageID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVVendorXMLFileSequence</ExtendedDataType>
+			<Label>Confirmed message ID</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ExportStatus</Name>
+			<EnumType>DEVIntegExportStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>InProgress</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Exchange is in progress</HelpText>
+			<Label>In Progress</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsRemoved</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Used to handle removed vendors from a vendor group</HelpText>
+			<Label>Removed</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>MessageTypeOutbound</Name>
+			<EnumType>DEVIntegMessageTypeOutbound</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>RefRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>RefTableId</Name>
+			<ExtendedDataType>RefTableId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SendMessageID</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVVendorXMLFileSequence</ExtendedDataType>
+			<Label>Send message ID</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>StatusChangeDate</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TransDateTime</ExtendedDataType>
+			<Label>Status change date</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>VendAccount</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>VendAccount</ExtendedDataType>
+			<Label>Document Id</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>CompanyVendIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>CompanyId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>VendAccount</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>RefRecIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>RefTableId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>RefRecId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>MessageTypeOutbound</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>VendInvoiceJour</Name>
+			<RelatedTable>VendInvoiceJour</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintFixed">
+					<Name>RefTableId</Name>
+					<Field>RefTableId</Field>
+					<Value>491</Value>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>RefRecId</Name>
+					<Field>RefRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>VendTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>VendTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>VendAccount</Name>
+					<Field>VendAccount</Field>
+					<RelatedField>AccountNum</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

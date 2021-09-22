@@ -3,7 +3,7 @@
 	<Name>DEVIntegProcessMessageBase</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-abstract class DEVIntegProcessMessageBase
+abstract public class DEVIntegProcessMessageBase
 {
     DEVIntegMessageTypeInbound        messageTypeTable;
     DEVIntegMessageTable            messageTable;
@@ -28,6 +28,32 @@ abstract class DEVIntegProcessMessageBase
     public str getDescription()
     {
         return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateDocumentDescription</Name>
+				<Source><![CDATA[
+    void updateDocumentDescription(str  _docDescription)
+    {
+        ;
+        messageTable = DEVIntegMessageTable::findRecId(messageTable.RecId, true);
+        messageTable.DocumentDescription = _docDescription;
+        messageTable.update();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateStagingDataCreated</Name>
+				<Source><![CDATA[
+    void updateStagingDataCreated()
+    {
+        ;
+        messageTable = DEVIntegMessageTable::findRecId(messageTable.RecId, true);
+        messageTable.IsParsed = true;
+        messageTable.update();
     }
 
 ]]></Source>

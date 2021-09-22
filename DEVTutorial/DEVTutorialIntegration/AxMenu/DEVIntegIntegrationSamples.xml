@@ -13,6 +13,11 @@
 					<Name>DEVIntegMessageTable</Name>
 					<MenuItemName>DEVIntegMessageTable</MenuItemName>
 				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegExportDocumentLog</Name>
+					<MenuItemName>DEVIntegExportDocumentLog</MenuItemName>
+				</AxMenuElement>
 			</Elements>
 		</AxMenuElement>
 		<AxMenuElement xmlns=""
@@ -29,6 +34,11 @@
 					i:type="AxMenuElementMenuItem">
 					<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
 					<MenuItemName>DEVIntegTutorialLedgerJourHeaderStaging</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegTutorialStagingPurchOrder</Name>
+					<MenuItemName>DEVIntegTutorialStagingPurchOrder</MenuItemName>
 				</AxMenuElement>
 			</Elements>
 		</AxMenuElement>
@@ -72,6 +82,11 @@
 					i:type="AxMenuElementMenuItem">
 					<Name>DEVIntegConnectionType</Name>
 					<MenuItemName>DEVIntegConnectionType</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegMessageTypeTableOutbound</Name>
+					<MenuItemName>DEVIntegMessageTypeTableOutbound</MenuItemName>
 				</AxMenuElement>
 				<AxMenuElement xmlns=""
 					i:type="AxMenuElementMenuItem">

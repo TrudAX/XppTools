@@ -7,12 +7,17 @@
 	<EnumValues>
 		<AxEnumValue>
 			<Name>UseOriginalName</Name>
-			<Label>UseOriginalName</Label>
+			<Label>Use Original Name</Label>
 		</AxEnumValue>
 		<AxEnumValue>
 			<Name>AppendDateTime</Name>
 			<Label>Append DateTime</Label>
 			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>DoNotMove</Name>
+			<Label>Do not move(For DEBUG)</Label>
+			<Value>2</Value>
 		</AxEnumValue>
 	</EnumValues>
 	<IsExtensible>true</IsExtensible>

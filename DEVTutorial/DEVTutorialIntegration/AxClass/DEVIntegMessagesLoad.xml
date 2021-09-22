@@ -3,9 +3,9 @@
 	<Name>DEVIntegMessagesLoad</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-class DEVIntegMessagesLoad extends RunBaseBatch
+public class DEVIntegMessagesLoad  extends RunBaseBatch
 {
-    DEVIntegMessageTypeId      messageTypeId;
+    DEVIntegMessageTypeIdInbound      messageTypeId;
     QueryRun                   queryRun;
     DialogField                dlgMessageTypeId;
 
@@ -29,7 +29,7 @@ class DEVIntegMessagesLoad extends RunBaseBatch
     {
         DialogRunbase       dialog = super();
         ;
-        dlgMessageTypeId        = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeId), messageTypeId);
+        dlgMessageTypeId        = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeIdInbound), messageTypeId);
         dlgRunProcessAfterLoad  = dialog.addFieldValue(extendedtypestr(NoYesId), runProcessAfterLoad, "Run processing", "Execute files processing after load");
        
         return dialog;
@@ -94,7 +94,7 @@ class DEVIntegMessagesLoad extends RunBaseBatch
 			<Method>
 				<Name>parmMessageTypeId</Name>
 				<Source><![CDATA[
-    public DEVIntegMessageTypeId parmMessageTypeId(DEVIntegMessageTypeId _messageTypeId = messageTypeId)
+    public DEVIntegMessageTypeIdInbound parmMessageTypeId(DEVIntegMessageTypeIdInbound _messageTypeId = messageTypeId)
     {
         ;
     

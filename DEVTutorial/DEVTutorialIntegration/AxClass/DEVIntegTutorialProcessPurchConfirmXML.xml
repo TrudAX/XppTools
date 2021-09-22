@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialProcessPurchConfirmXML</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessageBase
+{
+    DEVIntegTutorialStagingPurchHeader     integStagingPurchHeader;
+    DEVIntegTutorialStagingPurchLine       integStagingPurchLine;
+
+    boolean                         isCancelPurch;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>adjustTaxAmount</Name>
+				<Source><![CDATA[
+    void adjustTaxAmount(PurchTable  _purchTable)
+    {
+        PurchLine       purchLine;
+        PurchTotals     purchTotals;
+        TaxAmountCur    taxAmountCur;
+        TaxRegulation       taxRegulation;
+        TmpTaxRegulation    tmpTaxRegulation;
+        ;
+    
+    
+        purchTotals     = PurchTotals::newPurchTable(_purchTable);
+        purchTotals.calc();
+    
+    
+        while select purchLine
+            where purchLine.PurchId == _purchTable.PurchId
+        {
+            purchTotals.tax().sourceSingleLine(true, true);
+            taxAmountCur    = purchTotals.tax().totalTaxAmountSingleLine(purchLine.TableId, purchLine.RecId, false, false);
+            //info(strFmt("Line %1. Tax %2, infor %3", purchLine.LineNumber, taxAmountCur, purchLine.DEVTaxAmountLineInfor));
+    
+            //Adjust tax if needed.
+            //PurchCalcTax_Purch.allowSingleLineAdjustment() should be overloaded and return true, to make this work
+            /*
+            if (taxAmountCur != purchLine.DEVTaxAmountLineInfor)
+            {
+                taxRegulation = TaxRegulation::newTaxRegulation(purchTotals.tax(), null, purchLine.TableId, purchLine.RecId);
+                taxRegulation.allocateAmount(purchLine.DEVTaxAmountLineInfor);
+                taxRegulation.saveTaxRegulation();
+            }
+            */
+    
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDataFromStaging</Name>
+				<Source><![CDATA[
+    void createDataFromStaging()
+    {
+        PurchTable            purchTable;
+        PurchLine             purchLine;
+    
+        TaxGroupData          taxGroupData;
+        boolean               isNeedPOConfirm;
+        PurchFormLetter       purchFormLetter;
+        ;
+        //return;
+        ttsBegin;
+    
+        integStagingPurchHeader = null;
+        select integStagingPurchHeader
+            where integStagingPurchHeader.MessageRefRecId == messageTable.RecId;
+        if (! VendTable::exist(integStagingPurchHeader.OrderAccount))
+        {
+            throw error(strFmt("Supplier %1 doesn't exist", integStagingPurchHeader.OrderAccount));
+        }
+    
+        if (! PurchTable::exist(integStagingPurchHeader.PurchId))
+        {
+            if (isCancelPurch)
+            {
+                 throw error(strFmt("Purch %1 doesn't exist for a cancel operation", integStagingPurchHeader.PurchId));
+            }
+            integStagingPurchLine = null;
+            select firstonly integStagingPurchLine
+                order by POLineNumber
+                where integStagingPurchLine.MessageRefRecId == integStagingPurchHeader.MessageRefRecId;
+    
+            purchTable.clear();
+            purchTable.initValue();
+            purchTable.PurchId = integStagingPurchHeader.PurchId;
+            //purchTable.DocumentState  = VersioningDocumentState::Approved;
+           
+            purchTable.OrderAccount = integStagingPurchHeader.OrderAccount;
+            DEV::validateCursorFieldValue(purchTable, fieldNum(PurchTable, OrderAccount));
+            purchTable.initFromVendTable();
+    
+            purchTable.ChangeRequestRequired = false;
+    
+            purchTable.ProjId = integStagingPurchLine.ProjId;
+            DEV::validateCursorFieldValue(purchTable, fieldNum(PurchTable, ProjId));
+            purchTable.modifiedField(fieldNum(PurchTable, ProjId));
+    
+            purchTable.Requester = this.createWorkerByName(integStagingPurchHeader.RequestorName);
+            purchTable.modifiedField(fieldNum(PurchTable, Requester));
+    
+    
+            purchTable.InventLocationId = integStagingPurchHeader.InventLocationId;
+            purchTable.InventSiteId     = InventLocation::find(purchTable.InventLocationId).InventSiteId;
+            purchTable.modifiedField(fieldNum(PurchTable, InventLocationId));
+            DEV::validateCursorFieldValue(purchTable, fieldNum(PurchTable, InventLocationId));
+            purchTable.modifiedField(fieldNum(PurchTable, InventLocationId));
+    
+            purchTable.DeliveryDate = integStagingPurchHeader.DeliveryDate;
+            purchTable.modifiedField(fieldNum(PurchTable, DeliveryDate));
+    
+            purchTable.CurrencyCode = integStagingPurchHeader.CurrencyCode;
+            DEV::validateCursorFieldValue(purchTable, fieldNum(PurchTable, CurrencyCode));
+    
+            DEV::validateWriteRecordCheck(purchTable);
+            purchTable.insert();
+    
+            isNeedPOConfirm = true;
+        }
+        else
+        {
+            purchTable = PurchTable::find(integStagingPurchHeader.PurchId);
+        }
+    
+        integStagingPurchLine = null;
+        while select integStagingPurchLine
+            order by POLineNumber
+            where integStagingPurchLine.MessageRefRecId == integStagingPurchHeader.MessageRefRecId
+        {
+            purchLine = purchLine::find(purchTable.PurchId, integStagingPurchLine.POLineNumber);
+            if (! purchLine.RecId)
+            {
+                purchLine.clear();
+                purchLine.initFromPurchTable(purchTable);
+                purchLine.LineNumber = integStagingPurchLine.POLineNumber;
+                purchLine.ItemId = integStagingPurchLine.ItemId;
+                purchLine.initFromInventTable(purchLine.inventTable());
+    
+                purchLine.Name            = integStagingPurchLine.Name;
+                purchLine.TaxItemGroup    = integStagingPurchLine.TaxItemGroup;
+                purchLine.TaxGroup        = integStagingPurchLine.TaxGroup;
+    
+                DEV::validateCursorFieldValue(purchLine, fieldNum(PurchLine, TaxGroup));
+    
+                purchLine.PurchQty      = integStagingPurchLine.PurchQty;
+                purchLine.PurchUnit     = integStagingPurchLine.PurchUnit;
+                purchLine.PurchPrice    = integStagingPurchLine.PurchPrice;
+                purchLine.LineAmount    = integStagingPurchLine.LineAmount;
+    
+                purchLine.ProjId       = integStagingPurchLine.ProjId;
+                DEV::validateCursorFieldValue(purchLine, fieldNum(PurchLine, ProjId));
+                purchLine.modifiedField(fieldNum(PurchLine, ProjId));
+    
+                purchLine.createLine(true, false, false, true, false, false);
+    
+                messageProcessResult.incProcessedCount();
+            }
+            else
+            {
+                messageProcessResult.incSkippedCount();
+            }
+        }
+    
+        this.updateDocumentDescription(purchTable.PurchId);
+    
+        if (isNeedPOConfirm)
+        {
+            this.adjustTaxAmount(purchTable);
+            purchFormLetter = purchFormLetter::construct(DocumentStatus::PurchaseOrder);
+            purchFormLetter.update(purchTable,'');
+        }
+    
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createWorkerByName</Name>
+				<Source><![CDATA[
+    RecId createWorkerByName(DirPartyName _workerName)
+    {
+        DirPerson                   dirPerson;
+        DirPersonName               dirPersonName;
+        RecId                       workerRecId;
+        HcmPersonnelNumberId        hcmPersonnelNumberId;
+        ;
+        if (_workerName)
+        {
+            select dirPerson
+                where dirPerson.Name == _workerName;
+            if (! dirPerson.RecId)
+            {
+                dirPerson.initValue();
+                dirPerson.Name = _workerName;
+                dirPerson.modifiedField(fieldNum(DirPerson,Name));
+                DEV::validateWriteRecordCheck(dirPerson);
+                dirPerson.insert();
+    
+                [dirPersonName.FirstName, dirPersonName.MiddleName, dirPersonName.LastName] = DirPerson::splitNameParts(_workerName);
+                dirPersonName.Person = dirPerson.RecId;
+                dirPersonName.ValidFrom = DateTimeUtil::minValue();
+                dirPersonName.ValidTo = DateTimeUtil::maxValue();
+                DEV::validateWriteRecordCheck(dirPersonName);
+                dirPersonName.insert();
+            }
+            dirPersonName.Person = dirPerson.RecId;
+    
+            if (! HcmWorker::findByPerson(dirPerson.RecId))
+            {
+                hcmPersonnelNumberId = NumberSeq::newGetNum(NumberSeqReference::findReference(extendedTypeNum(HcmPersonnelNumberId)), false).num();
+                workerRecId = HcmWorkerTransition::newCreateHcmWorker(dirPersonName, hcmPersonnelNumberId);
+            }
+        }
+        return workerRecId;
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "Purchase Order XML INFOR";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processMessage</Name>
+				<Source><![CDATA[
+    void  processMessage(DEVIntegMessageTable  _messageTable, DEVIntegMessageProcessResult _messageProcessResult)
+    {
+        CompanyId           companyId;
+        ;
+        messageTable         =  _messageTable;
+        messageProcessResult =  _messageProcessResult;
+    
+        if (! _messageTable.IsParsed)
+        {
+            delete_from integStagingPurchHeader
+                where integStagingPurchHeader.MessageRefRecId == messageTable.RecId;
+            delete_from integStagingPurchLine
+                where integStagingPurchLine.MessageRefRecId == messageTable.RecId;
+    
+            this.readFileToStaging();
+        }
+        integStagingPurchHeader = null;
+        select integStagingPurchHeader
+            where integStagingPurchHeader.MessageRefRecId == messageTable.RecId;
+    
+        companyId = integStagingPurchHeader.getAXCompany(true);
+        changeCompany(companyId)
+        {
+            this.createDataFromStaging();
+            //call send ack for _messageTable
+        }
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readFileToStaging</Name>
+				<Source><![CDATA[
+    void readFileToStaging()
+    {
+        System.Xml.XmlDataDocument  xmldoc;
+        System.Xml.XmlNode          node;
+        System.Xml.XmlNode          nodePOHeader;
+        System.Xml.XmlNode          nodePOLine;
+        System.Xml.XmlNodeList      nodeList;
+        System.Xml.XmlElement       xmlElement;
+        System.Xml.XmlAttributeCollection  xmlAttributeCollection;
+        System.Xml.XmlAttribute    xmlAttribute;
+    
+        System.IO.MemoryStream      fileStream = messageTable.getFileStream();
+        int                         nodeCount;
+        int                         i;
+        str                         s1, s2;
+   
+        DEVIntegMessageTable       acknowledgmentData;
+    
+        DEVIntegXMLReadHelper      readHelper = new DEVIntegXMLReadHelper();
+    
+        ;
+        if (! fileStream)
+        {
+            throw error(strFmt("File %1 is empty", messageTable.Name));
+        }
+        ttsBegin;
+    
+        xmldoc = new System.Xml.XmlDataDocument();
+        xmldoc.Load(fileStream);
+    
+        readHelper.initNamespace(xmlDoc, 'infor', @'http://schema.infor.com/InforOAGIS/2');
+    
+        nodeList = xmldoc.GetElementsByTagName('PurchaseOrderHeader');
+        if (! nodeList)
+        {
+            throw error(strFmt("Element %1 is not found", 'PurchaseOrderHeader'));
+        }
+        nodePOHeader = nodeList.get_ItemOf(0);
+    
+        integStagingPurchHeader = null;
+    
+        integStagingPurchHeader.MessageRefRecId = messageTable.RecId;
+    
+        integStagingPurchHeader.PurchId   = readHelper.xmlGetValueNodeStr(nodePOHeader, 'DocumentID/ID');
+        integStagingPurchHeader.BuyerName = readHelper.xmlGetValueNodeStr(nodePOHeader, 'CustomerParty/BuyerContact/ID');
+    
+        node = readHelper.xmlGetNodeByPath(nodePOHeader, 'SupplierParty/PartyIDs/ID');
+        xmlAttributeCollection = node.get_Attributes();
+        xmlAttribute = xmlAttributeCollection.get_ItemOf("accountingEntity");
+        integStagingPurchHeader.CompanyId    = xmlAttribute.get_InnerText();
+        integStagingPurchHeader.OrderAccount = node.get_InnerText();
+    
+        node = readHelper.xmlGetNodeByPath(nodePOHeader, 'TotalAmount');
+        xmlAttributeCollection = node.get_Attributes();
+        xmlAttribute = xmlAttributeCollection.get_ItemOf("currencyID");
+        integStagingPurchHeader.CurrencyCode    = xmlAttribute.get_InnerText();
+    
+        integStagingPurchHeader.DeliveryDate = readHelper.xmlGetValueNodeDate(nodePOHeader, 'DocumentDateTime');
+    
+        node = readHelper.xmlSelectSingleNode(nodePOHeader, 'infor:ShipToParty//infor:Location[@type=\'Warehouse\']');
+        integStagingPurchHeader.InventLocationId = node.get_InnerText();
+    
+        node = readHelper.xmlSelectSingleNode(nodePOHeader, 'infor:UserArea//infor:Property//infor:NameValue[@name=\'eam.Approver\']');
+        integStagingPurchHeader.WorkerProjectManagerName = node.get_InnerText();
+    
+        node = readHelper.xmlSelectSingleNode(nodePOHeader, 'infor:UserArea//infor:Property//infor:NameValue[@name=\'eam.UDFCHAR01\']');
+        integStagingPurchHeader.RequestorName = node.get_InnerText();
+    
+        DEV::validateWriteRecordCheck(integStagingPurchHeader);
+        integStagingPurchHeader.insert();
+    
+        nodeList = xmldoc.GetElementsByTagName('PurchaseOrderLine');
+        if (! nodeList)
+        {
+            throw error(strFmt("Element %1 is not found", 'PurchaseOrderLine'));
+        }
+        nodeCount = nodeList.get_Count();
+        for(i = 0; i < nodeCount; i++)
+        {
+            nodePOLine = nodeList.get_ItemOf(i);
+            integStagingPurchLine = null;
+            integStagingPurchLine.MessageRefRecId = integStagingPurchHeader.MessageRefRecId;
+    
+            s1 = readHelper.xmlGetValueNodeStr(nodePOLine, 'LineNumber');
+            integStagingPurchLine.POLineNumber = str2int(s1);
+    
+            node = readHelper.xmlGetNodeByPath(nodePOLine, 'Quantity');
+            xmlAttributeCollection = node.get_Attributes();
+            xmlAttribute = xmlAttributeCollection.get_ItemOf("unitCode");
+    
+            integStagingPurchLine.PurchQty        = readHelper.xmlStr2Real(node.get_InnerText());
+            integStagingPurchLine.PurchUnit       = xmlAttribute.get_InnerText();
+    
+            integStagingPurchLine.PurchPrice      = readHelper.xmlGetValueNodeReal(nodePOLine, 'UnitPrice/Amount');
+            integStagingPurchLine.LineAmount      = readHelper.xmlGetValueNodeReal(nodePOLine, 'TotalAmount');
+    
+            integStagingPurchLine.OpenQuantity     = readHelper.xmlGetValueNodeReal(nodePOLine, 'OpenQuantity');
+            integStagingPurchLine.ReceivedQuantity = readHelper.xmlGetValueNodeReal(nodePOLine, 'ReceivedQuantity', false);
+    
+            node = readHelper.xmlSelectSingleNode(nodePOLine, 'infor:UserArea//infor:Property//infor:NameValue[@name=\'eam.UDFCHAR01\']');
+            integStagingPurchLine.ItemId = strLRTrim(node.get_InnerText());
+            if (! integStagingPurchLine.ItemId)
+            {
+                throw error(strFmt("Value 'PurchaseOrderLine/UserArea/Property/NameValue/eam.UDFCHAR01' that defines AX Item number is not specified"));
+            }
+    
+    
+            integStagingPurchLine.Name            = readHelper.xmlGetValueNodeStr(nodePOLine, 'Item/SupplierItemID/ID') + ' ' +
+                                                    readHelper.xmlGetValueNodeStr(nodePOLine, 'Item/Description');
+    
+            integStagingPurchLine.TaxGroup        = readHelper.xmlGetValueNodeStr(nodePOLine, 'BuyerParty/PartyIDs/TaxID');
+    
+            node =  readHelper.xmlSelectSingleNode(nodePOLine, 'infor:UserArea//infor:Property//infor:NameValue[@name=\'eam.TotalTaxAmount\']');
+            integStagingPurchLine.TaxAmountLineExternal = readHelper.xmlStr2Real(node.get_InnerText());
+    
+    
+            DEV::validateWriteRecordCheck(integStagingPurchLine);
+            integStagingPurchLine.insert();
+    
+        }
+        this.updateStagingDataCreated();
+    
+        ttscommit;
+    
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

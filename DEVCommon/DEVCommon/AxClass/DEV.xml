@@ -602,6 +602,30 @@ class DEV
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>validateCursorFieldValue</Name>
+				<Source><![CDATA[
+    public static boolean validateCursorFieldValue(Common _table, fieldId _fieldId, boolean _isThrow = true)
+    {
+        boolean res = true;
+        ;
+        if (! _table.validateField(_fieldId))
+        {
+            if (_isThrow)
+            {
+                throw error(strFmt("@SYS84753", fieldId2pname(_table.TableId, _fieldId)  ));
+            }
+            else
+            {
+                res = checkFailed(strFmt("@SYS84753", fieldId2pname(_table.TableId, _fieldId)  ));
+            }
+        }
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>validateWriteRecordCheck</Name>
 				<Source><![CDATA[
     public static void validateWriteRecordCheck(Common _record)
@@ -620,6 +644,16 @@ class DEV
     public static TransDate systemdateget()
     {
         return DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>timeNow</Name>
+				<Source><![CDATA[
+    public static int timeNow()
+    {
+        return DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone());
     }
 
 ]]></Source>

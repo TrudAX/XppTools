@@ -11,7 +11,7 @@ public class DEVIntegMessageTypeInbound extends common
 			<Method>
 				<Name>find</Name>
 				<Source><![CDATA[
-    public static DEVIntegMessageTypeInbound find(DEVIntegMessageTypeId  _messageTypeId,
+    public static DEVIntegMessageTypeInbound find(DEVIntegMessageTypeIdInbound  _messageTypeId,
                                                 boolean                _forUpdate = false)
     {
         DEVIntegMessageTypeInbound integMessageTypeTable;
@@ -309,7 +309,7 @@ public class DEVIntegMessageTypeInbound extends common
 			i:type="AxTableFieldString">
 			<Name>MessageTypeId</Name>
 			<AllowEdit>No</AllowEdit>
-			<ExtendedDataType>DEVIntegMessageTypeId</ExtendedDataType>
+			<ExtendedDataType>DEVIntegMessageTypeIdInbound</ExtendedDataType>
 			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>

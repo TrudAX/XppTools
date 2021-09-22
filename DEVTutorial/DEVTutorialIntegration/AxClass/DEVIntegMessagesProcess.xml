@@ -5,7 +5,7 @@
 		<Declaration><![CDATA[
 public class DEVIntegMessagesProcess extends RunBaseBatch
 {
-    DEVIntegMessageTypeId    messageTypeId;
+    DEVIntegMessageTypeIdInbound    messageTypeId;
     DialogField              dlgMessageTypeId;
     
     QueryRun       queryRun;
@@ -29,7 +29,7 @@ public class DEVIntegMessagesProcess extends RunBaseBatch
     {
         DialogRunbase       dialog = super();
         ;
-        dlgMessageTypeId         = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeId), messageTypeId);
+        dlgMessageTypeId         = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeIdInbound), messageTypeId);
         
         return dialog;
     }
@@ -64,7 +64,7 @@ public class DEVIntegMessagesProcess extends RunBaseBatch
 			<Method>
 				<Name>parmMessageTypeId</Name>
 				<Source><![CDATA[
-    public DEVIntegMessageTypeId parmMessageTypeId(DEVIntegMessageTypeId _messageTypeId = messageTypeId)
+    public DEVIntegMessageTypeIdInbound parmMessageTypeId(DEVIntegMessageTypeIdInbound _messageTypeId = messageTypeId)
     {
         messageTypeId = _messageTypeId;
         return messageTypeId;
@@ -182,7 +182,7 @@ public class DEVIntegMessagesProcess extends RunBaseBatch
 			<Method>
 				<Name>processSelectedType</Name>
 				<Source><![CDATA[
-    protected void processSelectedType(DEVIntegMessageTypeId _typeId)
+    protected void processSelectedType(DEVIntegMessageTypeIdInbound _typeId)
     {
         QueryBuildDataSource        qBDS;
         DEVIntegMessageTypeInbound    messageTypeTable = DEVIntegMessageTypeInbound::find(_typeId);
@@ -399,7 +399,7 @@ public class DEVIntegMessagesProcess extends RunBaseBatch
 				<Source><![CDATA[
     static ClassDescription description()
     {
-        return "Process messages";
+        return "Process incoming messages";
     }
 
 ]]></Source>
