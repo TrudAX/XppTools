@@ -12,6 +12,7 @@ This repository contains 3 D365FO models:
     - [-Editable table browser](#-editable-table-browser)
     - [-List of Values to Range](#-list-of-values-to-range)
     - [-Execute direct SQL in D365FO database](#-execute-direct-sql-in-d365fo-database)
+    - [-D365FO Infolog call stack](#-d365fo-infolog-call-stack)
   - [DEVCommon model](#devcommon-model)
     - [-DEV class](#-dev-class)
     - [-DEVDimensionHelper class](#-devdimensionhelper-class)
@@ -69,7 +70,7 @@ Test link https://usnconeboxax1aos.cloud.onebox.dynamics.com/?cmp=USMF&mi=DEVSys
 
 Full description: [Editable table browser](https://denistrunin.com/xpptools-devtablebrowser/). Sub-model name: DEVSysTableBrowser
 
-### -List of Values to Range 
+### -List of Values to Range
 
 This functionality is intended to help users deal with list of values in query range. With help of this tool you can:
 
@@ -91,6 +92,15 @@ Full description: [Execute direct SQL in D365FO database](https://denistrunin.co
 Sub-model name: DEVSQLExecute
 
 ![](assets/DEVSQLExecute.png)
+
+### -D365FO Infolog call stack
+
+Extension for the standard D365FO system that allows saving stack trace data for infolog messages.
+
+Full description: [D365FO Infolog call stack](https://denistrunin.com/xpptools-devinfocallstack/)
+Sub-model name: DEVCallStackInfolog
+
+![](assets/DevCallStackInfoMain.jpg)
 
 **[⬆ back to top](#XppTools)**
 
@@ -163,10 +173,9 @@ A sample code for implementing file-based integration in Dynamics 365 FinOps usi
 ## Installation
 
 1. Download the Source code from this GitHub repo into the Temp directory on the DEV VM.
-
 2. Copy **DEVTools**(or DEVGlobal, DEVTutorial) folder to your package folder (C:\AOSService\PackagesLocalDirectory )
-
 3. Start Visual Studio and Run compile for the **DEVTools** folder (Dynamics 365 –Build models.. – Select DEVTools)
+4. Run database sync - **Invoke-D365DbSyncModule -Module "DEVTools"**
 
 ![](assets/CopyFolderToLocal.png)
 
