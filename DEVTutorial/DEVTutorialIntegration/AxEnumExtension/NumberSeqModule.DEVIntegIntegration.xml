@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnumExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>NumberSeqModule.DEVIntegIntegration</Name>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>DEVIntegIntegration</Name>
+			<Label>External integration</Label>
+		</AxEnumValue>
+	</EnumValues>
+	<PropertyModifications />
+	<ValueModifications />
+</AxEnumExtension>

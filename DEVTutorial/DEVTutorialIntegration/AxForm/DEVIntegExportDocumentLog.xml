@@ -59,7 +59,7 @@ public class DEVIntegExportDocumentLog extends FormRun
 					<DataField>createdDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
-					<DataField>dataAreaId</DataField>
+					<DataField>DocumentId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ExportStatus</DataField>
@@ -80,6 +80,9 @@ public class DEVIntegExportDocumentLog extends FormRun
 					<DataField>modifiedDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>RecId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -96,9 +99,6 @@ public class DEVIntegExportDocumentLog extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>TableId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>VendAccount</DataField>
 				</AxFormDataSourceField>
 			</Fields>
 			<ReferencedDataSources />
@@ -227,15 +227,11 @@ public class DEVIntegExportDocumentLog extends FormRun
 						<Controls>
 							<AxFormControl xmlns=""
 								i:type="AxFormStringControl">
-								<Name>Grid_Overview_VendAccount</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
+								<Name>Grid_Overview_DocumentId</Name>
 								<Type>String</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
 								<FormControlExtension
 									i:nil="true" />
-								<DataField>VendAccount</DataField>
+								<DataField>DocumentId</DataField>
 								<DataSource>DEVIntegExportDocumentLog</DataSource>
 							</AxFormControl>
 							<AxFormControl xmlns=""

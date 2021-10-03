@@ -164,7 +164,7 @@ public class DEVIntegTutorialStagingPurchHeader extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>ConfirmedMessageID</Name>
-			<ExtendedDataType>DEVVendorXMLFileSequence</ExtendedDataType>
+			<ExtendedDataType>DEVIntegOutboundSequenceNumber</ExtendedDataType>
 			<Label>Confirmed Message ID</Label>
 		</AxTableField>
 		<AxTableField xmlns=""

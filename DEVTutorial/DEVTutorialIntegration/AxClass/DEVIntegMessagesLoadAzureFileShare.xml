@@ -17,6 +17,7 @@ class DEVIntegMessagesLoadAzureFileShare extends DEVIntegMessagesLoadBaseType
     {
         int                 recordCount;
         DEVIntegTmpFiles    fileList;
+
         ;
         if (! messageTypeTable.ArchiveLocation)
         {
@@ -34,6 +35,11 @@ class DEVIntegMessagesLoadAzureFileShare extends DEVIntegMessagesLoadBaseType
         {
             this.handleIncomingFile(messageTypeTable, fileList);
             recordCount++;
+
+            if (this.checkMessageReadLimit())
+            {
+                break;
+            }
         }
     
         return recordCount;

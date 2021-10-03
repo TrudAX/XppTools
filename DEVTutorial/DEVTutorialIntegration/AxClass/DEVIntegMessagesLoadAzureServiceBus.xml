@@ -51,8 +51,13 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
 			messageCreator.createMessage(messageTypeTable);
 			ttscommit;
 
-			brokeredMessage.Complete();
+            brokeredMessage.Complete();
             recordCount++;
+
+            if (this.checkMessageReadLimit())
+            {
+                break;
+            }
 
             brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(10));
         }

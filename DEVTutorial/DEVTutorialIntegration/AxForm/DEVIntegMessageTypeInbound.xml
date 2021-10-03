@@ -216,6 +216,12 @@ public class DEVIntegMessageTypeInbound extends FormRun
 					<DataField>Partition</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>ReadLimitMessages</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReadLimitSeconds</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>ReadLocation</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -743,6 +749,35 @@ public class DEVIntegMessageTypeInbound extends FormRun
 									</AxFormControl>
 								</Controls>
 								<DataGroup>AdvSettings</DataGroup>
+								<DataSource>DEVIntegMessageTypeInbound</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Limits</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>Limits_ReadLimitSeconds</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ReadLimitSeconds</DataField>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>Limits_ReadLimitMessages</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ReadLimitMessages</DataField>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Limits</DataGroup>
 								<DataSource>DEVIntegMessageTypeInbound</DataSource>
 							</AxFormControl>
 						</Controls>

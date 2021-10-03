@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtEnum">
+	<Name>DEVIntegIsMessageHasLog</Name>
+	<Extends>Noyesid</Extends>
+	<HelpText>Message contains log data</HelpText>
+	<Label>Log</Label>
+	<ArrayElements />
+	<Relations />
+	<TableReferences />
+	<EnumType>NoYes</EnumType>
+</AxEdt>

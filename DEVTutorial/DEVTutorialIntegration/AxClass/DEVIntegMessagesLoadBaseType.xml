@@ -7,6 +7,10 @@ class DEVIntegMessagesLoadBaseType
 {
     DEVIntegMessageTypeInbound						messageTypeTable;
 
+    int  readMessageCount;
+    int  currentTimeStart;
+
+
 }
 ]]></Declaration>
 		<Methods>
@@ -27,6 +31,47 @@ class DEVIntegMessagesLoadBaseType
     public int loadMessageType()
     {
         return 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkMessageReadLimit</Name>
+				<Source><![CDATA[
+    public boolean checkMessageReadLimit()
+    {
+        int      currentTime, readSecondsTotal;
+        boolean  res;
+        ;
+        if (messageTypeTable.ReadLimitMessages)
+        {
+            readMessageCount++;
+            if (readMessageCount >= messageTypeTable.ReadLimitMessages)
+            {
+                res = true;
+            }
+        }
+        if (messageTypeTable.ReadLimitSeconds)
+        {
+            if (! currentTimeStart)
+            {
+                currentTimeStart = DEV::timeNow();
+            }
+            currentTime = DEV::timeNow();
+            if (currentTime < currentTimeStart)
+            {
+                currentTimeStart = DEV::timeNow();
+            }
+            else
+            {
+                readSecondsTotal = currentTime - currentTimeStart;
+            }
+            if (readSecondsTotal >= messageTypeTable.ReadLimitSeconds)
+            {
+                res = true;
+            }
+        }
+        return res;
     }
 
 ]]></Source>

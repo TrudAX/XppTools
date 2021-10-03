@@ -121,7 +121,7 @@ public class DEVIntegMessageTable extends common
 				<Name>hasLog</Name>
 				<Source><![CDATA[
     [SysClientCacheDataMethodAttribute(true)]
-    display NoYes hasLog()
+    display DEVIntegIsMessageHasLog hasLog()
     {
         return DEVIntegErrorLog::existForMessageTable(this.RecId);
     }
@@ -300,6 +300,9 @@ public class DEVIntegMessageTable extends common
 				<AxTableFieldGroupField>
 					<DataField>isSessionActive</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ProcessingAttempts</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -414,6 +417,13 @@ public class DEVIntegMessageTable extends common
 			<Name>MessageTypeId</Name>
 			<ExtendedDataType>DEVIntegMessageTypeIdInbound</ExtendedDataType>
 			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ProcessingAttempts</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Number of processing attempts</HelpText>
+			<Label>Processing attempts</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

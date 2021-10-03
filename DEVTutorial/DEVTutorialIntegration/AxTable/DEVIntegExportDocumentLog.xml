@@ -31,7 +31,7 @@ public class DEVIntegExportDocumentLog extends common
 			<Method>
 				<Name>initFromCommon</Name>
 				<Source><![CDATA[
-    public void initFromCommon(Common _common, DEVIntegMessageTypeOutbound _messageTypeOutbound)
+    public void initFromCommon(Common _common, DEVIntegMessageTypeOutbound _messageTypeOutbound, Description _documentId = '')
     {
         VendInvoiceJour         vendInvoiceJour;
         VendTable               vendTable;
@@ -41,16 +41,7 @@ public class DEVIntegExportDocumentLog extends common
         this.CompanyId      =   _common.dataAreaId;
         this.MessageTypeOutbound    =   _messageTypeOutbound;
     
-        if (_common.TableId == tableNum(VendInvoiceJour))
-        {
-            vendInvoiceJour = _common;
-            this.VendAccount = vendInvoiceJour.InvoiceAccount;
-        }
-        else if (_common.TableId == tableNum(VendTable))
-        {
-            vendTable = _common;
-            this.VendAccount = vendTable.AccountNum;
-        }
+        this.DocumentId = _documentId;
     }
 
 ]]></Source>
@@ -86,31 +77,6 @@ public class DEVIntegExportDocumentLog extends common
     {
         this.calcInProgress();
         super();
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>find</Name>
-				<Source><![CDATA[
-    public static DEVIntegExportDocumentLog find(CompanyId   _companyId,
-                                          VendAccount _vendAccount,
-                                          DEVIntegMessageTypeOutbound      _messageTypeOutbound,
-                                          boolean     _forUpdate = false)
-    {
-        DEVIntegExportDocumentLog DEVIntegExportDocumentLog;
-    
-        if (_companyId && _vendAccount)
-        {
-            DEVIntegExportDocumentLog.selectForUpdate(_forUpdate);
-    
-            select firstonly DEVIntegExportDocumentLog
-                where DEVIntegExportDocumentLog.CompanyId   == _companyId
-                   && DEVIntegExportDocumentLog.VendAccount == _vendAccount
-                   && DEVIntegExportDocumentLog.MessageTypeOutbound == _messageTypeOutbound;
-        }
-    
-        return DEVIntegExportDocumentLog;
     }
 
 ]]></Source>
@@ -181,7 +147,7 @@ public class DEVIntegExportDocumentLog extends common
 	</SourceCode>
 	<Label>Vendor Log</Label>
 	<TableGroup>Group</TableGroup>
-	<TitleField1>VendAccount</TitleField1>
+	<TitleField1>DocumentId</TitleField1>
 	<TitleField2>CompanyId</TitleField2>
 	<CacheLookup>Found</CacheLookup>
 	<ClusteredIndex>CompanyVendIdx</ClusteredIndex>
@@ -196,7 +162,7 @@ public class DEVIntegExportDocumentLog extends common
 			<Name>AutoReport</Name>
 			<Fields>
 				<AxTableFieldGroupField>
-					<DataField>VendAccount</DataField>
+					<DataField>DocumentId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>CompanyId</DataField>
@@ -225,7 +191,7 @@ public class DEVIntegExportDocumentLog extends common
 			<Name>AutoLookup</Name>
 			<Fields>
 				<AxTableFieldGroupField>
-					<DataField>VendAccount</DataField>
+					<DataField>DocumentId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>CompanyId</DataField>
@@ -268,7 +234,7 @@ public class DEVIntegExportDocumentLog extends common
 			<Label>Overview</Label>
 			<Fields>
 				<AxTableFieldGroupField>
-					<DataField>VendAccount</DataField>
+					<DataField>DocumentId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>CompanyId</DataField>
@@ -302,6 +268,18 @@ public class DEVIntegExportDocumentLog extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>InternalGroup</Name>
+			<Label>Internal</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>RefRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefTableId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -329,7 +307,7 @@ public class DEVIntegExportDocumentLog extends common
 			i:type="AxTableFieldString">
 			<Name>ConfirmedMessageID</Name>
 			<AllowEdit>No</AllowEdit>
-			<ExtendedDataType>DEVVendorXMLFileSequence</ExtendedDataType>
+			<ExtendedDataType>DEVIntegOutboundSequenceNumber</ExtendedDataType>
 			<Label>Confirmed message ID</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
@@ -376,7 +354,7 @@ public class DEVIntegExportDocumentLog extends common
 			i:type="AxTableFieldString">
 			<Name>SendMessageID</Name>
 			<AllowEdit>No</AllowEdit>
-			<ExtendedDataType>DEVVendorXMLFileSequence</ExtendedDataType>
+			<ExtendedDataType>DEVIntegOutboundSequenceNumber</ExtendedDataType>
 			<Label>Send message ID</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
@@ -388,9 +366,9 @@ public class DEVIntegExportDocumentLog extends common
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
-			<Name>VendAccount</Name>
+			<Name>DocumentId</Name>
 			<AllowEdit>No</AllowEdit>
-			<ExtendedDataType>VendAccount</ExtendedDataType>
+			<ExtendedDataType>Description</ExtendedDataType>
 			<Label>Document Id</Label>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
@@ -405,7 +383,7 @@ public class DEVIntegExportDocumentLog extends common
 					<DataField>CompanyId</DataField>
 				</AxTableIndexField>
 				<AxTableIndexField>
-					<DataField>VendAccount</DataField>
+					<DataField>DocumentId</DataField>
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>
@@ -428,7 +406,10 @@ public class DEVIntegExportDocumentLog extends common
 	<Relations>
 		<AxTableRelation>
 			<Name>VendInvoiceJour</Name>
+			<Cardinality>ZeroMore</Cardinality>
 			<RelatedTable>VendInvoiceJour</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
 			<Constraints>
 				<AxTableRelationConstraint xmlns=""
 					i:type="AxTableRelationConstraintFixed">
@@ -444,18 +425,23 @@ public class DEVIntegExportDocumentLog extends common
 				</AxTableRelationConstraint>
 			</Constraints>
 		</AxTableRelation>
-		<AxTableRelation xmlns=""
-			i:type="AxTableRelationForeignKey">
+		<AxTableRelation>
 			<Name>VendTable</Name>
 			<Cardinality>ZeroMore</Cardinality>
 			<RelatedTable>VendTable</RelatedTable>
-			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
 			<RelationshipType>Association</RelationshipType>
 			<Constraints>
 				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintFixed">
+					<Name>RefTableId</Name>
+					<Field>RefTableId</Field>
+					<Value>505</Value>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
 					i:type="AxTableRelationConstraintField">
-					<Name>VendAccount</Name>
-					<Field>VendAccount</Field>
+					<Name>DocumentId</Name>
+					<Field>DocumentId</Field>
 					<RelatedField>AccountNum</RelatedField>
 				</AxTableRelationConstraint>
 			</Constraints>

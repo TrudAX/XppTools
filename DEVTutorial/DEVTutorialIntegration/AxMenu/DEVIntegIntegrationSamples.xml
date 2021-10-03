@@ -80,6 +80,11 @@
 			<Elements>
 				<AxMenuElement xmlns=""
 					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegParameters</Name>
+					<MenuItemName>DEVIntegParameters</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
 					<Name>DEVIntegConnectionType</Name>
 					<MenuItemName>DEVIntegConnectionType</MenuItemName>
 				</AxMenuElement>

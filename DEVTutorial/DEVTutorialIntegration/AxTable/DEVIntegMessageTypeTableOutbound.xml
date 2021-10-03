@@ -49,12 +49,20 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			</Method>
 		</Methods>
 	</SourceCode>
+	<FormRef>DEVIntegMessageTypeTableOutbound</FormRef>
 	<Label>Outbound message types</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
 	<TableGroup>Group</TableGroup>
 	<TitleField1>MessageTypeIdOutbound</TitleField1>
 	<TitleField2>Description</TitleField2>
 	<CacheLookup>Found</CacheLookup>
 	<ClusteredIndex>MessageTypeIdOutboundIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
 	<PrimaryIndex>MessageTypeIdOutboundIdx</PrimaryIndex>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
 	<DeleteActions />
@@ -260,6 +268,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			i:type="AxTableRelationForeignKey">
 			<Name>DEVIntegConnectionType</Name>
 			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
 			<RelatedTable>DEVIntegConnectionType</RelatedTable>
 			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
 			<RelationshipType>Association</RelationshipType>

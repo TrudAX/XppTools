@@ -28,8 +28,7 @@ public class DEVIntegMessageProcessor
 				<Source><![CDATA[
     void createMessageClass()
     {
-        DictClass  dictClass = new DictClass(className2Id(messageTypeTable.ClassName));
-        processMessageBase = dictClass.makeObject();
+        processMessageBase = messageTypeTable.getActionClass();
         processMessageBase.initParameters(messageTypeTable);
     }
 
@@ -108,7 +107,7 @@ public class DEVIntegMessageProcessor
             processMessageBase.processMessage(_messageTable, processResults);
             if (processResults.hasErrors())
             {
-                throw error(strFmt("File %1. Found %2 errors", _messageTable.Name, processResults.getErrorCount()));
+                throw error(strFmt("Message %1. Found %2 errors", _messageTable.Name, processResults.getErrorCount()));
             }
             curMessageStatus = DEVIntegMessageStatus::Processed;
         }
@@ -193,6 +192,7 @@ public class DEVIntegMessageProcessor
         {
             messageTableUpd.Status                = curMessageStatus;
             messageTableUpd.ProcessingEndDateTime = DateTimeUtil::utcNow();
+            messageTableUpd.ProcessingAttempts++;
             if (processResults)
             {
                 messageTableUpd.RecordsProcessed           = processResults.getProcessedCount();

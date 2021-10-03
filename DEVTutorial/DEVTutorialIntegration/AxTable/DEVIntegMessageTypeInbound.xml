@@ -91,9 +91,15 @@ public class DEVIntegMessageTypeInbound extends common
 				<Source><![CDATA[
     DEVIntegProcessMessageBase getActionClass()
     {
-        SysDictClass dc = new SysDictClass(className2Id(this.ClassName));
-        
-        return dc.makeObject();
+        if (this.ClassName)
+        {
+            SysDictClass dc = new SysDictClass(className2Id(this.ClassName));
+            if (dc)
+            {
+                return dc.makeObject();
+            }
+        }
+        return null;
     }
 
 ]]></Source>
@@ -303,6 +309,18 @@ public class DEVIntegMessageTypeInbound extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Limits</Name>
+			<Label>Read restrictions</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ReadLimitSeconds</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReadLimitMessages</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -407,6 +425,20 @@ public class DEVIntegMessageTypeInbound extends common
 			<Name>ServiceBusQueueName</Name>
 			<ExtendedDataType>BusinessEventsServiceBusQueueEndpointQueueName</ExtendedDataType>
 			<Label>Queue name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ReadLimitMessages</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Max number of messages to load</HelpText>
+			<Label>Messages limit</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ReadLimitSeconds</Name>
+			<ExtendedDataType>Seconds</ExtendedDataType>
+			<HelpText>Max duration for load operation(sec)</HelpText>
+			<Label>Duration limit(sec)</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

@@ -79,7 +79,7 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
         {
             if (isCancelPurch)
             {
-                 throw error(strFmt("Purch %1 doesn't exist for a cancel operation", integStagingPurchHeader.PurchId));
+                throw error(strFmt("Purch %1 doesn't exist for a cancel operation", integStagingPurchHeader.PurchId));
             }
             integStagingPurchLine = null;
             select firstonly integStagingPurchLine

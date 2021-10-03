@@ -392,7 +392,9 @@ public class DEVIntegTutorialStagingPurchOrder extends FormRun
 		</AxFormDataSource>
 	</DataSources>
 	<Design>
+		<Caption xmlns="">Purch staging</Caption>
 		<HeightMode xmlns="">Column</HeightMode>
+		<SetCompany xmlns="">No</SetCompany>
 		<TitleDataSource xmlns="">DEVIntegTutorialStagingPurchHeader</TitleDataSource>
 		<WidthMode xmlns="">Column</WidthMode>
 		<Controls xmlns="">

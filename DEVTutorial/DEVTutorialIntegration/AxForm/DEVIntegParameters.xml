@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVIntegParameters</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVIntegParameters extends FormRun 
+{
+    boolean                                 runExecuteDirect;
+    TmpIdRef                                tmpIdRef;
+    NumberSeqScope                          scope;
+    NumberSeqApplicationModule              numberSeqApplicationModule;
+    container                               numberSequenceModules;
+    DEVIntegParameters                      parameters;
+
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    void init()
+    {
+        this.numberSeqPreInit();
+
+        super();
+
+        DEVIntegParameters::find();
+
+        this.numberSeqPostInit();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>numberSeqPostInit</Name>
+				<Source><![CDATA[
+    public void numberSeqPostInit()
+    {
+        ctrlAllowSameAs.visible(numberSeqApplicationModule.sameAsActive());
+        ctrlLabelSameAs.visible(numberSeqApplicationModule.sameAsActive());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>numberSeqPreInit</Name>
+				<Source><![CDATA[
+    public void numberSeqPreInit()
+    {
+        runExecuteDirect = false;
+        numberSequenceModules = [NumberSeqModule::DEVIntegIntegration];
+        numberSeqApplicationModule = new NumberSeqModuleDEVIntegIntegration();
+        scope = NumberSeqScopeFactory::createGlobalScope();
+        NumberSeqApplicationModule::createReferencesMulti(numberSequenceModules, scope);
+        tmpIdRef.setTmpData(NumberSequenceReference::configurationKeyTableMulti(numberSequenceModules));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>NumberSequenceReference</Name>
+				<Methods>
+					<Method>
+						<Name>removeFilter</Name>
+						<Source><![CDATA[
+        void removeFilter()
+        {
+            runExecuteDirect = false;
+            numbersequenceReference_ds.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        void executeQuery()
+        {
+            if (runExecuteDirect)
+            {
+                super();
+            }
+            else
+            {
+                runExecuteDirect = true;
+                this.queryRun(NumberSeqReference::buildQueryRunMulti(numberSequenceReference,
+                                                                     tmpIdRef,
+                                                                     numberSequenceTable,
+                                                                     numberSequenceModules,
+                                                                     scope));
+                numbersequenceReference_ds.research();
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>NumberSequenceId</DataField>
+						<Methods>
+							<Method>
+								<Name>resolveReference</Name>
+								<Source><![CDATA[
+            public Common resolveReference(FormReferenceControl _formReferenceControl)
+            {
+                NumberSequenceCode code = _formReferenceControl.filterValue(
+                    AbsoluteFieldBinding::construct(fieldStr(NumberSequenceTable, NumberSequence),
+                    tableStr(NumberSequenceTable))).value();
+
+                // Do not call super as we're providing our own disambiguation logic.
+
+                return NumberSequenceTable::findByNaturalKey(code, scope.getId(true));
+            }
+
+]]></Source>
+							</Method>
+							<Method>
+								<Name>lookupReference</Name>
+								<Source><![CDATA[
+            public Common lookupReference(FormReferenceControl _formReferenceControl)
+            {
+                Query lookupQuery;
+                NumberSequenceTable selectedRecord;
+                SysReferenceTableLookup sysTableLookup = SysReferenceTableLookup::newParameters(tableNum(NumberSequenceTable), _formReferenceControl, true);
+                Range currentCompanyScopeRange;
+                Range globalScopeRange;
+                QueryBuildDataSource qbds;
+                NumberSeqScope numberSeqScope;
+
+                numberSeqScope = NumberSeqScopeFactory::createDataAreaScope();
+                currentCompanyScopeRange = queryValue(numberSeqScope.getId(true));
+                numberSeqScope = NumberSeqScopeFactory::createGlobalScope();
+                globalScopeRange = queryValue(numberSeqScope.getId(true));
+
+                // Display the NumberSequence field in the lookup form.
+                sysTableLookup.addLookupfield(fieldNum(NumberSequenceTable, NumberSequence));
+
+                // Create a custom Query that filters on NumberSequenceScope.
+                lookupQuery = new Query();
+                lookupQuery.addDataSource(tableNum(NumberSequenceTable));
+                qbds = lookupQuery.dataSourceTable(tableNum(NumberSequenceTable));
+                SysQuery::findOrCreateRange(qbds, fieldNum(NumberSequenceTable, NumberSequenceScope)).value(globalScopeRange);
+                qbds.addRange(fieldNum(NumberSequenceTable, NumberSequenceScope)).value(currentCompanyScopeRange);
+                sysTableLookup.parmQuery(lookupQuery);
+
+                // Return the record selected by the user.
+                selectedRecord = sysTableLookup.performFormLookup();
+
+                return selectedRecord;
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>DEVIntegParameters</Name>
+			<Table>DEVIntegParameters</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TaxItemGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TenantID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VendorInputMethod</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>NumberSequenceReference</Name>
+			<Table>NumberSequenceReference</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AllowSameAs</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_configurationKeyId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_DataTypeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_DataTypeSameAsId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_GroupEnabled</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_Module</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_NumberSequence</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_ReferenceHelp</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_ReferenceLabel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_SortField</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_Voucher_CN</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_WizardAllowChangeDown</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_WizardAllowChangeUp</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_WizardContinuous</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_WizardFetchAheadQty</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_WizardHighest</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_WizardLowest</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DEL_WizardManual</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NumberSequenceDatatype</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NumberSequenceId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NumberSequenceScope</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources>
+				<AxFormReferencedDataSource>
+					<Name>NumberSequenceTable</Name>
+					<Table>NumberSequenceTable</Table>
+					<Fields>
+						<AxFormDataSourceField>
+							<DataField>AllowChangeDown</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>AllowChangeUp</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>AnnotatedFormat</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>Blocked</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>CleanAtAccess</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>CleanInterval</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>Continuous</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>Cyclic</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>DefaultRangeSizePerDeployment</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>DEL_LatestCleanDate</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>DEL_LatestCleanTime</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>DEL_RestartNum_CN</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>FetchAhead</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>FetchAheadQty</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>Format</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>Highest</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>InUse</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>LatestCleanDateTime</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>Lowest</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>Manual</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>modifiedTransactionId</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>NextRec</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>NoIncrement</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>NumberSequence</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>NumberSequenceScope</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>PackedExtensions</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>Partition</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>RecId</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>SkipReferenceCheckOnDelete</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>SkipUpdateOnDeployment</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>TableId</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>Txt</DataField>
+						</AxFormDataSourceField>
+					</Fields>
+					<ReferencedDataSources />
+					<JoinSource>NumberSequenceReference</JoinSource>
+					<LinkType>OuterJoin</LinkType>
+					<JoinRelation>NumberSequenceTable</JoinRelation>
+				</AxFormReferencedDataSource>
+			</ReferencedDataSources>
+			<LinkType>Passive</LinkType>
+			<AllowCheck>No</AllowCheck>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<InsertAtEnd>No</InsertAtEnd>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">Integration parameters</Caption>
+		<DataSource xmlns="">DEVIntegParameters</DataSource>
+		<Pattern xmlns="">TableOfContents</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<SetCompany xmlns="">No</SetCompany>
+		<Style xmlns="">TableOfContents</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>1073741823</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>DefaultValuesTab</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>DefaultValuesTitle</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>StaticText</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>Set up default values per integration</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>DefaultsFastTab</Name>
+								<AlignControl>No</AlignControl>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Tab</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>PurchImportTabPage</Name>
+										<ElementPosition>477218588</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>TabPage</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>PurchOrders</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>PurchOrders_TaxItemGroup</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>TaxItemGroup</DataField>
+														<DataSource>DEVIntegParameters</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>PurchOrders</DataGroup>
+												<DataSource>DEVIntegParameters</DataSource>
+												<FrameType>None</FrameType>
+											</AxFormControl>
+										</Controls>
+										<AlignChild>No</AlignChild>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>Tutotial purch import</Caption>
+										<Scrollbars>Auto</Scrollbars>
+									</AxFormControl>
+								</Controls>
+								<AlignChild>No</AlignChild>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Style>FastTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>Defaults</Caption>
+						<DataSource>DEVIntegParameters</DataSource>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>NumberSequenceTab</Name>
+						<ElementPosition>1610612733</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Header</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Skip>Yes</Skip>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStaticTextControl">
+										<Name>StaticText1</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Skip>Yes</Skip>
+										<Type>StaticText</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Style>MainInstruction</Style>
+										<Text>Set up integration sequences</Text>
+									</AxFormControl>
+								</Controls>
+								<AllowUserSetup>No</AllowUserSetup>
+								<FrameType>None</FrameType>
+								<Style>TOCTitleContainer</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>NumSeqBody</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Pattern>ToolbarList</Pattern>
+								<PatternVersion>1.2</PatternVersion>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGridControl">
+										<Name>Grid</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Grid</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>referenceLabel</Name>
+												<AllowEdit>No</AllowEdit>
+												<ElementPosition>1073741823</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<HelpText>@FieldDescriptions_FixedAssets:AssetParameters_referenceLabel</HelpText>
+												<Skip>Yes</Skip>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataMethod>referenceLabel</DataMethod>
+												<DataSource>NumberSequenceReference</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>ctrlAllowSameAs</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<ElementPosition>1610612734</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CheckBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<BackgroundColor>WindowBackground</BackgroundColor>
+												<DataField>AllowSameAs</DataField>
+												<DataSource>NumberSequenceReference</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormReferenceGroupControl">
+												<Name>NumberSequenceReference_NumberSequenceId</Name>
+												<ElementPosition>1811939326</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>ReferenceGroup</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>NumberSequenceReference_NumberSequenceId_NumberSequence</Name>
+														<DataRelationPath>NumberSequenceTable</DataRelationPath>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Type>String</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+													</AxFormControl>
+												</Controls>
+												<DataSource>NumberSequenceReference</DataSource>
+												<ReferenceField>NumberSequenceId</ReferenceField>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>ctrlLabelSameAs</Name>
+												<AllowEdit>No</AllowEdit>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<ElementPosition>2013265918</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Skip>Yes</Skip>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataMethod>referenceSameAsLabel</DataMethod>
+												<DataSource>NumberSequenceReference</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>referenceHelp</Name>
+												<AllowEdit>No</AllowEdit>
+												<ElementPosition>1610612734</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<Skip>Yes</Skip>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<FormControlExtension
+													i:nil="true" />
+												<Border>None</Border>
+												<DataMethod>referenceHelp</DataMethod>
+												<DataSource>NumberSequenceReference</DataSource>
+												<MultiLine>Yes</MultiLine>
+												<ViewEditMode>View</ViewEditMode>
+											</AxFormControl>
+										</Controls>
+										<DataSource>NumberSequenceReference</DataSource>
+										<MultiSelect>No</MultiSelect>
+										<ShowRowLabels>No</ShowRowLabels>
+										<Style>Tabular</Style>
+									</AxFormControl>
+								</Controls>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS26442</Caption>
+						<DataSource>NumberSequenceReference</DataSource>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<Columns>2</Columns>
+				<Columnspace>0</Columnspace>
+				<ColumnspaceMode>Fixed</ColumnspaceMode>
+				<Style>VerticalTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

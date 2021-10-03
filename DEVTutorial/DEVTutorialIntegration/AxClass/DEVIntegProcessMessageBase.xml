@@ -69,6 +69,17 @@ abstract public class DEVIntegProcessMessageBase
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>setViewStagingButton</Name>
+				<Source><![CDATA[
+    public void setViewStagingButton(FormFunctionButtonControl  _viewStagingButtonControl, DEVIntegMessageTable  _messageTable)
+    {
+        _viewStagingButtonControl.visible(false);
+        //_viewStagingButtonControl.menuItemName(menuItemDisplayStr(DEVIntegTutorialLedgerJourHeaderStaging));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>initParameters</Name>
 				<Source><![CDATA[
     public void initParameters(DEVIntegMessageTypeInbound   _messageTypeTable)

@@ -39,6 +39,12 @@ public class DEVIntegMessageTable extends FormRun
     
             ret = super();
 
+            DEVIntegProcessMessageBase  processMessageBase = DEVIntegMessageTable.messageTypeTable().getActionClass();
+            if (processMessageBase)
+            {
+                processMessageBase.setViewStagingButton(DEVIntegViewStagingDataCommon, DEVIntegMessageTable);
+            }
+
             DEVIntegTutorialLedgerJourHeaderStaging.visible(DEVIntegMessageTable.IsParsed &&
                                                             DEVIntegMessageTable.messageTypeTable().ClassName == classId2Name(classNum(DEVIntegTutorialImportLedgerJournal)));
 
@@ -415,6 +421,18 @@ public class DEVIntegMessageTable extends FormRun
 								<DataSource>DEVIntegMessageTable</DataSource>
 								<MenuItemName>DEVIntegTutorialSalesTableStaging</MenuItemName>
 								<Text>View sales data</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegViewStagingDataCommon</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>MenuFunctionButton</Type>
+								<Visible>No</Visible>
+								<FormControlExtension
+									i:nil="true" />
+								<DataSource>DEVIntegMessageTable</DataSource>
+								<NeedsRecord>Yes</NeedsRecord>
+								<Text>View staging data</Text>
 							</AxFormControl>
 						</Controls>
 						<DataSource>DEVIntegMessageTable</DataSource>
