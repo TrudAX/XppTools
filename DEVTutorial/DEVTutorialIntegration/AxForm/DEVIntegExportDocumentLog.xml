@@ -41,6 +41,9 @@ public class DEVIntegExportDocumentLog extends FormRun
 			<Table>DEVIntegExportDocumentLog</Table>
 			<Fields>
 				<AxFormDataSourceField>
+					<DataField>ClassName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>CompanyId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -69,6 +72,9 @@ public class DEVIntegExportDocumentLog extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>IsRemoved</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MessageTypeIdOutbound</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>MessageTypeOutbound</DataField>
@@ -108,7 +114,8 @@ public class DEVIntegExportDocumentLog extends FormRun
 		</AxFormDataSource>
 	</DataSources>
 	<Design>
-		<Caption xmlns="">Vendor Log</Caption>
+		<Caption xmlns="">Export Log</Caption>
+		<DataSource xmlns="">DEVIntegExportDocumentLog</DataSource>
 		<HeightMode xmlns="">Column</HeightMode>
 		<Pattern xmlns="">SimpleList</Pattern>
 		<PatternVersion xmlns="">1.1</PatternVersion>
@@ -215,19 +222,32 @@ public class DEVIntegExportDocumentLog extends FormRun
 				<Controls>
 					<AxFormControl xmlns=""
 						i:type="AxFormGroupControl">
-						<Name>Grid_Overview</Name>
-						<ElementPosition>1431655764</ElementPosition>
-						<FilterExpression>%1</FilterExpression>
-						<HeightMode>Auto</HeightMode>
+						<Name>OverviewNoResponse</Name>
 						<Type>Group</Type>
-						<VerticalSpacing>-1</VerticalSpacing>
-						<WidthMode>Auto</WidthMode>
 						<FormControlExtension
 							i:nil="true" />
 						<Controls>
 							<AxFormControl xmlns=""
 								i:type="AxFormStringControl">
-								<Name>Grid_Overview_DocumentId</Name>
+								<Name>OverviewNoResponse_MessageTypeIdOutbound</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>MessageTypeIdOutbound</DataField>
+								<DataSource>DEVIntegExportDocumentLog</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>OverviewNoResponse_CompanyId</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>CompanyId</DataField>
+								<DataSource>DEVIntegExportDocumentLog</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>OverviewNoResponse_DocumentId</Name>
 								<Type>String</Type>
 								<FormControlExtension
 									i:nil="true" />
@@ -235,26 +255,9 @@ public class DEVIntegExportDocumentLog extends FormRun
 								<DataSource>DEVIntegExportDocumentLog</DataSource>
 							</AxFormControl>
 							<AxFormControl xmlns=""
-								i:type="AxFormStringControl">
-								<Name>Grid_Overview_CompanyId</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>String</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
-								<FormControlExtension
-									i:nil="true" />
-								<DataField>CompanyId</DataField>
-								<DataSource>DEVIntegExportDocumentLog</DataSource>
-							</AxFormControl>
-							<AxFormControl xmlns=""
 								i:type="AxFormComboBoxControl">
-								<Name>Grid_Overview_ExportStatus</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
+								<Name>OverviewNoResponse_ExportStatus</Name>
 								<Type>ComboBox</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
 								<FormControlExtension
 									i:nil="true" />
 								<DataField>ExportStatus</DataField>
@@ -262,26 +265,9 @@ public class DEVIntegExportDocumentLog extends FormRun
 								<Items />
 							</AxFormControl>
 							<AxFormControl xmlns=""
-								i:type="AxFormStringControl">
-								<Name>Grid_Overview_SendMessageID</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>String</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
-								<FormControlExtension
-									i:nil="true" />
-								<DataField>SendMessageID</DataField>
-								<DataSource>DEVIntegExportDocumentLog</DataSource>
-							</AxFormControl>
-							<AxFormControl xmlns=""
 								i:type="AxFormDateTimeControl">
-								<Name>Grid_Overview_StatusChangeDate</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
+								<Name>OverviewNoResponse_StatusChangeDate</Name>
 								<Type>DateTime</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
 								<FormControlExtension
 									i:nil="true" />
 								<DataField>StatusChangeDate</DataField>
@@ -289,86 +275,15 @@ public class DEVIntegExportDocumentLog extends FormRun
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormStringControl">
-								<Name>Grid_Overview_ConfirmedMessageID</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
+								<Name>OverviewNoResponse_ClassName</Name>
 								<Type>String</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
 								<FormControlExtension
 									i:nil="true" />
-								<DataField>ConfirmedMessageID</DataField>
+								<DataField>ClassName</DataField>
 								<DataSource>DEVIntegExportDocumentLog</DataSource>
-							</AxFormControl>
-							<AxFormControl xmlns=""
-								i:type="AxFormCheckBoxControl">
-								<Name>Grid_Overview_Confirmed</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>CheckBox</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
-								<FormControlExtension
-									i:nil="true" />
-								<DataField>Confirmed</DataField>
-								<DataSource>DEVIntegExportDocumentLog</DataSource>
-							</AxFormControl>
-							<AxFormControl xmlns=""
-								i:type="AxFormDateTimeControl">
-								<Name>Grid_Overview_ConfirmedDate</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>DateTime</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
-								<FormControlExtension
-									i:nil="true" />
-								<DataField>ConfirmedDate</DataField>
-								<DataSource>DEVIntegExportDocumentLog</DataSource>
-							</AxFormControl>
-							<AxFormControl xmlns=""
-								i:type="AxFormCheckBoxControl">
-								<Name>Grid_Overview_IsRemoved</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>CheckBox</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
-								<FormControlExtension
-									i:nil="true" />
-								<DataField>IsRemoved</DataField>
-								<DataSource>DEVIntegExportDocumentLog</DataSource>
-							</AxFormControl>
-							<AxFormControl xmlns=""
-								i:type="AxFormCheckBoxControl">
-								<Name>Grid_Overview_InProgress</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>CheckBox</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
-								<FormControlExtension
-									i:nil="true" />
-								<DataField>InProgress</DataField>
-								<DataSource>DEVIntegExportDocumentLog</DataSource>
-							</AxFormControl>
-							<AxFormControl xmlns=""
-								i:type="AxFormComboBoxControl">
-								<Name>Grid_Overview_MessageTypeOutbound</Name>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>ComboBox</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
-								<FormControlExtension
-									i:nil="true" />
-								<DataField>MessageTypeOutbound</DataField>
-								<DataSource>DEVIntegExportDocumentLog</DataSource>
-								<Items />
 							</AxFormControl>
 						</Controls>
-						<BackgroundColor>WindowBackground</BackgroundColor>
-						<DataGroup>Overview</DataGroup>
+						<DataGroup>OverviewNoResponse</DataGroup>
 						<DataSource>DEVIntegExportDocumentLog</DataSource>
 					</AxFormControl>
 				</Controls>

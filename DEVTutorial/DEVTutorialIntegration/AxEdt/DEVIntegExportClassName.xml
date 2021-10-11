@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEVIntegExportClassName</Name>
+	<Extends>Name</Extends>
+	<HelpText>Export class name</HelpText>
+	<Label>Class name</Label>
+	<ArrayElements />
+	<Relations />
+	<TableReferences />
+</AxEdt>

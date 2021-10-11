@@ -50,6 +50,7 @@ public class DEVIntegMessageTypeInbound extends common
     {
         super();
         this.FileColumnDelimiter = ',';
+        this.Enabled = true;
     }
 
 ]]></Source>

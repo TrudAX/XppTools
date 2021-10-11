@@ -8,6 +8,11 @@
 	<ReferenceTable>DEVIntegMessageTypeTableOutbound</ReferenceTable>
 	<ArrayElements />
 	<Relations />
-	<TableReferences />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>MessageTypeIdOutbound</RelatedField>
+			<Table>DEVIntegMessageTypeTableOutbound</Table>
+		</AxEdtTableReference>
+	</TableReferences>
 	<StringSize>20</StringSize>
 </AxEdt>

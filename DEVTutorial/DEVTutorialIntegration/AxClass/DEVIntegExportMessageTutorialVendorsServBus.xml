@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExportMessageTutorialVendorsServBus</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+//test class that export all vendors from group 10
+class DEVIntegExportMessageTutorialVendorsServBus extends DEVIntegExportMessageBase
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>checkVendorGroupMarkedForExport</Name>
+				<Source><![CDATA[
+    boolean checkVendorGroupMarkedForExport(VendGroupId  _vendGroup, CompanyId _company)
+    {
+        //need to create a table to control this
+        boolean      res;
+        if (_vendGroup == '10')
+        {
+            res = true;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isNeedToCreateLog</Name>
+				<Source><![CDATA[
+    boolean isNeedToCreateLog(VendTable  _vendTable)
+    {
+        boolean                 res;
+        ;
+        if (this.isMessageTypeEnabled())
+        {
+            res = this.checkVendorGroupMarkedForExport(_vendTable.VendGroup, curext());
+            //vendor from a right group
+            if (res)
+            {
+                if (DEVIntegExportDocumentLog::sentRecordExists(_vendTable, messageTypeTableOutbound.ClassName))  //already marked to send
+                {
+                    res = false;
+                }
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createLogFillFields</Name>
+				<Source><![CDATA[
+    public void createLogFillFields(Common  _exportTable, DEVIntegExportDocumentLog   _exportDocumentLog)
+    {
+        VendTable  vendTable = _exportTable as VendTable;
+
+        if (this.checkVendorGroupMarkedForExport(vendTable.VendGroup, curext()))
+        {
+            _exportDocumentLog.IsRemoved = false;
+        }
+        else
+        {
+            _exportDocumentLog.IsRemoved = true;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createLog</Name>
+				<Source><![CDATA[
+    public void createLog(VendTable  _vendTable)
+    {
+        this.createLogFromCommon(_vendTable);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertFromPartyLocation</Name>
+				<Source><![CDATA[
+    public void insertFromPartyLocation(DirPartyLocation  _dirPartyLocation)
+    {
+        VendTable                       vendTable;
+        ;
+    
+        if (DirPartyTableHelper::isvendor(_dirPartyLocation.Party)
+            && _dirPartyLocation.IsPrimary)
+        {
+            vendTable = VendTable::findByPartyRecId(_dirPartyLocation.Party);
+    
+            if(this.isNeedToCreateLog(vendTable))
+            {
+                this.createLog(vendTable);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertFromVendTable</Name>
+				<Source><![CDATA[
+    public void insertFromVendTable(VendTable    _vendTable)
+    {
+        ;
+        if(this.isNeedToCreateLog(_vendTable))
+        {
+            this.createLog(_vendTable);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateFromDirPartyTable</Name>
+				<Source><![CDATA[
+    public void updateFromDirPartyTable(DirPartyTable    _partyTable)
+    {
+        VendTable        vendTable;
+        ;
+        if ( _partyTable.isFieldDataRetrieved(fieldStr(DirPartyTable, Name)) &&
+            (_partyTable.orig().Name        != _partyTable.Name              ||
+            _partyTable.orig().LanguageId   != _partyTable.LanguageId)       &&
+            DirPartyTableHelper::isvendor(_partyTable.RecId))
+        {
+            vendTable = VendTable::findByPartyRecId(_partyTable.RecId);
+    
+            if(this.isNeedToCreateLog(vendTable))
+            {
+                this.createLog(vendTable);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateFromElectronicAddress</Name>
+				<Source><![CDATA[
+    public void updateFromElectronicAddress(LogisticsElectronicAddress   _logisticsElectronicAddress)
+    {
+        DirPartyLocation    partyLocation;
+        VendTable           vendTable;
+        ;
+        if (_logisticsElectronicAddress.type        == LogisticsElectronicAddressMethodType::Phone  &&
+            ((_logisticsElectronicAddress.Locator    != _logisticsElectronicAddress.orig().Locator   &&
+             _logisticsElectronicAddress.IsPrimary)                                                 ||
+            (  _logisticsElectronicAddress.orig().IsPrimary != _logisticsElectronicAddress.IsPrimary)))
+        {
+            select firstonly Party from partyLocation
+                where partyLocation.Location == _LogisticsElectronicAddress.Location &&
+                      partyLocation.IsPostalAddress == false;
+    
+            if (DirPartyTableHelper::isvendor(partyLocation.Party))
+            {
+                vendtable = VendTable::findByPartyRecId(partyLocation.Party);
+    
+                if(this.isNeedToCreateLog(vendTable))
+                {
+                    this.createLog(vendTable);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateFromPartyLocation</Name>
+				<Source><![CDATA[
+    public void updateFromPartyLocation(DirPartyLocation  _dirPartyLocation)
+    {
+        VendTable                       vendTable;
+        ;
+    
+        if (DirPartyTableHelper::isvendor(_dirPartyLocation.Party)
+            && _dirPartyLocation.IsPrimary)
+        {
+            vendTable = VendTable::findByPartyRecId(_dirPartyLocation.Party);
+    
+            if(this.isNeedToCreateLog(vendTable))
+            {
+                this.createLog(vendTable);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateFromPostalAddress</Name>
+				<Source><![CDATA[
+    public void updateFromPostalAddress(LogisticsPostalAddress   _postalAddress)
+    {
+        DirPartyPostalAddressView       postalAddressView;
+        VendTable                       vendTable;
+        ;
+        if (_postalAddress.CountryRegionId      != _postalAddress.orig().CountryRegionId    ||
+            _postalAddress.ZipCode              != _postalAddress.orig().ZipCode            ||
+            _postalAddress.Street               != _postalAddress.orig().Street             ||
+            _postalAddress.city                 != _postalAddress.orig().city               ||
+            _postalAddress.state                != _postalAddress.orig().state)
+        {
+            select firstonly party from postalAddressView
+                where postalAddressView.PostalAddress ==  _postalAddress.RecId;
+    
+            if (DirPartyTableHelper::isvendor(postalAddressView.Party)
+                && DirPartyLocation::findByPartyLocation(postalAddressView.Party, _postalAddress.Location).IsPrimary)
+            {
+                vendTable = VendTable::findByPartyRecId(postalAddressView.Party);
+    
+                if(this.isNeedToCreateLog(vendTable))
+                {
+                    this.createLog(vendTable);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateFromVendTable</Name>
+				<Source><![CDATA[
+    public void updateFromVendTable(VendTable    _vendTable)
+    {
+        if (_vendTable.Currency != _vendTable.orig().Currency ||
+            _vendTable.VendGroup != _vendTable.orig().VendGroup ||
+            _vendTable.Blocked != _vendTable.orig().Blocked
+            )
+        {
+            if(this.isNeedToCreateLog(_vendTable))
+            {
+                this.createLog(_vendTable);
+            }
+            else
+            {
+                if (_vendTable.VendGroup != _vendTable.orig().VendGroup)
+                {
+                    if (this.checkVendorGroupMarkedForExport(_vendTable.orig().VendGroup, curext()) ||
+                        this.checkVendorGroupMarkedForExport(_vendTable.VendGroup, curext()))
+                    {
+                        this.createLog(_vendTable);
+                    }
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegExportMessageTutorialVendorsServBus construct()
+    {
+        return new DEVIntegExportMessageTutorialVendorsServBus();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportAllData</Name>
+				<Source><![CDATA[
+    public void exportAllData()
+    {
+        VendTable            vendTable;
+        int                  numRec;
+    
+        ttsBegin;
+        changeCompany(curExt())
+        {
+            //current implementation only for demo, use normal filter in prod
+            while select vendTable
+            {
+                if (this.checkVendorGroupMarkedForExport(vendTable.VendGroup, vendTable.DataAreaId))
+                {
+                    this.createLog(vendTable);
+                    numRec++;
+                }
+            }
+        }
+    
+        ttsCommit;
+   
+        info(strFmt("%1 record(s) marked for Export", numRec));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

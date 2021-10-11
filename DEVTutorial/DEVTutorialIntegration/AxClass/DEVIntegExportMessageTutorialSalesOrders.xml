@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExportMessageTutorialSalesOrders</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegExportMessageTutorialSalesOrders extends DEVIntegExportMessageBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>isNeedToCreateLog</Name>
+				<Source><![CDATA[
+    boolean isNeedToCreateLog(SalesTable  _salesTable)
+    {
+        boolean                 res;
+        ;
+        if (this.isMessageTypeEnabled())
+        {
+            res = true;
+            if (DEVIntegExportDocumentLog::sentRecordExists(_salesTable, messageTypeTableOutbound.ClassName))  //already marked to send
+            {
+                res = false;
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertFromSalesTable</Name>
+				<Source><![CDATA[
+    public void insertFromSalesTable(SalesTable    _salesTable)
+    {
+        ;
+        if(this.isNeedToCreateLog(_salesTable))
+        {
+            this.createLogFromCommon(_salesTable, _salesTable.SalesId);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegExportMessageTutorialSalesOrders construct()
+    {
+        return new DEVIntegExportMessageTutorialSalesOrders();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SalesTable_onInserted</Name>
+				<Source><![CDATA[
+    [DataEventHandler(tableStr(SalesTable), DataEventType::Inserted)]
+    public static void SalesTable_onInserted(Common sender, DataEventArgs e)
+    {
+        SalesTable salesTable = sender as SalesTable;
+        DEVIntegExportMessageTutorialSalesOrders  exportMessage = DEVIntegExportMessageTutorialSalesOrders::construct();
+        exportMessage.insertFromSalesTable(salesTable);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportAllData</Name>
+				<Source><![CDATA[
+    public void exportAllData()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qBDS;
+        SalesTable              salesTable;
+        int                     processedCounter;
+
+
+        qBDS = query.addDataSource(tableNum(SalesTable));
+        QueryRun     queryRun;
+        queryRun = new QueryRun(query);
+        if (queryRun.prompt())
+        {
+            while (queryRun.next())
+            {
+                salesTable = queryRun.get(tableNum(SalesTable));
+                this.insertFromSalesTable(salesTable);
+                processedCounter++;
+            }
+            info(strfmt("%1 record(s) marked to export", processedCounter));
+        }
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportServiceBusMessage</Name>
+				<Source><![CDATA[
+    public void exportServiceBusMessage(DEVIntegExportDocumentLog    _exportDocumentLog, DEVIntegMessagesLoadAzureServiceBus     loadAzureServiceBusCache)
+    {
+        SalesTable      salesTable = SalesTable::findRecId(_exportDocumentLog.RefRecId);
+
+        DEVIntegTutorialExportSalesTableJSON  reply = new DEVIntegTutorialExportSalesTableJSON();
+        reply.parmSalesId(salesTable.SalesId);
+        reply.parmCompanyAx(salesTable.DataAreaId);
+        reply.parmMessageAction(this.getDescription());
+
+        str json = FormJsonSerializer::serializeClass(reply);
+
+        loadAzureServiceBusCache.sendMessage(json, reply.parmSalesId());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "Create sales order";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

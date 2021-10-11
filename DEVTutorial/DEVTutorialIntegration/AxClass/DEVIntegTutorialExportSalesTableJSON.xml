@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialExportSalesTableJSON</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+    DataContractAttribute
+]
+public class DEVIntegTutorialExportSalesTableJSON
+{
+    str        MessageAction;
+    SalesId    SalesId;
+    CompanyId  CompanyAx;
+    
+}
+
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmMessageAction</Name>
+				<Source><![CDATA[
+    [
+        DataMemberAttribute(identifierStr(MessageAction)),
+        SysOperationDisplayOrderAttribute('1')
+    ]
+    public str parmMessageAction(str _MessageAction = MessageAction)
+    {
+        MessageAction = _MessageAction;
+        return MessageAction;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSalesId</Name>
+				<Source><![CDATA[
+    [
+        DataMemberAttribute(identifierStr(SalesId)),
+        SysOperationDisplayOrderAttribute('2')
+    ]
+    public SalesId parmSalesId(SalesId _SalesId = SalesId)
+    {
+        SalesId = _SalesId;
+        return SalesId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCompanyAx</Name>
+				<Source><![CDATA[
+    [
+        DataMemberAttribute(identifierStr(CompanyAx)),
+        SysOperationDisplayOrderAttribute('3')
+    ]
+    public CompanyId parmCompanyAx(CompanyId _CompanyAx = CompanyAx)
+    {
+        CompanyAx = _CompanyAx;
+        return CompanyAx;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

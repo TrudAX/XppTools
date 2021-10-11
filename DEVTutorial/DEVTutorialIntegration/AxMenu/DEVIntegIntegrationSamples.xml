@@ -59,6 +59,12 @@
 					<MenuItemName>DEVIntegMessagesProcess</MenuItemName>
 					<MenuItemType>Action</MenuItemType>
 				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegExportDocumentsLog</Name>
+					<MenuItemName>DEVIntegExportDocumentsLog</MenuItemName>
+					<MenuItemType>Action</MenuItemType>
+				</AxMenuElement>
 			</Elements>
 		</AxMenuElement>
 		<AxMenuElement xmlns=""

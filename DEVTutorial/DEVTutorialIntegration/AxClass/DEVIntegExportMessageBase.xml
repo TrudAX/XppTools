@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExportMessageBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegExportMessageBase
+{
+    DEVIntegMessageTypeTableOutbound messageTypeTableOutbound;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>exportClassName</Name>
+				<Source><![CDATA[
+    public Name exportClassName()
+    {
+        return classId2Name(classIdGet(this));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTypeTableOutbound</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeTableOutbound parmMessageTypeTableOutbound(DEVIntegMessageTypeTableOutbound _messageTypeTableOutbound = messageTypeTableOutbound)
+    {
+        messageTypeTableOutbound = _messageTypeTableOutbound;
+        return messageTypeTableOutbound;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        this.parmMessageTypeTableOutbound(DEVIntegMessageTypeTableOutbound::findEnabled(this.exportClassName()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isMessageTypeEnabled</Name>
+				<Source><![CDATA[
+    public boolean  isMessageTypeEnabled()
+    {
+        return messageTypeTableOutbound.RecId && messageTypeTableOutbound.IsEnabled;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportAllData</Name>
+				<Source><![CDATA[
+    public void exportAllData()
+    {
+        throw error(Error::missingOverload(funcName()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createLogFillFields</Name>
+				<Source><![CDATA[
+    public void createLogFillFields(Common  _exportTable, DEVIntegExportDocumentLog   _exportDocumentLog)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createLogFromCommon</Name>
+				<Source><![CDATA[
+    public void createLogFromCommon(Common  _exportTable, Description _documentId)
+    {
+        DEVIntegExportDocumentLog      exportDocumentLog;
+        ;
+        ttsBegin;
+    
+        exportDocumentLog = DEVIntegExportDocumentLog::findFromCommon(_exportTable, messageTypeTableOutbound.ClassName, true);
+
+        this.createLogFillFields(_exportTable, exportDocumentLog);
+        
+        exportDocumentLog.MessageTypeIdOutbound = messageTypeTableOutbound.MessageTypeIdOutbound;
+
+        if (!exportDocumentLog)
+        {
+            exportDocumentLog.initFromCommon(_exportTable, messageTypeTableOutbound.ClassName, _documentId);
+            exportDocumentLog.setToSend();
+            exportDocumentLog.insert();
+        }
+        else
+        {
+            exportDocumentLog.setToSend();
+            exportDocumentLog.update();
+        }
+    
+        ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportServiceBusMessage</Name>
+				<Source><![CDATA[
+    public void exportServiceBusMessage(DEVIntegExportDocumentLog    _exportDocumentLog, DEVIntegMessagesLoadAzureServiceBus     loadAzureServiceBusCache)
+    {
+        throw error(Error::missingOverload(funcName()));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

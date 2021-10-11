@@ -31,17 +31,17 @@ public class DEVIntegExportDocumentLog extends common
 			<Method>
 				<Name>initFromCommon</Name>
 				<Source><![CDATA[
-    public void initFromCommon(Common _common, DEVIntegMessageTypeOutbound _messageTypeOutbound, Description _documentId = '')
+    public void initFromCommon(Common _common, DEVIntegExportClassName _className, Description _documentId = '')
     {
         VendInvoiceJour         vendInvoiceJour;
         VendTable               vendTable;
     
-        this.RefTableId     =   _common.TableId;
-        this.RefRecId       =   _common.RecId;
-        this.CompanyId      =   _common.dataAreaId;
-        this.MessageTypeOutbound    =   _messageTypeOutbound;
+        this.RefTableId     =  _common.TableId;
+        this.RefRecId       =  _common.RecId;
+        this.CompanyId      =  _common.dataAreaId;
+        this.ClassName      =  _className;
     
-        this.DocumentId = _documentId;
+        this.DocumentId     =  _documentId;
     }
 
 ]]></Source>
@@ -84,7 +84,7 @@ public class DEVIntegExportDocumentLog extends common
 			<Method>
 				<Name>findFromCommon</Name>
 				<Source><![CDATA[
-    static DEVIntegExportDocumentLog findFromCommon(Common _common, DEVIntegMessageTypeOutbound _messageTypeOutbound, boolean _forupdate = false)
+    static DEVIntegExportDocumentLog findFromCommon(Common _common, DEVIntegExportClassName _className, boolean _forupdate = false)
     {
         DEVIntegExportDocumentLog integExportDocumentLog;
         ;
@@ -95,7 +95,7 @@ public class DEVIntegExportDocumentLog extends common
             select integExportDocumentLog
                 where integExportDocumentLog.RefTableId == _common.TableId
                     && integExportDocumentLog.RefRecId == _common.RecId
-                    && integExportDocumentLog.MessageTypeOutbound == _messageTypeOutbound;
+                    && integExportDocumentLog.ClassName == _className;
         }
         return integExportDocumentLog;
     }
@@ -123,14 +123,14 @@ public class DEVIntegExportDocumentLog extends common
 			<Method>
 				<Name>sentRecordExists</Name>
 				<Source><![CDATA[
-    public static boolean sentRecordExists(Common _common, DEVIntegMessageTypeOutbound _messageOutboundType)
+    public static boolean sentRecordExists(Common _common, DEVIntegExportClassName _className)
     {
         DEVIntegExportDocumentLog integExportDocumentLog;
     
         select RecId from integExportDocumentLog
             where integExportDocumentLog.RefTableId == _common.TableId
                 && integExportDocumentLog.RefRecId == _common.RecId
-                && integExportDocumentLog.MessageTypeOutbound == _messageOutboundType
+                && integExportDocumentLog.ClassName == _className
                 && integExportDocumentLog.ExportStatus   == DEVIntegExportStatus::ToSend;
     
         if (integExportDocumentLog.RecId)
@@ -139,6 +139,16 @@ public class DEVIntegExportDocumentLog extends common
         }
     
         return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>messageTypeTableOutbound</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeTableOutbound messageTypeTableOutbound()
+    {
+        return DEVIntegMessageTypeTableOutbound::find(this.MessageTypeIdOutbound);
     }
 
 ]]></Source>
@@ -234,10 +244,13 @@ public class DEVIntegExportDocumentLog extends common
 			<Label>Overview</Label>
 			<Fields>
 				<AxTableFieldGroupField>
-					<DataField>DocumentId</DataField>
+					<DataField>MessageTypeIdOutbound</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>ExportStatus</DataField>
@@ -264,7 +277,7 @@ public class DEVIntegExportDocumentLog extends common
 					<DataField>InProgress</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>MessageTypeOutbound</DataField>
+					<DataField>ClassName</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -277,6 +290,30 @@ public class DEVIntegExportDocumentLog extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>RefTableId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>OverviewNoResponse</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeIdOutbound</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocumentId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExportStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StatusChangeDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassName</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -372,6 +409,18 @@ public class DEVIntegExportDocumentLog extends common
 			<Label>Document Id</Label>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassName</Name>
+			<ExtendedDataType>DEVIntegExportClassName</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MessageTypeIdOutbound</Name>
+			<ExtendedDataType>DEVIntegMessageTypeIdOutbound</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>
@@ -443,6 +492,23 @@ public class DEVIntegExportDocumentLog extends common
 					<Name>DocumentId</Name>
 					<Field>DocumentId</Field>
 					<RelatedField>AccountNum</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegMessageTypeTableOutbound</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DEVIntegMessageTypeTableOutbound</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageTypeIdOutbound</Name>
+					<Field>MessageTypeIdOutbound</Field>
+					<RelatedField>MessageTypeIdOutbound</RelatedField>
 				</AxTableRelationConstraint>
 			</Constraints>
 		</AxTableRelation>

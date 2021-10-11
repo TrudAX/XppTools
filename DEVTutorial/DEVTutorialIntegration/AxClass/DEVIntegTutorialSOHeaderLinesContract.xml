@@ -3,19 +3,13 @@
 	<Name>DEVIntegTutorialSOHeaderLinesContract</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-/// <summary>
-/// DEVIntegTutorialSOHeaderLinesContract class.
-/// </summary>
 [DataContractAttribute('lines')]
 class DEVIntegTutorialSOHeaderLinesContract
 {
     private real            lineQuantity;
     private real            linePrice;
-    private str             lineMagentoId;
-    private real            lineDiscountAmount;
     private str             lineDescription;
     private str             lineItemBarcode;
-
 
 }
 ]]></Declaration>
@@ -23,11 +17,6 @@ class DEVIntegTutorialSOHeaderLinesContract
 			<Method>
 				<Name>parmLineQuantity</Name>
 				<Source><![CDATA[
-    /// <summary>
-    /// Standard parm method.
-    /// </summary>
-    /// <param name = "_lineQuantity">Value to set.</param>
-    /// <returns>Return value.</returns>
     [DataMemberAttribute('lineQuantity')]
     public real parmLineQuantity(real _lineQuantity = lineQuantity)
     {
@@ -41,11 +30,6 @@ class DEVIntegTutorialSOHeaderLinesContract
 			<Method>
 				<Name>parmLinePrice</Name>
 				<Source><![CDATA[
-    /// <summary>
-    /// Standard parm method.
-    /// </summary>
-    /// <param name = "_linePrice">Value to set.</param>
-    /// <returns>Return value.</returns>
     [DataMemberAttribute('linePrice')]
     public real parmLinePrice(real _linePrice = linePrice)
     {
@@ -57,49 +41,8 @@ class DEVIntegTutorialSOHeaderLinesContract
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>parmLineMagentoId</Name>
-				<Source><![CDATA[
-    /// <summary>
-    /// Standard parm method.
-    /// </summary>
-    /// <param name = "_lineMagentoId">Value to set.</param>
-    /// <returns>Return value.</returns>
-    [DataMemberAttribute('lineMagentoId')]
-    public str parmLineMagentoId(str _lineMagentoId = lineMagentoId)
-    {
-        lineMagentoId = _lineMagentoId;
-    
-        return lineMagentoId;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>parmLineDiscountAmount</Name>
-				<Source><![CDATA[
-    /// <summary>
-    /// Standard parm method.
-    /// </summary>
-    /// <param name = "_lineDiscountAmount">Value to set.</param>
-    /// <returns>Return value.</returns>
-    [DataMemberAttribute('lineDiscountAmount')]
-    public real parmLineDiscountAmount(real _lineDiscountAmount = lineDiscountAmount)
-    {
-        lineDiscountAmount = _lineDiscountAmount;
-    
-        return lineDiscountAmount;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
 				<Name>parmLineDescription</Name>
 				<Source><![CDATA[
-    /// <summary>
-    /// Standard parm method.
-    /// </summary>
-    /// <param name = "_lineDescription">Value to set.</param>
-    /// <returns>Return value.</returns>
     [DataMemberAttribute('lineDescription')]
     public str parmLineDescription(str _lineDescription = lineDescription)
     {
@@ -113,11 +56,6 @@ class DEVIntegTutorialSOHeaderLinesContract
 			<Method>
 				<Name>parmLineItemBarcode</Name>
 				<Source><![CDATA[
-    /// <summary>
-    /// Standard parm method.
-    /// </summary>
-    /// <param name = "_lineItemBarcode">Value to set.</param>
-    /// <returns>Return value.</returns>
     [DataMemberAttribute('lineItemBarcode')]
     public str parmLineItemBarcode(str _lineItemBarcode = lineItemBarcode)
     {

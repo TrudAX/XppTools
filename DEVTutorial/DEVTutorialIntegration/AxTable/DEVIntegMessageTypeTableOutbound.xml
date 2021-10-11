@@ -30,19 +30,53 @@ public class DEVIntegMessageTypeTableOutbound extends common
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>findByType</Name>
+				<Name>findEnabled</Name>
 				<Source><![CDATA[
-    public static DEVIntegMessageTypeTableOutbound findByType(DEVIntegMessageTypeOutbound _messageTypeOutbound,
-                                                               boolean                      _forUpdate = false)
+    public static DEVIntegMessageTypeTableOutbound findEnabled(Name                 _className,
+                                                               boolean              _forUpdate = false)
     {
         DEVIntegMessageTypeTableOutbound integMessageTypeTableOutbound;
     
         integMessageTypeTableOutbound.selectForUpdate(_forUpdate);
     
         select firstonly integMessageTypeTableOutbound
-            where integMessageTypeTableOutbound.MessageTypeOutbound == _messageTypeOutbound;
+            order by MessageTypeIdOutbound
+            where integMessageTypeTableOutbound.ClassName  == _className &&
+                  integMessageTypeTableOutbound.IsEnabled  == true;
     
         return integMessageTypeTableOutbound;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connectionType</Name>
+				<Source><![CDATA[
+    DEVIntegConnectionType connectionType()
+    {
+        DEVIntegConnectionType  connectionType;
+        select connectionType
+            where connectionType.ConnectionTypeId == this.ConnectionTypeId;
+
+        return connectionType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getActionClass</Name>
+				<Source><![CDATA[
+    DEVIntegExportMessageBase getActionClass()
+    {
+        if (this.ClassName)
+        {
+            SysDictClass dc = new SysDictClass(className2Id(this.ClassName));
+            if (dc)
+            {
+                return dc.makeObject();
+            }
+        }
+        return null;
     }
 
 ]]></Source>
@@ -110,11 +144,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
 		<AxTableFieldGroup>
 			<Name>AutoIdentification</Name>
 			<AutoPopulate>Yes</AutoPopulate>
-			<Fields>
-				<AxTableFieldGroupField>
-					<DataField>MessageTypeIdOutbound</DataField>
-				</AxTableFieldGroupField>
-			</Fields>
+			<Fields />
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
 			<Name>AutoSummary</Name>
@@ -132,9 +162,6 @@ public class DEVIntegMessageTypeTableOutbound extends common
 					<DataField>MessageTypeIdOutbound</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>MessageTypeOutbound</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
 					<DataField>IsEnabled</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
@@ -144,7 +171,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<Label>Processing</Label>
 			<Fields>
 				<AxTableFieldGroupField>
-					<DataField>MessageTypeOutbound</DataField>
+					<DataField>ClassName</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -154,9 +181,6 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<Fields>
 				<AxTableFieldGroupField>
 					<DataField>MessageTypeIdOutbound</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>MessageTypeOutbound</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>IsEnabled</DataField>
@@ -180,18 +204,12 @@ public class DEVIntegMessageTypeTableOutbound extends common
 					<DataField>ConnectionTypeId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>MessageTypeOutbound</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>OutputFolder</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
 					<DataField>IsEnabled</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
-			<Name>SourceGroup</Name>
+			<Name>SourceGroupFileShare</Name>
 			<Label>Export destination</Label>
 			<Fields>
 				<AxTableFieldGroupField>
@@ -199,6 +217,33 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>OutputFolder</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ListGroup</Name>
+			<Label>List</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeIdOutbound</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsEnabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SourceGroupServiceBus</Name>
+			<Label>Service Bus</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ConnectionTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ServiceBusQueueName</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -231,15 +276,22 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
-			i:type="AxTableFieldEnum">
-			<Name>MessageTypeOutbound</Name>
-			<EnumType>DEVIntegMessageTypeOutbound</EnumType>
-		</AxTableField>
-		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>OutputFolder</Name>
 			<ExtendedDataType>FilePath</ExtendedDataType>
 			<Label>Output folder</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegExportClassName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ServiceBusQueueName</Name>
+			<ExtendedDataType>BusinessEventsServiceBusQueueEndpointQueueName</ExtendedDataType>
+			<Label>Queue name</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
@@ -257,7 +309,10 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<Name>MessageTypeIdx</Name>
 			<Fields>
 				<AxTableIndexField>
-					<DataField>MessageTypeOutbound</DataField>
+					<DataField>ClassName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>IsEnabled</DataField>
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>

@@ -9,6 +9,7 @@ using System.IO;
 
 class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
 {
+    QueueClient  serviceBusClientInternal;
 }
 ]]></Declaration>
 		<Methods>
@@ -33,11 +34,12 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
         BrokeredMessage  brokeredMessage;
 		
         brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(10));
+        
         while (brokeredMessage != null)
         {
 			//process message
             ttsbegin;
-			Stream   streamLocal = this.getBodyMessage(brokeredMessage);
+            Stream   streamLocal = this.getBodyMessage(brokeredMessage);
 
 			DEVIntegMessageCreator messageCreator = DEVIntegMessageCreator::construct();
 
@@ -143,6 +145,134 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
         {
             throw error("Test Failed");
         }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testOutboundConnection</Name>
+				<Source><![CDATA[
+    void testOutboundConnection(DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
+    {
+        boolean testisOK = true;
+        int     recordCount;
+        try
+        {
+            str					connectionString = _messageTypeTableOutbound.connectionType().AzureConnectionString;
+
+            if (! _messageTypeTableOutbound.ServiceBusQueueName)
+            {
+                throw error(strFmt("Message type %1. Service Bus QueueName is not specified", _messageTypeTableOutbound.MessageTypeIdOutbound));
+            }
+
+            QueueClient      serviceBusClient = QueueClient::CreateFromConnectionString(connectionString, _messageTypeTableOutbound.ServiceBusQueueName);
+            BrokeredMessage  brokeredMessage;
+            info("Connection is successfull, peeking 3 messages");
+            brokeredMessage = serviceBusClient.Peek();
+
+            while (brokeredMessage != null)
+            {
+                Stream   streamLocal = this.getBodyMessage(brokeredMessage);
+
+                StreamReader reader = new StreamReader(streamLocal);
+                System.String currentMessageData = reader.ReadToEnd();
+
+                info(strFmt("MessageID = %1, Message body %2", brokeredMessage.MessageId, currentMessageData));
+
+                recordCount++;
+
+                brokeredMessage = serviceBusClient.Peek();
+
+                if (recordCount > 3)
+                {
+                    break;
+                }
+            }
+            serviceBusClient.Close();
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+        catch
+        {
+            testisOK = false;
+        }
+        if (testisOK)
+        {
+            info("Test is OK");
+        }
+        else
+        {
+            throw error("Test Failed");
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromOutboundMessage</Name>
+				<Source><![CDATA[
+    public void initFromOutboundMessage(DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
+    {
+        str					connectionString = _messageTypeTableOutbound.connectionType().AzureConnectionString;
+        ;
+        if (! _messageTypeTableOutbound.ServiceBusQueueName)
+        {
+            throw error(strFmt("Message type %1. Service Bus QueueName is not specified", _messageTypeTableOutbound.MessageTypeIdOutbound));
+        }
+        try
+        {
+            serviceBusClientInternal = QueueClient::CreateFromConnectionString(connectionString, _messageTypeTableOutbound.ServiceBusQueueName);
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructFromOutboundMessage</Name>
+				<Source><![CDATA[
+    static public DEVIntegMessagesLoadAzureServiceBus constructFromOutboundMessage(DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
+    {
+        DEVIntegMessagesLoadAzureServiceBus  messagesLoadAzureServiceBus = new DEVIntegMessagesLoadAzureServiceBus();
+
+        messagesLoadAzureServiceBus.initFromOutboundMessage(_messageTypeTableOutbound);
+        return messagesLoadAzureServiceBus;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendMessage</Name>
+				<Source><![CDATA[
+    public void sendMessage(str  _messageData, str _messageLabel = '')
+    {
+        try
+        {
+            MemoryStream stream = new MemoryStream();
+            var writer = new StreamWriter(stream);
+            writer.Write(_messageData);
+            writer.Flush();
+            stream.Position = 0;
+
+            BrokeredMessage  brokeredMessage;
+            brokeredMessage = new BrokeredMessage(stream);
+            if (_messageLabel)
+            {
+                brokeredMessage.Label = _messageLabel;
+            }
+            serviceBusClientInternal.Send(brokeredMessage);
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+
     }
 
 ]]></Source>

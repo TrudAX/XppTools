@@ -7,7 +7,7 @@
 {
     "storeId": "USMF",
     "customerId": "US-002",
-    "webOrderNumber": "ABCDEFG",
+    "externalOrderNumber": "ABCDEFG",
     "lines": [
         {
             "lineQuantity": 1,
@@ -245,9 +245,10 @@ class DEVIntegTutorialImportSalesTableJSON extends DEVIntegProcessMessageBase
         int lineNum;
 
         salesTableStaging = null;
-        salesTableStaging.CompanyId    = tutorialSOHeaderContract.parmStoreId();
-        salesTableStaging.CustAccount  = tutorialSOHeaderContract.parmCustomerId();
-        salesTableStaging.MessageId    = messageTable.RecId;
+        salesTableStaging.CompanyId        = tutorialSOHeaderContract.parmStoreId();
+        salesTableStaging.CustAccount      = tutorialSOHeaderContract.parmCustomerId();
+        salesTableStaging.ExternalOrderId  = tutorialSOHeaderContract.parmExternalOrderNumber();
+        salesTableStaging.MessageId        = messageTable.RecId;
 
         DEV::validateWriteRecordCheck(salesTableStaging);
         salesTableStaging.insert();

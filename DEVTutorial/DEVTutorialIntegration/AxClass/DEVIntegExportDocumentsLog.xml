@@ -12,8 +12,8 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
 
     DialogField            dlgDummy;
 
-    DEVIntegMessageTypeTableOutbound       messageTypeTableOutbound;
-
+    DEVIntegMessagesLoadAzureServiceBus     loadAzureServiceBusCache;
+    str                                     loadAzureServiceBusCacheKey;
 
     #define.CurrentVersion(1)
     #localmacro.CurrentList
@@ -66,10 +66,16 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
     public void initQuery()
     {
         Query                   query = new Query();
-        QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEVIntegExportDocumentLog));
+        QueryBuildDataSource    qbds;
         QueryBuildRange         qBR;
         ;
-    
+        qbds = query.addDataSource(tablenum(DEVIntegMessageTypeTableOutbound));
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTypeTableOutbound, IsEnabled));
+        qBR.status(RangeStatus::Locked);
+        qBR.value(SysQuery::value(NoYes::Yes));
+
+        qbds = qbds.addDataSource(tablenum(DEVIntegExportDocumentLog));
+        qbds.relations(true);
         qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegExportDocumentLog, ExportStatus));
         qBR.status(RangeStatus::Locked);
         qBR.value(SysQuery::value(DEVIntegExportStatus::ToSend));
@@ -120,115 +126,6 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>processExportDocumentLog</Name>
-				<Source><![CDATA[
-    public void processExportDocumentLog(DEVIntegExportDocumentLog _exportDocumentLog)
-    {
-        messageTypeTableOutbound = DEVIntegMessageTypeTableOutbound::findByType(_exportDocumentLog.MessageTypeOutbound);
-    
-        if (! messageTypeTableOutbound.OutputFolder)
-        {
-            throw error(strFmt("Export directory is not specified"));
-        }
-    
-        if (_exportDocumentLog.RefTableId == tableNum(VendTable))
-        {
-            this.processVendorVendTableLog(_exportDocumentLog);
-        }
-        else if (_exportDocumentLog.RefTableId == tableNum(VendInvoiceJour))
-        {
-            this.processVendorVendInvoiceJourLog(_exportDocumentLog);
-        }
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>processVendorVendInvoiceJourLog</Name>
-				<Source><![CDATA[
-    public void processVendorVendInvoiceJourLog(DEVIntegExportDocumentLog    _exportDocumentLog)
-    {
-        /*
-
-        RefRecId                        refRecIf;
-        DEVIntegExportDocumentLog              exportDocumentLogUpd;
-        DEVVendorXMLFileSequence       messageId;
-
-        DEVVendorInvoiceXMLExport      vendorInvoiceXMLExport;
-        VendInvoiceJour                 vendInvoiceJour = VendInvoiceJour::findRecId(_exportDocumentLog.RefRecId);
-        ;
-        setPrefix(strFmt("Vendor invoice journal %1-%2, Company %3", vendInvoiceJour.PurchId, vendInvoiceJour.InvoiceId, _exportDocumentLog.CompanyId));
-    
-        ttsBegin;
-    
-        vendorInvoiceXMLExport = new DEVVendorInvoiceXMLExport();
-    
-        messageId = vendorInvoiceXMLExport.getFileSequenceNumber();
-        vendorInvoiceXMLExport.parmFileSequenceNum(messageId);
-        vendorInvoiceXMLExport.parmFilePath(messageTypeTableOutbound.OutputFolder);
-        vendorInvoiceXMLExport.initFromExportDocumentLog(_exportDocumentLog);
-        vendorInvoiceXMLExport.run();
-    
-        refRecIf = _exportDocumentLog.recVersion;
-        exportDocumentLogUpd = DEVIntegExportDocumentLog::findRecId(_exportDocumentLog.RecId, true);
-        if (exportDocumentLogUpd.RecId && exportDocumentLogUpd.recVersion == refRecIf)
-        {
-            exportDocumentLogUpd.ExportStatus     = DEVIntegExportStatus::Sent;
-            exportDocumentLogUpd.SendMessageID    = messageId;
-            exportDocumentLogUpd.StatusChangeDate = DateTimeUtil::utcNow();
-            exportDocumentLogUpd.update();
-    
-        }
-    
-        ttsCommit;
-    */
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>processVendorVendTableLog</Name>
-				<Source><![CDATA[
-    void processVendorVendTableLog(DEVIntegExportDocumentLog    _exportDocumentLog)
-    {
-        /*
-        RefRecId                refRecIf;
-        DEVIntegExportDocumentLog      exportDocumentLogUpd;
-        DEVVendorXMLFileSequence       messageId;
-
-        DEVVendorXMLExport    vendorXMLExport;
-        ;
-        setPrefix(strFmt("Vendor %1, Company %2", _exportDocumentLog.VendAccount, _exportDocumentLog.CompanyId));
-    
-        ttsBegin;
-    
-        vendorXMLExport = new DEVVendorXMLExport();
-    
-        messageId = vendorXMLExport.getFileSequenceNumber();
-        vendorXMLExport.parmFileSequenceNum(messageId);
-        vendorXMLExport.parmFilePath(messageTypeTableOutbound.OutputFolder);
-        vendorXMLExport.initFromExportDocumentLog(_exportDocumentLog);
-        vendorXMLExport.run();
-    
-        refRecIf = _exportDocumentLog.recVersion;
-        exportDocumentLogUpd = DEVIntegExportDocumentLog::findRecId(_exportDocumentLog.RecId, true);
-        if (exportDocumentLogUpd.RecId && exportDocumentLogUpd.recVersion == refRecIf)
-        {
-            exportDocumentLogUpd.ExportStatus     = DEVIntegExportStatus::Sent;
-            exportDocumentLogUpd.SendMessageID    = messageId;
-            exportDocumentLogUpd.StatusChangeDate = DateTimeUtil::utcNow();
-            exportDocumentLogUpd.update();
-    
-        }
-    
-        ttsCommit;
-*/
-    
-    }
-
-]]></Source>
-			</Method>
-			<Method>
 				<Name>queryRun</Name>
 				<Source><![CDATA[
     public QueryRun queryRun()
@@ -241,31 +138,153 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>processExportDocumentLog</Name>
+				<Source><![CDATA[
+    public void processExportDocumentLog(DEVIntegExportDocumentLog _exportDocumentLog, DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
+    {
+        DEVIntegExportDocumentLog    exportDocumentLogUpd;
+        DEVIntegExportMessageBase    exportMessageBase;
+        RefRecId                     refRecIf;
+        str                          loadAzureServiceBusCacheKeyLocal;
+        CompanyId                    companyId;
+
+        companyId = _exportDocumentLog.CompanyId;
+        if (! xDataArea::exist(companyId))
+        {
+            companyId = curExt();
+        }
+        changecompany(_exportDocumentLog.CompanyId)
+        {
+            exportMessageBase = _messageTypeTableOutbound.getActionClass();
+            exportMessageBase.parmMessageTypeTableOutbound(_messageTypeTableOutbound);
+            
+            ttsBegin;
+            if (_messageTypeTableOutbound.connectionType().ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus)
+            {
+                loadAzureServiceBusCacheKeyLocal = strFmt('%1,%2', _messageTypeTableOutbound.ConnectionTypeId, _messageTypeTableOutbound.ServiceBusQueueName);
+
+                if (! loadAzureServiceBusCache || loadAzureServiceBusCacheKeyLocal != loadAzureServiceBusCacheKey)
+                {
+                    loadAzureServiceBusCache = DEVIntegMessagesLoadAzureServiceBus::constructFromOutboundMessage(_messageTypeTableOutbound);
+                    loadAzureServiceBusCacheKey = loadAzureServiceBusCacheKeyLocal;
+                }
+                exportMessageBase.exportServiceBusMessage(_exportDocumentLog, loadAzureServiceBusCache);
+            }
+    
+            refRecIf = _exportDocumentLog.recVersion;
+            exportDocumentLogUpd = DEVIntegExportDocumentLog::findRecId(_exportDocumentLog.RecId, true);
+            if (exportDocumentLogUpd.RecId && exportDocumentLogUpd.recVersion == refRecIf)
+            {
+                exportDocumentLogUpd.ExportStatus     = DEVIntegExportStatus::Sent;
+                exportDocumentLogUpd.StatusChangeDate = DateTimeUtil::utcNow();
+                exportDocumentLogUpd.update();
+            }
+    
+            ttsCommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processOutboundFolder</Name>
+				<Source><![CDATA[
+    public void processOutboundFolder(DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
+    {
+        DEVIntegMessageTypeTableOutbound  messageTypeTableOutbound;
+        Query                        localQuery = new Query();
+        QueryBuildDataSource         qbds;
+        QueryRun                     localQueryRun;
+        
+       
+        DEVIntegExportDocumentLog    exportDocumentLog;
+        QueryBuildRange              qBR;
+
+        int                          processedCounter;
+
+        ;
+        loadAzureServiceBusCache = null;
+        localQuery = new Query();
+        qbds = localQuery.addDataSource(tablenum(DEVIntegExportDocumentLog));
+        DEV::copyRanges(qbds, queryRun.query().dataSourceTable(tablenum(DEVIntegExportDocumentLog)));
+        qbds.sortClear();
+        qbds.addSortField(fieldNum(DEVIntegExportDocumentLog, CreatedDateTime));
+        qbds.addSortField(fieldNum(DEVIntegExportDocumentLog, RecId));
+
+        qbds = qbds.addDataSource(tablenum(DEVIntegMessageTypeTableOutbound));
+        qbds.relations(true);
+        DEV::copyRanges(qbds, queryRun.query().dataSourceTable(tablenum(DEVIntegMessageTypeTableOutbound)));
+        
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTypeTableOutbound, ConnectionTypeId));
+        qBR.value(SysQuery::value(_messageTypeTableOutbound.ConnectionTypeId));
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTypeTableOutbound, ServiceBusQueueName));
+        qBR.value(SysQuery::value(_messageTypeTableOutbound.ServiceBusQueueName));
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTypeTableOutbound, OutputFolder));
+        qBR.value(SysQuery::value(_messageTypeTableOutbound.OutputFolder));
+
+        localQueryRun = new QueryRun(localQuery);
+        while (localQueryRun.next())
+        {
+            messageTypeTableOutbound = localQueryRun.get(tablenum(DEVIntegMessageTypeTableOutbound));
+            exportDocumentLog = localQueryRun.get(tablenum(DEVIntegExportDocumentLog));
+
+            this.processExportDocumentLog(exportDocumentLog, messageTypeTableOutbound);
+            processedCounter++;
+
+        }
+        info(strfmt("%1 %2%3: %4 record(s) processed", 
+            _messageTypeTableOutbound.ConnectionTypeId, _messageTypeTableOutbound.ServiceBusQueueName, _messageTypeTableOutbound.OutputFolder,
+            processedCounter));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>run</Name>
 				<Source><![CDATA[
     public void run()
     {
-        int                     processedCounter;
-        DEVIntegExportDocumentLog      exportDocumentLog;
+
+
+        Query                   groupByQuery = new Query();
+        QueryRun                groupByQueryRun;
+        QueryBuildDataSource    qbds;
+        DEVIntegMessageTypeTableOutbound  messageTypeTableOutbound;
         ;
+        qbds = groupByQuery.addDataSource(tablenum(DEVIntegMessageTypeTableOutbound));
+        DEV::copyRanges(qbds, queryRun.query().dataSourceTable(tablenum(DEVIntegMessageTypeTableOutbound)));
+        qbds.addGroupByField(fieldNum(DEVIntegMessageTypeTableOutbound, ConnectionTypeId));
+        qbds.addGroupByField(fieldNum(DEVIntegMessageTypeTableOutbound, ServiceBusQueueName));
+        qbds.addGroupByField(fieldNum(DEVIntegMessageTypeTableOutbound, OutputFolder));
+        qbds.orderMode(OrderMode::GroupBy);
+
+        qbds = qbds.addDataSource(tablenum(DEVIntegExportDocumentLog));
+        qbds.relations(true);
+        qbds.orderMode(OrderMode::GroupBy);
+        DEV::copyRanges(qbds, queryRun.query().dataSourceTable(tablenum(DEVIntegExportDocumentLog)));
+        
+        groupByQueryRun = new QueryRun(groupByQuery);
+
         setPrefix(RunBase::getDescription(classIdGet(this)));
     
-        this.progressInit(RunBase::getDescription(classIdGet(this)),
-                          SysQuery::countTotal(queryRun),
-                          #AviSearch);
-    
-        while (queryRun.next())
+
+        while (groupByQueryRun.next())
         {
+            messageTypeTableOutbound = groupByQueryRun.get(tablenum(DEVIntegMessageTypeTableOutbound));
+            this.processOutboundFolder(messageTypeTableOutbound);
+
+            /*
+
             exportDocumentLog = queryRun.get(tablenum(DEVIntegExportDocumentLog));
             changeCompany(exportDocumentLog.CompanyId)
             {
                 this.processExportDocumentLog(exportDocumentLog);
             }
             processedCounter++;
-            progress.incCount();
+            */
     
         }
-        info(strfmt("%1 record(s) processed", processedCounter));
+        
     }
 
 ]]></Source>
@@ -330,7 +349,7 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
     {
         ;
     
-        return "Export vendor from log";
+        return "Export messages from log";
     }
 
 ]]></Source>
@@ -340,10 +359,10 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
 				<Source><![CDATA[
     static void exportSelectedRecords(DEVIntegExportDocumentLog    _exportDocumentLog)
     {
-        FormDataSource          exportDocumentLogDS;
-        DEVIntegExportDocumentLog      exportDocumentLog;
-        DEVIntegExportDocumentsLog  integExportVendors = DEVIntegExportDocumentsLog::construct();
-        int                     processedCounter;
+        FormDataSource                exportDocumentLogDS;
+        DEVIntegExportDocumentLog     exportDocumentLog;
+        DEVIntegExportDocumentsLog    integExportDocumentLog = DEVIntegExportDocumentsLog::construct();
+        int                           processedCounter;
         ;
         exportDocumentLogDS = FormDataUtil::getFormDataSource(_exportDocumentLog);
     
@@ -351,7 +370,7 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
             exportDocumentLog.RecId;
             exportDocumentLog = exportDocumentLogDS.getNext())
         {
-            integExportVendors.processExportDocumentLog(exportDocumentLog);
+            integExportDocumentLog.processExportDocumentLog(exportDocumentLog, exportDocumentLog.messageTypeTableOutbound());
             processedCounter++;
         }
         DEV::dsResearch(_exportDocumentLog);

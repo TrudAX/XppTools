@@ -57,6 +57,9 @@ public class DEVIntegMessageTable extends FormRun
     
             ViewDMFResultButton.visible(DEVIntegMessageTable.DocumentDescription &&
                         DEVIntegMessageTable.messageTypeTable().ClassName == classId2Name(classNum(DEVIntegProcessDMF)));
+
+            DataStrTabPage.visible(DEVIntegMessageTable.messageTypeTable().connectionType().ConnectionTypeResource ==
+                              DEVIntegConnectionTypeResource::AzureServiceBus);
            
 
             return ret;
@@ -325,6 +328,50 @@ public class DEVIntegMessageTable extends FormRun
 			</Fields>
 			<ReferencedDataSources />
 			<JoinSource>DEVIntegMessageTable</JoinSource>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>DEVIntegMessageData</Name>
+			<Table>DEVIntegMessageData</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CreatedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileData</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileDataStr</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MessageRefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>DEVIntegMessageTable</JoinSource>
+			<OnlyFetchActive>Yes</OnlyFetchActive>
 			<AllowCreate>No</AllowCreate>
 			<AllowDelete>No</AllowDelete>
 			<AllowEdit>No</AllowEdit>
@@ -719,6 +766,31 @@ public class DEVIntegMessageTable extends FormRun
 						</Controls>
 						<ColumnsMode>Fill</ColumnsMode>
 						<Caption>Details</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>DataStrTabPage</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Pattern>FillText</Pattern>
+						<PatternVersion>UX7 1.0</PatternVersion>
+						<Type>TabPage</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>DEVIntegMessageData_FileDataStr</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>FileDataStr</DataField>
+								<DataSource>DEVIntegMessageData</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>Data</Caption>
 					</AxFormControl>
 				</Controls>
 			</AxFormControl>
