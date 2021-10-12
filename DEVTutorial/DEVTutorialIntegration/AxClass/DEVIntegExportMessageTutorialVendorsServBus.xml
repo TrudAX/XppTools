@@ -109,7 +109,7 @@ class DEVIntegExportMessageTutorialVendorsServBus extends DEVIntegExportMessageB
         ;
         if(this.isNeedToCreateLog(_vendTable))
         {
-            this.createLog(_vendTable);
+            this.createLog(_vendTable, _vendTable.AccountNum);
         }
     }
 
