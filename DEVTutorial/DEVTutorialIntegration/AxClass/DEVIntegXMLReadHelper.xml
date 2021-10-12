@@ -118,6 +118,44 @@ class DEVIntegXMLReadHelper
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>xmlGetValueNodeInt</Name>
+				<Source><![CDATA[
+    int xmlGetValueNodeInt(System.Xml.XmlNode  _node, str _path, boolean _checkNodeExist = true)
+    {
+        System.Xml.XmlNode  nodeInner;
+        int                 res;
+        ;
+        nodeInner = this.xmlGetNodeByPath(_node, _path, _checkNodeExist);
+        if (nodeInner)
+        {
+            str s = nodeInner.get_InnerText();
+            res = str2Int(s);
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>xmlGetValueNodeInt64</Name>
+				<Source><![CDATA[
+    int64 xmlGetValueNodeInt64(System.Xml.XmlNode  _node, str _path, boolean _checkNodeExist = true)
+    {
+        System.Xml.XmlNode  nodeInner;
+        int64               res;
+        ;
+        nodeInner = this.xmlGetNodeByPath(_node, _path, _checkNodeExist);
+        if (nodeInner)
+        {
+            str s = nodeInner.get_InnerText();
+            res = str2Int64(s);
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>xmlGetValueNodeStr</Name>
 				<Source><![CDATA[
     str xmlGetValueNodeStr(System.Xml.XmlNode  _node, str _path)
@@ -157,6 +195,33 @@ class DEVIntegXMLReadHelper
     real xmlStr2Real(str _text)
     {
         return str2num(_text);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNodeListByTagName</Name>
+				<Source><![CDATA[
+    public System.Xml.XmlNodeList getNodeListByTagName(str _strXML, TempStr _tagName)
+    {
+        System.Xml.XmlDataDocument  xmldoc;
+        System.Xml.XmlNodeList      nodeList;
+        ;
+   
+        if (_strXML)
+        {
+            xmldoc = new System.Xml.XmlDataDocument();
+            xmldoc.LoadXml(_strXML);
+    
+            nodeList = xmldoc.GetElementsByTagName(_tagName);
+        }
+        if (! nodeList
+            || nodeList.Count == 0)
+        {
+            throw error(strFmt("Element %1 is not found", _tagName));
+        }
+
+        return nodeList;
     }
 
 ]]></Source>
