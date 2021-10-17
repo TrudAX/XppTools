@@ -16,18 +16,27 @@ class DEVIntegProcessDMF extends DEVIntegProcessMessageBase
         messageTable         =  _messageTable;
         messageProcessResult =  _messageProcessResult;
 
-        container conFileParts = str2con_RU(messageTable.Name, '_');
-        if (conLen(conFileParts) < 2)
+        if (_messageTable.messageTypeTable().isFileBasedConnection())
         {
-            throw error(strFmt("File name %1 should contain CompanyId and Number separated by '_'", messageTable.Name));
-        }
-        CompanyId  companyId = conPeek(conFileParts, 1);
-        if (! CompanyInfo::findDataArea(companyId))
-        {
-            throw error(strFmt("File %1. Company %2 doesn't exist", messageTable.Name, companyId));
-        }
+            container conFileParts = str2con_RU(messageTable.Name, '_');
+            if (conLen(conFileParts) < 2)
+            {
+                throw error(strFmt("File name %1 should contain CompanyId and Number separated by '_'", messageTable.Name));
+            }
+            CompanyId  companyId = conPeek(conFileParts, 1);
+            if (! CompanyInfo::findDataArea(companyId))
+            {
+                throw error(strFmt("File %1. Company %2 doesn't exist", messageTable.Name, companyId));
+            }
 
-        changecompany(companyId)
+            changecompany(companyId)
+            {
+                str fileId = this.readFileToStorage();
+
+                this.executeDMFImport(fileId);
+            }
+        }
+        else
         {
             str fileId = this.readFileToStorage();
 
@@ -68,7 +77,8 @@ class DEVIntegProcessDMF extends DEVIntegProcessMessageBase
             }
             else
             {
-                execution.delete();
+                execution.FilePath = '';
+                execution.update();
             }
         }
 
@@ -154,6 +164,9 @@ class DEVIntegProcessDMF extends DEVIntegProcessMessageBase
     {
         return "DMF Import";
     }
+
+    //http://mukesh-ax.blogspot.com/2018/07/dynamics-365-operations-composite-data.html
+    //for composite entity
 
 ]]></Source>
 			</Method>

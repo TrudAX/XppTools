@@ -175,6 +175,11 @@ public class DEVIntegMessageProcessor
             isErrorCaught   = true;
             exception       = Exception::CLRError;
         }
+        catch
+        {
+            isErrorCaught   = true;
+            exception       = Exception::Error;
+        }
 
         if (isErrorCaught)
         {

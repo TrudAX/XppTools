@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>TST_ReadAzureServiceBus</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.ServiceBus.Messaging;
+using System.Reflection;
+using System.IO;
+
+
+class TST_ReadAzureServiceBus
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Runs the class with the specified arguments.
+    /// </summary>
+    /// <param name = "_args">The specified arguments.</param>
+    public static void main(Args _args)
+    {
+        int                 recordCount;
+        str					connectionString = @"Endpoint=";
+        ;
+
+        try
+        {
+            QueueClient  serviceBusClient = QueueClient::CreateFromConnectionString(connectionString, "transformed-web-sales");
+
+            
+			//var factory = MessagingFactory::CreateFromConnectionString(connectionString);
+			//MessageReceiver messageReceiver = factory.CreateMessageReceiver(_messageTypeTable.ServiceBusQueueName);
+
+			//messageReceiver.Receive(
+
+			BrokeredMessage  brokeredMessage;
+  
+            //brokeredMessage.
+			brokeredMessage = serviceBusClient.Peek();
+
+            System.Type ex = brokeredMessage.GetType();
+            System.Type[] types = new System.Type[0]();//[0];// = CLRObject::;
+            //System.Object[] params = new  System.Object[1]();
+            System.Reflection.MethodInfo mi = ex.GetMethod("GetBody", types);
+
+            //DisplayGenericMethodInfo(mi);
+
+            // Assign the int type to the type parameter of the Example
+            // method.
+            //
+            System.String  s11, s1;
+            System.Reflection.MethodInfo miConstructed = mi.MakeGenericMethod(System.Type::GetType("System.IO.Stream"));
+            Stream stream = miConstructed.Invoke(brokeredMessage, null) as System.IO.Stream;
+            //Console.WriteLine("World" + o1.ToString());
+            StreamReader reader = new StreamReader(stream);
+            s11 = reader.ReadToEnd();
+
+            //s11 = miConstructed.Invoke(brokeredMessage, null);
+            s1 = brokeredMessage.MessageId;
+                
+            info(strFmt("message %1", s1));
+
+            //DisplayGenericMethodInfo(miConstructed);
+            info(strFmt("message body %1", s11));
+            // Invoke the method.
+
+			/*
+			while (brokeredMessage != null)
+			{
+				//process message
+
+				ttsbegin;
+				//s1 = brokeredMessage.GetBody<System.String>();
+
+				//messageCreator.initFromStreamCopy(_fileRef, memoryStream).createMessage(_messageTypeTable);
+				ttscommit;
+                typeof(ClassExample)
+    .GetMethod("DoSomething")
+    .MakeGenericMethod(p.DisplayType)
+
+                s1 = brokeredMessage.MessageId;
+                
+                info(strFmt("message %1", s1));
+
+				//brokeredMessage.Complete();
+				//serviceBusClient.Complete(brokeredMessage.LockToken);
+				brokeredMessage = serviceBusClient.Receive();
+			}
+			*/
+            serviceBusClient.Close();
+        }
+        catch(Exception::Error)
+        {
+        }
+        catch(Exception::CLRError)
+        {
+            error(AifUtil::getClrErrorMessage());
+        }
+
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

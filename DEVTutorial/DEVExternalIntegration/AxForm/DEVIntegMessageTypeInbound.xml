@@ -34,12 +34,13 @@ public class DEVIntegMessageTypeInbound extends FormRun
         ParmDMFImportGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegProcessDMF));
 
         DEVIntegConnectionType connectionType = DEVIntegMessageTypeInbound.connectionType();
+        boolean                isFileBasedConnection = DEVIntegMessageTypeInbound.isFileBasedConnection();
 
         SourceGroupServiceBus.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
         SourceGroupFileShare.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
         
-        DEVIntegManualTextImport.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
-        DEVIntegManualFileImport.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
+        DEVIntegManualTextImport.visible(! isFileBasedConnection);
+        DEVIntegManualFileImport.visible(DEVIntegMessageTypeInbound.isFileBasedConnection());
     }
 
 ]]></Source>
@@ -276,6 +277,16 @@ public class DEVIntegMessageTypeInbound extends FormRun
 								<FormControlExtension
 									i:nil="true" />
 								<Text>Test connection</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegMessageTable</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataSource>DEVIntegMessageTypeInbound</DataSource>
+								<MenuItemName>DEVIntegMessageTable</MenuItemName>
+								<Text>View messages</Text>
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormMenuFunctionButtonControl">

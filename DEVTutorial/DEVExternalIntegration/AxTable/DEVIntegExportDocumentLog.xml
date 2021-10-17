@@ -160,7 +160,7 @@ public class DEVIntegExportDocumentLog extends common
 	<TitleField1>DocumentId</TitleField1>
 	<TitleField2>CompanyId</TitleField2>
 	<CacheLookup>Found</CacheLookup>
-	<ClusteredIndex>CompanyVendIdx</ClusteredIndex>
+	<ClusteredIndex>CompanyDocIdx</ClusteredIndex>
 	<CreatedBy>Yes</CreatedBy>
 	<CreatedDateTime>Yes</CreatedDateTime>
 	<ModifiedBy>Yes</ModifiedBy>
@@ -371,11 +371,6 @@ public class DEVIntegExportDocumentLog extends common
 			<EnumType>NoYes</EnumType>
 		</AxTableField>
 		<AxTableField xmlns=""
-			i:type="AxTableFieldEnum">
-			<Name>MessageTypeOutbound</Name>
-			<EnumType>DEVIntegMessageTypeOutbound</EnumType>
-		</AxTableField>
-		<AxTableField xmlns=""
 			i:type="AxTableFieldInt64">
 			<Name>RefRecId</Name>
 			<ExtendedDataType>RefRecId</ExtendedDataType>
@@ -425,7 +420,7 @@ public class DEVIntegExportDocumentLog extends common
 	<FullTextIndexes />
 	<Indexes>
 		<AxTableIndex>
-			<Name>CompanyVendIdx</Name>
+			<Name>CompanyDocIdx</Name>
 			<AllowDuplicates>Yes</AllowDuplicates>
 			<Fields>
 				<AxTableIndexField>
@@ -446,7 +441,7 @@ public class DEVIntegExportDocumentLog extends common
 					<DataField>RefRecId</DataField>
 				</AxTableIndexField>
 				<AxTableIndexField>
-					<DataField>MessageTypeOutbound</DataField>
+					<DataField>MessageTypeIdOutbound</DataField>
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>

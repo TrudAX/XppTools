@@ -3,7 +3,7 @@
 	<AppliedUpdates xmlns:d2p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
 	<Customization>Allow</Customization>
 	<Description></Description>
-	<DisplayName>DEVTutorialIntegration</DisplayName>
+	<DisplayName>DEVExternalIntegration</DisplayName>
 	<Id>895972743</Id>
 	<InternalsVisibleTo xmlns:d2p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
 	<Layer>14</Layer>
@@ -39,7 +39,7 @@
 		<d2p1:string>Tax</d2p1:string>
 		<d2p1:string>UnitOfMeasure</d2p1:string>
 	</ModuleReferences>
-	<Name>DEVTutorialIntegration</Name>
+	<Name>DEVExternalIntegration</Name>
 	<Publisher>https://github.com/TrudAX/XppTools</Publisher>
 	<SolutionId>00000000-0000-0000-0000-000000000000</SolutionId>
 	<VersionBuild>0</VersionBuild>

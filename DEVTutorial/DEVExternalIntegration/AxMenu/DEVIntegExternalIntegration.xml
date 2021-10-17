@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxMenu xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
-	<Name>DEVIntegIntegrationSamples</Name>
+	<Name>DEVIntegExternalIntegration</Name>
 	<Label>External Integration</Label>
 	<Elements>
 		<AxMenuElement xmlns=""
@@ -24,23 +24,7 @@
 			i:type="AxMenuElementSubMenu">
 			<Name>Inquiries</Name>
 			<Label>Inquiries</Label>
-			<Elements>
-				<AxMenuElement xmlns=""
-					i:type="AxMenuElementMenuItem">
-					<Name>DEVIntegTutorialSalesTableStaging</Name>
-					<MenuItemName>DEVIntegTutorialSalesTableStaging</MenuItemName>
-				</AxMenuElement>
-				<AxMenuElement xmlns=""
-					i:type="AxMenuElementMenuItem">
-					<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
-					<MenuItemName>DEVIntegTutorialLedgerJourHeaderStaging</MenuItemName>
-				</AxMenuElement>
-				<AxMenuElement xmlns=""
-					i:type="AxMenuElementMenuItem">
-					<Name>DEVIntegTutorialStagingPurchOrder</Name>
-					<MenuItemName>DEVIntegTutorialStagingPurchOrder</MenuItemName>
-				</AxMenuElement>
-			</Elements>
+			<Elements />
 		</AxMenuElement>
 		<AxMenuElement xmlns=""
 			i:type="AxMenuElementSubMenu">
@@ -69,26 +53,9 @@
 		</AxMenuElement>
 		<AxMenuElement xmlns=""
 			i:type="AxMenuElementSubMenu">
-			<Name>PerfTesting</Name>
-			<Label>Perfromance testing</Label>
-			<Elements>
-				<AxMenuElement xmlns=""
-					i:type="AxMenuElementMenuItem">
-					<Name>TST_DEVIntegPerfTestSettings</Name>
-					<MenuItemName>TST_DEVIntegPerfTestSettings</MenuItemName>
-				</AxMenuElement>
-			</Elements>
-		</AxMenuElement>
-		<AxMenuElement xmlns=""
-			i:type="AxMenuElementSubMenu">
 			<Name>Setup</Name>
 			<Label>Setup</Label>
 			<Elements>
-				<AxMenuElement xmlns=""
-					i:type="AxMenuElementMenuItem">
-					<Name>DEVIntegParameters</Name>
-					<MenuItemName>DEVIntegParameters</MenuItemName>
-				</AxMenuElement>
 				<AxMenuElement xmlns=""
 					i:type="AxMenuElementMenuItem">
 					<Name>DEVIntegConnectionType</Name>

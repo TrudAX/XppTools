@@ -5,6 +5,8 @@
 		<Declaration><![CDATA[
 public class DEVIntegMessageTypeInbound extends common
 {
+
+
 }
 ]]></Declaration>
 		<Methods>
@@ -39,6 +41,35 @@ public class DEVIntegMessageTypeInbound extends common
             where connectionType.ConnectionTypeId == this.ConnectionTypeId;
 
         return connectionType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connectionTypeResource</Name>
+				<Source><![CDATA[
+    public DEVIntegConnectionTypeResource connectionTypeResource()
+    {
+        DEVIntegConnectionTypeResource  connectionTypeResource = this.connectionType().ConnectionTypeResource;
+
+        return connectionTypeResource;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isFileBasedConnection</Name>
+				<Source><![CDATA[
+    public boolean isFileBasedConnection()
+    {
+        boolean  res;
+        DEVIntegConnectionTypeResource connectionTypeResource = this.connectionTypeResource();
+        if (connectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare)
+        {
+            res = true;   
+        }
+
+        return res;
     }
 
 ]]></Source>

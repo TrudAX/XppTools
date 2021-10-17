@@ -24,7 +24,8 @@ This repository contains 3 D365FO models:
     - [-Parallel batch processing in X++](#-parallel-batch-processing-in-x)
   - [DEVTutorialReports submodel](#devtutorialreports-submodel)
     - [-Sales Invoice report](#-sales-invoice-report)
-  - [DEVTutorialIntegration submodel](#devtutorialintegration-submodel)
+  - [DEVExternalIntegration submodel](#devtutorialintegration-submodel)
+  - [DEVExternalIntegrationSamples submodel](#devtutorialintegration-submodel)
     - [-File-based integration in Dynamics 365 FinOps using X++](#-file-based-integration-in-dynamics-365-finops-using-x)
   - [Installation](#installation)
   - [Contribution](#contribution)
@@ -160,13 +161,17 @@ Contains report development examples
 
 A sample code to Create a new design for Sales Invoice report in D365FO (https://denistrunin.com/xpptools-reportsalesinvoice/)
 
-## DEVTutorialIntegration submodel
+## DEVExternalIntegration submodel
 
-Contains integration [samples](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVTutorialIntegration)
+Contains integration [core module](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegration) and [samples](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegrationSamples)
 
 ### -File-based integration in Dynamics 365 FinOps using X++
 
 A sample code for implementing file-based integration in Dynamics 365 FinOps using X++. Create Ledger journals based on periodic import of Excel/CSV files from Azure storage   (https://denistrunin.com/xpptools-fileintegledger/). Test files for Demo database [here](https://github.com/TrudAX/XppTools/blob/master/assets/TestPeriodicLedgerJournalImport.zip)
+
+### -Multicompany DMF integration in Dynamics 365 FinOps using X++
+
+A sample code to implement recurring file-based integration in D365FO using X++ and DMF   (https://denistrunin.com/xpptools-fileintegdmf/). 
 
 **[⬆ back to top](#XppTools)**
 
