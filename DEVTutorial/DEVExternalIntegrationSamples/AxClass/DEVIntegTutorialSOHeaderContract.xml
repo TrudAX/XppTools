@@ -9,7 +9,7 @@
 [DataContractAttribute('DEVIntegTutorialSOHeaderContract')]
 class DEVIntegTutorialSOHeaderContract
 {
-    private str             storeId;
+    private str             companyId;
     private str             customerId;
     private str             externalOrderNumber;
     private real            shippingAmount;
@@ -20,14 +20,14 @@ class DEVIntegTutorialSOHeaderContract
 ]]></Declaration>
 		<Methods>
 			<Method>
-				<Name>parmStoreId</Name>
+				<Name>parmCompanyId</Name>
 				<Source><![CDATA[
-    [DataMemberAttribute('storeId')]
-    public str parmStoreId(str _storeId = storeId)
+    [DataMemberAttribute('companyId')]
+    public str parmCompanyId(str _companyId = companyId)
     {
-        storeId = _storeId;
+        companyId = _companyId;
     
-        return storeId;
+        return companyId;
     }
 
 ]]></Source>

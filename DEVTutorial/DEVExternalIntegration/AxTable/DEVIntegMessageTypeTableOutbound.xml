@@ -247,6 +247,15 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Advanced</Name>
+			<Label>Advanced</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>OutboundLogType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -292,6 +301,11 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<Name>ServiceBusQueueName</Name>
 			<ExtendedDataType>BusinessEventsServiceBusQueueEndpointQueueName</ExtendedDataType>
 			<Label>Queue name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OutboundLogType</Name>
+			<EnumType>DEVIntegOutboundLogType</EnumType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

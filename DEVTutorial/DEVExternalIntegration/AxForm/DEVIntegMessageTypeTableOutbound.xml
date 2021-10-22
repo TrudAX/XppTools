@@ -197,6 +197,9 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 					<DataField>ModifiedDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>OutboundLogType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>OutputFolder</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -527,6 +530,40 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 						</Controls>
 						<ColumnsMode>Fill</ColumnsMode>
 						<Caption>Details</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>FormTabPageControl1</Name>
+						<Pattern>FieldsFieldGroups</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Advanced</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>Advanced_OutboundLogType</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>OutboundLogType</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+										<Items />
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Advanced</DataGroup>
+								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>Setup</Caption>
 					</AxFormControl>
 				</Controls>
 				<Style>FastTabs</Style>

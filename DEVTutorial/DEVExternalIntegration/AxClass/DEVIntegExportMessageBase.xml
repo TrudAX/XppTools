@@ -113,6 +113,26 @@ class DEVIntegExportMessageBase
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>sendMessageServiceBusCache</Name>
+				<Source><![CDATA[
+    public void sendMessageServiceBusCache(DEVIntegExportDocumentLog              _exportDocumentLog,
+                                          DEVIntegMessagesLoadAzureServiceBus     _loadAzureServiceBusCache,
+                                           str  _messageData, str _messageLabel = '')
+    {
+        _loadAzureServiceBusCache.sendMessage(_messageData, _messageLabel);
+        if (messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full && _exportDocumentLog.RecId)
+        {
+            DEVIntegMessageDataOutbound  messageDataOutbound;
+
+            messageDataOutbound.ExportLogRefRecId = _exportDocumentLog.RecId;
+            messageDataOutbound.FileDataStr       = _messageData;
+            messageDataOutbound.insert();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>exportServiceBusMessage</Name>
 				<Source><![CDATA[
     public void exportServiceBusMessage(DEVIntegExportDocumentLog    _exportDocumentLog, DEVIntegMessagesLoadAzureServiceBus     loadAzureServiceBusCache)

@@ -108,7 +108,7 @@ class DEVIntegExportMessageTutorialSalesOrders extends DEVIntegExportMessageBase
 
         str json = FormJsonSerializer::serializeClass(reply);
 
-        loadAzureServiceBusCache.sendMessage(json, reply.parmSalesId());
+        this.sendMessageServiceBusCache(_exportDocumentLog, loadAzureServiceBusCache, json, reply.parmSalesId());
     }
 
 ]]></Source>

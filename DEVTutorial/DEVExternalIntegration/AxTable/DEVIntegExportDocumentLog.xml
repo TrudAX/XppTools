@@ -153,6 +153,21 @@ public class DEVIntegExportDocumentLog extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>tableName</Name>
+				<Source><![CDATA[
+    display TableName tableName()
+    {
+        TableName res;
+        if (this.RefTableId)
+        {
+            res = tableId2Name(this.RefTableId);
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>Vendor Log</Label>
@@ -314,6 +329,30 @@ public class DEVIntegExportDocumentLog extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DetailsGroup</Name>
+			<Label>Details</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExportStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>tableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RefRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeIdOutbound</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>

@@ -312,7 +312,7 @@ public class DEVIntegMessageTypeInbound extends common
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
-			<Name>AdvSettings</Name>
+			<Name>AdvSettingsFile</Name>
 			<Label>Settings</Label>
 			<Fields>
 				<AxTableFieldGroupField>
