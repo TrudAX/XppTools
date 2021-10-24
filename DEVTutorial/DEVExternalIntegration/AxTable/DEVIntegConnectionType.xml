@@ -29,6 +29,31 @@ public class DEVIntegConnectionType extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>getConnectionString</Name>
+				<Source><![CDATA[
+    public DEVIntegAzureConnectionString getConnectionString()
+    {
+        DEVIntegAzureConnectionString  res;
+        switch(this.ConnectionStringSource)
+        {
+            case DEVIntegConnectionStringSource::ManualEntry:
+                res = this.AzureConnectionString;
+                break;
+            case DEVIntegConnectionStringSource::KeyVault:
+                if (this.KeyVaultName)
+                {
+                    res = KeyVaultCertificateHelper::getManualSecretValue(KeyVaultCertificateTable::findByName(this.KeyVaultName).RecId);
+                }
+                break;
+
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>Connection Types</Label>
@@ -36,7 +61,7 @@ public class DEVIntegConnectionType extends common
 		<Read>Allow</Read>
 	</SubscriberAccessLevel>
 	<TitleField1>ConnectionTypeId</TitleField1>
-	<TitleField2>Name</TitleField2>
+	<TitleField2>KeyVaultName</TitleField2>
 	<CacheLookup>Found</CacheLookup>
 	<ModifiedBy>Yes</ModifiedBy>
 	<ModifiedDateTime>Yes</ModifiedDateTime>
@@ -49,7 +74,7 @@ public class DEVIntegConnectionType extends common
 			<Name>AutoReport</Name>
 			<Fields>
 				<AxTableFieldGroupField>
-					<DataField>Name</DataField>
+					<DataField>KeyVaultName</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>ConnectionTypeId</DataField>
@@ -63,7 +88,7 @@ public class DEVIntegConnectionType extends common
 					<DataField>ConnectionTypeId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>Name</DataField>
+					<DataField>KeyVaultName</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -92,7 +117,7 @@ public class DEVIntegConnectionType extends common
 					<DataField>ConnectionTypeId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>Name</DataField>
+					<DataField>KeyVaultName</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>ConnectionTypeResource</DataField>
@@ -104,7 +129,13 @@ public class DEVIntegConnectionType extends common
 			<Label>Connection string</Label>
 			<Fields>
 				<AxTableFieldGroupField>
+					<DataField>ConnectionStringSource</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>AzureConnectionString</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>KeyVaultName</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -133,6 +164,18 @@ public class DEVIntegConnectionType extends common
 			<Name>ConnectionTypeResource</Name>
 			<EnumType>DEVIntegConnectionTypeResource</EnumType>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ConnectionStringSource</Name>
+			<EnumType>DEVIntegConnectionStringSource</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>KeyVaultName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<HelpText>Key vault link</HelpText>
+			<Label>Key vault</Label>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>
@@ -147,6 +190,29 @@ public class DEVIntegConnectionType extends common
 		</AxTableIndex>
 	</Indexes>
 	<Mappings />
-	<Relations />
+	<Relations>
+		<AxTableRelation>
+			<Name>KeyVaultCertificateTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>KeyVaultCertificateTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>KeyVaultName</Name>
+					<Field>KeyVaultName</Field>
+					<RelatedField>Name</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintRelatedFixed">
+					<Name>KeyVaultCertificateType</Name>
+					<RelatedField>KeyVaultCertificateType</RelatedField>
+					<ValueStr>KeyVaultCertificateType::Manual</ValueStr>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
 	<StateMachines />
 </AxTable>

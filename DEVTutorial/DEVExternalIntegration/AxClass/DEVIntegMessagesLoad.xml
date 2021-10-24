@@ -3,7 +3,7 @@
 	<Name>DEVIntegMessagesLoad</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-public class DEVIntegMessagesLoad  extends RunBaseBatch
+public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryable
 {
     DEVIntegMessageTypeIdInbound      messageTypeId;
     QueryRun                   queryRun;
@@ -320,6 +320,16 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch
         {
             runObject.runOperation();
         }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
     }
 
 ]]></Source>

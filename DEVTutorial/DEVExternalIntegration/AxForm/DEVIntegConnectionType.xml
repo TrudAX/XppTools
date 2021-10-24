@@ -9,12 +9,81 @@
 [Form]
 public class DEVIntegConnectionType extends FormRun
 {
-
 }
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>enableFields</Name>
+				<Source><![CDATA[
+    public void enableFields()
+    {
+        DEVIntegConnectionType_ds.object(fieldNum(DEVIntegConnectionType,AzureConnectionString)).visible(
+            DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::ManualEntry);
+
+        DEVIntegConnectionType_ds.object(fieldNum(DEVIntegConnectionType,KeyVaultName)).visible(
+            DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::KeyVault);
+
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
-		<DataSources xmlns="" />
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>DEVIntegConnectionType</Name>
+				<Methods>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+        
+            ret = super();
+
+            element.enableFields();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        public void write()
+        {
+            if (DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::ManualEntry)
+            {
+                DEVIntegConnectionType.KeyVaultName = '';
+            }
+
+            super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>ConnectionStringSource</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                element.enableFields();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
 		<DataControls xmlns="" />
 		<Members xmlns="" />
 	</SourceCode>
@@ -27,7 +96,16 @@ public class DEVIntegConnectionType extends FormRun
 					<DataField>AzureConnectionString</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>ConnectionStringSource</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>ConnectionTypeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ConnectionTypeResource</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>KeyVaultName</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ModifiedBy</DataField>
@@ -128,12 +206,22 @@ public class DEVIntegConnectionType extends FormRun
 									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
-										<Name>GridGroup1_Name</Name>
+										<Name>GridGroup1_KeyVaultName</Name>
 										<Type>String</Type>
 										<FormControlExtension
 											i:nil="true" />
-										<DataField>Name</DataField>
+										<DataField>KeyVaultName</DataField>
 										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>GridGroup1_ConnectionTypeResource</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ConnectionTypeResource</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<Items />
 									</AxFormControl>
 								</Controls>
 								<DataGroup>GridGroup</DataGroup>
@@ -178,12 +266,22 @@ public class DEVIntegConnectionType extends FormRun
 					</AxFormControl>
 					<AxFormControl xmlns=""
 						i:type="AxFormStringControl">
-						<Name>GridGroup_Name</Name>
+						<Name>GridGroup_KeyVaultName</Name>
 						<Type>String</Type>
 						<FormControlExtension
 							i:nil="true" />
-						<DataField>Name</DataField>
+						<DataField>KeyVaultName</DataField>
 						<DataSource>DEVIntegConnectionType</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>GridGroup_ConnectionTypeResource</Name>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ConnectionTypeResource</DataField>
+						<DataSource>DEVIntegConnectionType</DataSource>
+						<Items />
 					</AxFormControl>
 				</Controls>
 				<ColumnsMode>Fill</ColumnsMode>
@@ -216,6 +314,16 @@ public class DEVIntegConnectionType extends FormRun
 									i:nil="true" />
 								<Controls>
 									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>ConnectionDetail_ConnectionStringSource</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ConnectionStringSource</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
 										<Name>ConnectionDetail_AzureConnectionString</Name>
 										<Type>String</Type>
@@ -224,7 +332,17 @@ public class DEVIntegConnectionType extends FormRun
 										<DataField>AzureConnectionString</DataField>
 										<DataSource>DEVIntegConnectionType</DataSource>
 									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ConnectionDetail_KeyVaultName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>KeyVaultName</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
 								</Controls>
+								<Breakable>No</Breakable>
 								<DataGroup>ConnectionDetail</DataGroup>
 								<DataSource>DEVIntegConnectionType</DataSource>
 							</AxFormControl>

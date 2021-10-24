@@ -45,12 +45,6 @@ public class DEVIntegMessageTable extends FormRun
                 processMessageBase.setViewStagingButton(DEVIntegViewStagingDataCommon, DEVIntegMessageTable);
             }
 
-            DEVIntegTutorialLedgerJourHeaderStaging.visible(DEVIntegMessageTable.IsParsed &&
-                                                            DEVIntegMessageTable.messageTypeTable().ClassName == classId2Name(classNum(DEVIntegTutorialImportLedgerJournal)));
-
-            DEVIntegTutorialSalesTableStaging.visible(DEVIntegMessageTable.IsParsed &&
-                        DEVIntegMessageTable.messageTypeTable().ClassName == classId2Name(classNum(DEVIntegTutorialImportSalesTableJSON)));
-
             ProcessMessageButton.enabled(DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Ready ||
                                          DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Processing ||
                                          DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Error);
@@ -439,16 +433,6 @@ public class DEVIntegMessageTable extends FormRun
 								<Text>Process</Text>
 							</AxFormControl>
 							<AxFormControl xmlns=""
-								i:type="AxFormMenuFunctionButtonControl">
-								<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
-								<AutoDeclaration>Yes</AutoDeclaration>
-								<Type>MenuFunctionButton</Type>
-								<FormControlExtension
-									i:nil="true" />
-								<MenuItemName>DEVIntegTutorialLedgerJourHeaderStaging</MenuItemName>
-								<Text>View staging data</Text>
-							</AxFormControl>
-							<AxFormControl xmlns=""
 								i:type="AxFormButtonControl">
 								<Name>ViewDMFResultButton</Name>
 								<AutoDeclaration>Yes</AutoDeclaration>
@@ -457,17 +441,6 @@ public class DEVIntegMessageTable extends FormRun
 									i:nil="true" />
 								<NeedsRecord>Yes</NeedsRecord>
 								<Text>View DMF history</Text>
-							</AxFormControl>
-							<AxFormControl xmlns=""
-								i:type="AxFormMenuFunctionButtonControl">
-								<Name>DEVIntegTutorialSalesTableStaging</Name>
-								<AutoDeclaration>Yes</AutoDeclaration>
-								<Type>MenuFunctionButton</Type>
-								<FormControlExtension
-									i:nil="true" />
-								<DataSource>DEVIntegMessageTable</DataSource>
-								<MenuItemName>DEVIntegTutorialSalesTableStaging</MenuItemName>
-								<Text>View sales data</Text>
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormMenuFunctionButtonControl">

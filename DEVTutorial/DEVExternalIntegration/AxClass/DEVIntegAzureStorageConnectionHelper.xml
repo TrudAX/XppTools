@@ -60,7 +60,7 @@ class DEVIntegAzureStorageConnectionHelper
     {
         str connectionString;
         DEVIntegConnectionType connectionType = messageTypeTable.connectionType();
-        connectionString = connectionType.AzureConnectionString;
+        connectionString = connectionType.getConnectionString();
 
         if (! connectionString)
         {

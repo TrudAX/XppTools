@@ -3,7 +3,7 @@
 	<Name>DEVIntegMessagesProcess</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-public class DEVIntegMessagesProcess extends RunBaseBatch
+public class DEVIntegMessagesProcess extends RunBaseBatch  implements BatchRetryable
 {
     DEVIntegMessageTypeIdInbound    messageTypeId;
     DialogField              dlgMessageTypeId;
@@ -380,6 +380,16 @@ public class DEVIntegMessagesProcess extends RunBaseBatch
     public boolean canRunInNewSession()
     {
         return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
     }
 
 ]]></Source>

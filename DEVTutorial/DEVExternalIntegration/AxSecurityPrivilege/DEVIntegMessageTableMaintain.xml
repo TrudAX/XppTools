@@ -18,44 +18,6 @@
 			<ObjectType>MenuItemDisplay</ObjectType>
 			<Forms />
 		</AxSecurityEntryPointReference>
-		<AxSecurityEntryPointReference>
-			<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
-			<Grant>
-				<Correct>Allow</Correct>
-				<Create>Allow</Create>
-				<Delete>Allow</Delete>
-				<Read>Allow</Read>
-				<Update>Allow</Update>
-			</Grant>
-			<ObjectName>DEVIntegTutorialLedgerJourHeaderStaging</ObjectName>
-			<ObjectType>MenuItemDisplay</ObjectType>
-			<Forms>
-				<AxSecurityEntryPointReferenceForm>
-					<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
-					<Controls />
-					<DataSources />
-				</AxSecurityEntryPointReferenceForm>
-			</Forms>
-		</AxSecurityEntryPointReference>
-		<AxSecurityEntryPointReference>
-			<Name>DEVIntegTutorialSalesTableStaging</Name>
-			<Grant>
-				<Correct>Allow</Correct>
-				<Create>Allow</Create>
-				<Delete>Allow</Delete>
-				<Read>Allow</Read>
-				<Update>Allow</Update>
-			</Grant>
-			<ObjectName>DEVIntegTutorialSalesTableStaging</ObjectName>
-			<ObjectType>MenuItemDisplay</ObjectType>
-			<Forms>
-				<AxSecurityEntryPointReferenceForm>
-					<Name>DEVIntegTutorialSalesTableStaging</Name>
-					<Controls />
-					<DataSources />
-				</AxSecurityEntryPointReferenceForm>
-			</Forms>
-		</AxSecurityEntryPointReference>
 	</EntryPoints>
 	<FormControlOverrides />
 </AxSecurityPrivilege>

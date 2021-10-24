@@ -19,7 +19,7 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
     public int loadMessageType()
     {
         int                 recordCount;
-        str					connectionString = messageTypeTable.connectionType().AzureConnectionString;
+        str					connectionString = messageTypeTable.connectionType().getConnectionString();
         ;
         if (! messageTypeTable.ServiceBusQueueName)
         {
@@ -97,7 +97,7 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
         int     recordCount;
         try
         {
-            str					connectionString = messageTypeTable.connectionType().AzureConnectionString;
+            str					connectionString = messageTypeTable.connectionType().getConnectionString();
 
             if (! messageTypeTable.ServiceBusQueueName)
             {
@@ -158,7 +158,7 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
         int     recordCount;
         try
         {
-            str					connectionString = _messageTypeTableOutbound.connectionType().AzureConnectionString;
+            str					connectionString = _messageTypeTableOutbound.connectionType().getConnectionString();
 
             if (! _messageTypeTableOutbound.ServiceBusQueueName)
             {
@@ -216,7 +216,7 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
 				<Source><![CDATA[
     public void initFromOutboundMessage(DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
     {
-        str					connectionString = _messageTypeTableOutbound.connectionType().AzureConnectionString;
+        str					connectionString = _messageTypeTableOutbound.connectionType().getConnectionString();
         ;
         if (! _messageTypeTableOutbound.ServiceBusQueueName)
         {

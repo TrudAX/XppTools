@@ -28,8 +28,8 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				<Source><![CDATA[
     void enableDSFields()
     {
-        LedgerImportParms.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegTutorialImportLedgerJournal));
-        FileFormatGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegTutorialImportLedgerJournal));
+        LedgerImportParms.visible(DEVIntegMessageTypeInbound.ClassName == identifierStr(DEVIntegTutorialImportLedgerJournal));
+        FileFormatGroup.visible(DEVIntegMessageTypeInbound.ClassName == identifierStr(DEVIntegTutorialImportLedgerJournal));
 
         ParmDMFImportGroup.visible(DEVIntegMessageTypeInbound.ClassName == classStr(DEVIntegProcessDMF));
 

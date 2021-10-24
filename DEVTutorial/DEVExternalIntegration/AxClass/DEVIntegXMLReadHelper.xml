@@ -6,9 +6,22 @@
 class DEVIntegXMLReadHelper
 {
     System.Xml.XmlNamespaceManager  xmlNamespaceManager;
+    str  dateFormat = 'yyyy-MM-dd';
+
 }
 ]]></Declaration>
 		<Methods>
+			<Method>
+				<Name>parmDateFormat</Name>
+				<Source><![CDATA[
+    public str parmDateFormat(str _dateFormat = dateFormat)
+    {
+        dateFormat = _dateFormat;
+        return dateFormat;
+    }
+
+]]></Source>
+			</Method>
 			<Method>
 				<Name>initNamespace</Name>
 				<Source><![CDATA[
@@ -60,7 +73,7 @@ class DEVIntegXMLReadHelper
 			<Method>
 				<Name>xmlGetValueNodeDate</Name>
 				<Source><![CDATA[
-    TransDate xmlGetValueNodeDate(System.Xml.XmlNode  _node, str _path)
+    TransDate xmlGetValueNodeDate(System.Xml.XmlNode  _node, str _path, str _format = dateFormat)
     {
         TransDate           res;
         str                 curElement;
@@ -71,7 +84,7 @@ class DEVIntegXMLReadHelper
         nodeInner = this.xmlGetNodeByPath(_node, _path);
         curElement = nodeInner.get_InnerText();
     
-        res = System.DateTime::ParseExact(curElement, 'yyyy-MM-dd', provider);
+        res = System.DateTime::ParseExact(curElement, _format, provider);
     
         return res;
     }
