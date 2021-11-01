@@ -15,6 +15,23 @@ public class DEVIntegExportDocumentLog extends FormRun
 		</Methods>
 		<DataSources xmlns="">
 			<DataSource>
+				<Name>DEVIntegExportDocumentLog</Name>
+				<Methods>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        public void init()
+        {
+            super();
+            DEVIntegExportDocumentLog_ds.queryBuildDataSource().addSortField(fieldNum(DEVIntegExportDocumentLog, StatusChangeDate), SortOrder::Descending);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
 				<Name>DEVIntegMessageDataOutbound</Name>
 				<Methods>
 					<Method>

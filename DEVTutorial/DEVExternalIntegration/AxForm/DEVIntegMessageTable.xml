@@ -604,6 +604,15 @@ public class DEVIntegMessageTable extends FormRun
 										<Label>Message ID</Label>
 									</AxFormControl>
 									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>DEVIntegMessageTable_DocumentDescription</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>DocumentDescription</DataField>
+										<DataSource>DEVIntegMessageTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
 										i:type="AxFormDateTimeControl">
 										<Name>DEVIntegMessageTable_CreatedDateTime</Name>
 										<Type>DateTime</Type>
