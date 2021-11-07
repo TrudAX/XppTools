@@ -24,9 +24,10 @@ This repository contains 3 D365FO models:
     - [-Parallel batch processing in X++](#-parallel-batch-processing-in-x)
   - [DEVTutorialReports submodel](#devtutorialreports-submodel)
     - [-Sales Invoice report](#-sales-invoice-report)
-  - [DEVExternalIntegration submodel](#devtutorialintegration-submodel)
-  - [DEVExternalIntegrationSamples submodel](#devtutorialintegration-submodel)
+  - [DEVExternalIntegration submodel](#devexternalintegration-submodel)
     - [-File-based integration in Dynamics 365 FinOps using X++](#-file-based-integration-in-dynamics-365-finops-using-x)
+    - [-Multicompany DMF integration in Dynamics 365 FinOps using X++](#-multicompany-dmf-integration-in-dynamics-365-finops-using-x)
+    - [-XppInteg - Azure Service Bus integration solution for Dynamics 365 FinOps](#-xppinteg---azure-service-bus-integration-solution-for-dynamics-365-finops)
   - [Installation](#installation)
   - [Contribution](#contribution)
 
@@ -42,7 +43,7 @@ Fields list form is an extended version of the standard Show all fields form wit
 
 Full description: [Fields list form](https://denistrunin.com/xpptools-fieldslist/). Sub-model name: DEVRecordInfo
 
-![](assets/fieldslistEx.png)
+![Fields list](assets/fieldslistEx.png)
 
 ### -Display system field name in the query filter
 
@@ -50,8 +51,8 @@ This utility adds system field name in the standard query filter lookup and in t
 
 Full description: [Filter by AOT name](https://denistrunin.com/xpptools-queryfieldsAOTname/). Sub-model name: DEVQueryFieldsAOTName
 
-![](assets/DEVQueryFieldsAOTName.png)
-![](assets/DEVQueryFieldsAOTNamePers.png)
+![DEV Query field name](assets/DEVQueryFieldsAOTName.png)
+![DEV Query field name personalization](assets/DEVQueryFieldsAOTNamePers.png)
 
 ### -Display table relation fields
 
@@ -61,7 +62,7 @@ Code is based on **sukhanchik** post on [axForum](https://translate.google.com/t
 
 Sub-model name: DEVSysQueryFormAddRelInfo
 
-![](assets/DEVSysQueryFormAddRelInfo.png)
+![DEV SysQuery relation](assets/DEVSysQueryFormAddRelInfo.png)
 
 ### -Editable table browser
 
@@ -81,7 +82,7 @@ This functionality is intended to help users deal with list of values in query r
 Full description: [List of Values to Range](https://denistrunin.com/xpptools-listvaluestorange/)
 Sub-model name: DEVListOfValuesToRange
 
-![](assets/DEVListOfValuesToRange.png)
+![DEV list values to range](assets/DEVListOfValuesToRange.png)
 
 **[⬆ back to top](#XppTools)**
 
@@ -92,7 +93,7 @@ Sub-model name: DEVListOfValuesToRange
 Full description: [Execute direct SQL in D365FO database](https://denistrunin.com/xpptools-sqlexecute/)
 Sub-model name: DEVSQLExecute
 
-![](assets/DEVSQLExecute.png)
+![DEV SQL Execute](assets/DEVSQLExecute.png)
 
 ### -D365FO Infolog call stack
 
@@ -101,7 +102,7 @@ Extension for the standard D365FO system that allows saving stack trace data for
 Full description: [D365FO Infolog call stack](https://denistrunin.com/xpptools-devinfocallstack/)
 Sub-model name: DEVCallStackInfolog
 
-![](assets/DevCallStackInfoMain.jpg)
+![DEV Call Stack](assets/DevCallStackInfoMain.jpg)
 
 **[⬆ back to top](#XppTools)**
 
@@ -163,7 +164,7 @@ A sample code to Create a new design for Sales Invoice report in D365FO (https:/
 
 ## DEVExternalIntegration submodel
 
-Contains integration [core module](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegration) and [samples](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegrationSamples)
+Contains integration solution XppInteg. It consists from [core module](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegration) and [samples](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegrationSamples)
 
 ### -File-based integration in Dynamics 365 FinOps using X++
 
@@ -171,7 +172,11 @@ A sample code for implementing file-based integration in Dynamics 365 FinOps usi
 
 ### -Multicompany DMF integration in Dynamics 365 FinOps using X++
 
-A sample code to implement recurring file-based integration in D365FO using X++ and DMF   (https://denistrunin.com/xpptools-fileintegdmf/). 
+A sample code to implement recurring file-based integration in D365FO using X++ and DMF (https://denistrunin.com/xpptools-fileintegdmf/).
+
+### -XppInteg - Azure Service Bus integration solution for Dynamics 365 FinOps
+
+A sample code to implement Azure Service Bus integration in D365FO using X++ (https://denistrunin.com/xpptools-integservbussalesjson/).
 
 **[⬆ back to top](#XppTools)**
 
@@ -182,7 +187,7 @@ A sample code to implement recurring file-based integration in D365FO using X++ 
 3. Start Visual Studio and Run compile for the **DEVTools** folder (Dynamics 365 –Build models.. – Select DEVTools)
 4. Run database sync - **Invoke-D365DbSyncModule -Module "DEVTools"**
 
-![](assets/CopyFolderToLocal.png)
+![Copy to local folder](assets/CopyFolderToLocal.png)
 
 If you want to contribute - change the objects using Visual Studio in the **DEVTools** model, copy the changed elements(xml files) back into the Temp folder and create GitHub pull request from this Temp folder.
 
