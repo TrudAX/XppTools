@@ -9,6 +9,8 @@ class DEVIntegMessageCreator
     container            fileData;
     str                  fileDataStr;
 
+    DEVIntegServBusLabel     servBusLabel;
+
 }
 ]]></Declaration>
 		<Methods>
@@ -26,6 +28,7 @@ class DEVIntegMessageCreator
         messageTable.Name          = fileRef.FileName;
         messageTable.Status        = DEVIntegMessageStatus::Ready;
         messageTable.Path          = fileRef.FolderName;
+        messageTable.ServBusLabel  = servBusLabel;
 
         DEV::validateWriteRecordCheck(messageTable);
         messageTable.insert();
@@ -37,6 +40,18 @@ class DEVIntegMessageCreator
         ttscommit;
 
         return messageTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmServBusLabel</Name>
+				<Source><![CDATA[
+    public DEVIntegServBusLabel parmServBusLabel(DEVIntegServBusLabel _servBusLabel = servBusLabel)
+    {
+        servBusLabel = _servBusLabel;
+    
+        return servBusLabel;
     }
 
 ]]></Source>

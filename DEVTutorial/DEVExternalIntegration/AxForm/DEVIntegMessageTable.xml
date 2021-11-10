@@ -46,6 +46,7 @@ public class DEVIntegMessageTable extends FormRun
             }
 
             ProcessMessageButton.enabled(DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Ready ||
+                                         DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Hold ||
                                          DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Processing ||
                                          DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Error);
     
@@ -55,7 +56,7 @@ public class DEVIntegMessageTable extends FormRun
             DataStrTabPage.visible(DEVIntegMessageTable.messageTypeTable().connectionType().ConnectionTypeResource ==
                               DEVIntegConnectionTypeResource::AzureServiceBus);
            
-
+            SetHoldButton.visible(DEVIntegMessageTable.isHoldAvailiable());
             return ret;
         }
 
@@ -128,7 +129,7 @@ public class DEVIntegMessageTable extends FormRun
         {
             if (DEVIntegMessageTable.Name)
             {
-                File::SendFileToUser(DEVIntegMessageTable.getFileStream(), DEVIntegMessageTable.Name);
+                File::SendFileToUser(DEVIntegMessageTable.getFileStream(), DEVIntegMessageTable.Name);               
             }
         }
 
@@ -195,6 +196,46 @@ public class DEVIntegMessageTable extends FormRun
 					</Method>
 				</Methods>
 			</Control>
+			<Control>
+				<Name>SetHoldButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            DEVIntegMessageTable        integMessageTableLocal, integMessageTableUpd;
+            Dialog                      dialog = new Dialog("Hold reason");
+            DialogField                 df =  dialog.addField(extendedTypeStr(DEVIntegOnHoldDescription), "Hold reason", "Specify a on-hold reason");
+            DEVIntegOnHoldDescription   holdReason;
+            ;
+            if (dialog.run())
+            {
+                holdReason = df.value();
+                for(integMessageTableLocal = DEVIntegMessageTable_ds.getFirst(true) ? DEVIntegMessageTable_ds.getFirst(true) : DEVIntegMessageTable_ds.cursor();
+                integMessageTableLocal.RecId;
+                integMessageTableLocal = DEVIntegMessageTable_ds.getNext())
+                {
+                    ttsbegin;
+                    integMessageTableUpd = DEVIntegMessageTable::findRecId(integMessageTableLocal.RecId, true);
+                    if (integMessageTableUpd.RecId && integMessageTableUpd.isHoldAvailiable())
+                    {
+                        integMessageTableUpd.HoldDescription = holdReason;
+                        integMessageTableUpd.Status          = DEVIntegMessageStatus::Hold;
+                        integMessageTableUpd.update();
+                    }
+
+                    ttscommit;
+                }
+                DEVIntegMessageTable_ds.research(true);
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
 		</DataControls>
 		<Members xmlns="" />
 	</SourceCode>
@@ -219,6 +260,9 @@ public class DEVIntegMessageTable extends FormRun
 					<DataField>DocumentDescription</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>HoldDescription</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>IsParsed</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -240,6 +284,9 @@ public class DEVIntegMessageTable extends FormRun
 					<DataField>Path</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>ProcessingAttempts</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>ProcessingEndDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -256,6 +303,9 @@ public class DEVIntegMessageTable extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>RecordsWithErrors</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ServBusLabel</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>SessionId</DataField>
@@ -297,9 +347,6 @@ public class DEVIntegMessageTable extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>LogText</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>MessageItemRefRecId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>MessageRefRecId</DataField>
@@ -375,6 +422,7 @@ public class DEVIntegMessageTable extends FormRun
 	</DataSources>
 	<Design>
 		<Caption xmlns="">Incoming file messages</Caption>
+		<DataSource xmlns="">DEVIntegMessageTable</DataSource>
 		<HeightMode xmlns="">Column</HeightMode>
 		<Pattern xmlns="">Task</Pattern>
 		<PatternVersion xmlns="">1.2</PatternVersion>
@@ -453,6 +501,18 @@ public class DEVIntegMessageTable extends FormRun
 								<DataSource>DEVIntegMessageTable</DataSource>
 								<NeedsRecord>Yes</NeedsRecord>
 								<Text>View staging data</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>SetHoldButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<AutoRefreshData>Yes</AutoRefreshData>
+								<MultiSelect>Yes</MultiSelect>
+								<NeedsRecord>Yes</NeedsRecord>
+								<Text>Set on Hold</Text>
 							</AxFormControl>
 						</Controls>
 						<DataSource>DEVIntegMessageTable</DataSource>
@@ -636,6 +696,8 @@ public class DEVIntegMessageTable extends FormRun
 							</AxFormControl>
 						</Controls>
 						<Caption>Overview</Caption>
+						<DataSource>DEVIntegMessageTable</DataSource>
+						<Style>DetailsFormGrid</Style>
 					</AxFormControl>
 					<AxFormControl xmlns=""
 						i:type="AxFormTabPageControl">
@@ -708,6 +770,15 @@ public class DEVIntegMessageTable extends FormRun
 										<DataSource>DEVIntegMessageTable</DataSource>
 										<Items />
 									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>StatisticsGroup_ProcessingAttempts</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ProcessingAttempts</DataField>
+										<DataSource>DEVIntegMessageTable</DataSource>
+									</AxFormControl>
 								</Controls>
 								<Breakable>No</Breakable>
 								<DataGroup>ProcessingStat</DataGroup>
@@ -744,6 +815,46 @@ public class DEVIntegMessageTable extends FormRun
 								<Breakable>No</Breakable>
 								<DataGroup>LogGroup</DataGroup>
 								<DataSource>DEVIntegErrorLog</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>HoldGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>HoldGroup_HoldDescription</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>HoldDescription</DataField>
+										<DataSource>DEVIntegMessageTable</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>HoldGroup</DataGroup>
+								<DataSource>DEVIntegMessageTable</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ServiceBusGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ServiceBusGroup_ServBusLabel</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ServBusLabel</DataField>
+										<DataSource>DEVIntegMessageTable</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>ServiceBusGroup</DataGroup>
+								<DataSource>DEVIntegMessageTable</DataSource>
 							</AxFormControl>
 						</Controls>
 						<ColumnsMode>Fill</ColumnsMode>

@@ -10,7 +10,6 @@ class DEVIntegTutorialImportLedgerJournal extends DEVIntegProcessMessageBase
     DEVIntegTutorialLedgerJourLinesStaging       tutorialLedgerJourLinesStaging;
 
 }
-
 ]]></Declaration>
 		<Methods>
 			<Method>
@@ -285,6 +284,17 @@ class DEVIntegTutorialImportLedgerJournal extends DEVIntegProcessMessageBase
 
         ttscommit;
         
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setViewStagingButton</Name>
+				<Source><![CDATA[
+    public void setViewStagingButton(FormFunctionButtonControl  _viewStagingButtonControl, DEVIntegMessageTable  _messageTable)
+    {
+        _viewStagingButtonControl.visible(_messageTable.IsParsed);
+        _viewStagingButtonControl.menuItemName(menuItemDisplayStr(DEVIntegTutorialLedgerJourHeaderStaging));
     }
 
 ]]></Source>

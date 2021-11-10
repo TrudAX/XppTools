@@ -50,6 +50,8 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
 													messageTypeTable.ServiceBusQueueName,
                                                     dataStr);
 
+            messageCreator.parmServBusLabel(brokeredMessage.Label);
+
 			messageCreator.createMessage(messageTypeTable);
 			ttscommit;
 

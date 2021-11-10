@@ -193,6 +193,23 @@ public class DEVIntegMessageTable extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>isHoldAvailiable</Name>
+				<Source><![CDATA[
+    public boolean isHoldAvailiable()
+    {
+        boolean res;
+        if (this.Status == DEVIntegMessageStatus::Processing ||
+            this.Status == DEVIntegMessageStatus::Ready      ||
+            this.Status == DEVIntegMessageStatus::Error)
+        {
+            res = true;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>File messages</Label>
@@ -335,6 +352,29 @@ public class DEVIntegMessageTable extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>HoldGroup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ModifiedBy</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>HoldDescription</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ServiceBusGroup</Name>
+			<Label>Service Bus</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ServBusLabel</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -425,6 +465,16 @@ public class DEVIntegMessageTable extends common
 			<HelpText>Number of processing attempts</HelpText>
 			<Label>Processing attempts</Label>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>HoldDescription</Name>
+			<ExtendedDataType>DEVIntegOnHoldDescription</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ServBusLabel</Name>
+			<ExtendedDataType>DEVIntegServBusLabel</ExtendedDataType>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>
@@ -464,6 +514,24 @@ public class DEVIntegMessageTable extends common
 			<Fields>
 				<AxTableIndexField>
 					<DataField>DocumentDescription</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>StatusIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Status</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>ServBusLabelIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ServBusLabel</DataField>
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>

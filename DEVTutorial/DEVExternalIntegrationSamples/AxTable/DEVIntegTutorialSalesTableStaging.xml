@@ -35,14 +35,14 @@ public class DEVIntegTutorialSalesTableStaging extends common
     /// <summary>
     ///
     /// </summary>
-    public SalesTable salesTable()
+    public SalesTable salesTable(boolean    _forUpdate = false)
     {
         SalesTable  res;
         if (this.CompanyId && this.SalesId)
         {
             changecompany(this.CompanyId)
             {
-                res =  SalesTable::find(this.SalesId);
+                res =  SalesTable::find(this.SalesId, _forUpdate);
             }
         }
         return res;
