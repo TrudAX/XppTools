@@ -120,6 +120,7 @@ public class DEVIntegMessageData extends common
 	<Indexes>
 		<AxTableIndex>
 			<Name>MessageRefRecIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
 			<Fields>
 				<AxTableIndexField>
 					<DataField>MessageRefRecId</DataField>

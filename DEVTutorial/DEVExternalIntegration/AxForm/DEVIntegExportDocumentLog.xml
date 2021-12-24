@@ -437,6 +437,7 @@ public class DEVIntegExportDocumentLog extends FormRun
 										<Type>String</Type>
 										<FormControlExtension
 											i:nil="true" />
+										<CacheDataMethod>Yes</CacheDataMethod>
 										<DataMethod>tableName</DataMethod>
 										<DataSource>DEVIntegExportDocumentLog</DataSource>
 									</AxFormControl>

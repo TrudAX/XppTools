@@ -46,7 +46,7 @@ public class DEVIntegMessageTable extends FormRun
             }
 
             ProcessMessageButton.enabled(DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Ready ||
-                                         DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Hold ||
+                                         DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Cancelled ||
                                          DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Processing ||
                                          DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Error);
     
@@ -222,7 +222,7 @@ public class DEVIntegMessageTable extends FormRun
                     if (integMessageTableUpd.RecId && integMessageTableUpd.isHoldAvailiable())
                     {
                         integMessageTableUpd.HoldDescription = holdReason;
-                        integMessageTableUpd.Status          = DEVIntegMessageStatus::Hold;
+                        integMessageTableUpd.Status          = DEVIntegMessageStatus::Cancelled;
                         integMessageTableUpd.update();
                     }
 
@@ -512,7 +512,7 @@ public class DEVIntegMessageTable extends FormRun
 								<AutoRefreshData>Yes</AutoRefreshData>
 								<MultiSelect>Yes</MultiSelect>
 								<NeedsRecord>Yes</NeedsRecord>
-								<Text>Set on Hold</Text>
+								<Text>@SYS301993</Text>
 							</AxFormControl>
 						</Controls>
 						<DataSource>DEVIntegMessageTable</DataSource>

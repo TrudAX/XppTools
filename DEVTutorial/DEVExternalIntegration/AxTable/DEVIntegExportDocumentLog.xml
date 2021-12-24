@@ -470,6 +470,7 @@ public class DEVIntegExportDocumentLog extends common
 		</AxTableIndex>
 		<AxTableIndex>
 			<Name>RefRecIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
 			<Fields>
 				<AxTableIndexField>
 					<DataField>RefTableId</DataField>
