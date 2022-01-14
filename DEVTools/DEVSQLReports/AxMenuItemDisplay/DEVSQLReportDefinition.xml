@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVSQLReportDefinition</Name>
+	<HelpText>Set up SQL Report definition</HelpText>
+	<Label>SQL Report definition</Label>
+	<Object>DEVSQLReportDefinition</Object>
+</AxMenuItemDisplay>

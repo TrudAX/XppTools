@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEVSQLReportId</Name>
+	<Extends>Num</Extends>
+	<HelpText>Identification of the report</HelpText>
+	<Label>Report ID</Label>
+	<ReferenceTable>DEVSQLReports</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>ReportId</RelatedField>
+			<Table>DEVSQLReports</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+</AxEdt>

@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLReportsProcessor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVSQLReportsProcessor
+{
+    DEVSQLReports   SQLReports;
+
+    DEVSQLReportExecutionLog  reportExecutionLog;
+
+    DEVSQLReportFormat     reportFormat;
+    DEVSQLReportDefinition reportDefinition;
+
+
+    int                     curCellPosition;
+    TextStreamIo            ioData;
+    str                     resRow;
+
+    TextBuffer              textBuffer;
+    str                     reportDelimeter;
+    int                     currentRow;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmSQLReports</Name>
+				<Source><![CDATA[
+    public DEVSQLReports parmSQLReports(DEVSQLReports _SQLReports = SQLReports)
+    {
+        SQLReports = _SQLReports;
+        return SQLReports;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processReport</Name>
+				<Source><![CDATA[
+    public void processReport(DEVSQLReports _SQLReports)
+    {
+        this.parmSQLReports(_SQLReports);
+        
+
+        this.createProcessLogRecord();
+
+      
+
+        int         infoCnt ;
+        infoCnt = infologLine();
+        boolean isErrorCaught       = false;
+        
+        DEVSQLReportExecutionStatus curMessageStatus    = reportExecutionLog.Status;
+
+        try
+        {
+            this.doLogProcessing();
+
+            this.sendOutputStream();
+
+            curMessageStatus = DEVSQLReportExecutionStatus::Completed;
+        }
+        catch
+        {
+            isErrorCaught   = true;
+        }
+
+        if (isErrorCaught)
+        {
+            curMessageStatus = DEVSQLReportExecutionStatus::Error;
+        }
+
+        ttsbegin;
+        DEVSQLReportExecutionLog  reportExecutionLogUpd;
+
+        reportExecutionLogUpd = DEVSQLReportExecutionLog::findRecId(reportExecutionLog.RecId, true);
+        if (reportExecutionLogUpd.RecId)
+        {
+            reportExecutionLogUpd.Status                = curMessageStatus;
+            reportExecutionLogUpd.EndDateTime           = DateTimeUtil::getSystemDateTime();
+            reportExecutionLogUpd.Duration              = any2Int(DateTimeUtil::getDifference(reportExecutionLogUpd.EndDateTime, reportExecutionLog.StartDateTime));
+            reportExecutionLogUpd.insertErrorByMessage(infoCnt);
+
+            reportExecutionLogUpd.Rows = currentRow;
+            reportExecutionLogUpd.update();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createProcessLogRecord</Name>
+				<Source><![CDATA[
+    void createProcessLogRecord()
+    {
+        reportExecutionLog = null;
+        reportExecutionLog.initValue();
+        reportExecutionLog.initFromSQLReport(DEVSQLReports::find(SQLReports.ReportId));
+        reportExecutionLog.StartDateTime = DateTimeUtil::getSystemDateTime();
+        reportExecutionLog.Status        = DEVSQLReportExecutionStatus::InProgress;
+        reportExecutionLog.insert();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getResultSet</Name>
+				<Source><![CDATA[
+    private ResultSet getResultSet(str _strQuery)
+    {
+        Connection  connection = new Connection();
+        Statement   statement = connection.createStatement();
+        SqlStatementExecutePermission permission;
+        ResultSet resultSet;
+          
+        
+        permission = new SqlStatementExecutePermission(_strQuery);
+        permission.assert();
+
+        Map paramMap = SqlParams::create();
+        resultSet = statement.executeQueryWithParameters(_strQuery, paramMap);
+
+        return resultSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendOutputStream</Name>
+				<Source><![CDATA[
+    public void sendOutputStream()
+    {
+        #File
+
+        ioData = TextStreamIo::constructForWrite(0);//65001);
+        ioData.inFieldDelimiter(reportFormat.Delimiter);
+        ioData.outFieldDelimiter(reportFormat.Delimiter);
+        ioData.inRecordDelimiter(#delimiterCRLF);
+
+        ioData.writeRaw(resRow);
+
+        System.IO.MemoryStream memoryStream;
+        memoryStream = ioData.getStream();
+
+        ttsbegin;
+        DEVSQLReportExecutionLog reportExecutionLogUpd = DEVSQLReportExecutionLog::findRecId(reportExecutionLog.RecId, true);
+        if (reportExecutionLogUpd.RecId)
+        {
+            reportExecutionLogUpd.FileData = this.getFileDataFromStream(memoryStream);
+            reportExecutionLogUpd.update();
+        }
+        ttscommit;
+        if (reportExecutionLogUpd.FileData != conNull())
+        {
+            File::SendFileToUser(reportExecutionLogUpd.getFileStream(), reportExecutionLog.Filename);
+        }
+        else
+        {
+            warning(strFmt("Report %1 is empty", reportExecutionLog.ReportId));
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFileDataFromStream</Name>
+				<Source><![CDATA[
+    protected container getFileDataFromStream(System.IO.MemoryStream  _memoryStream)
+    {
+        container res;
+
+        _memoryStream.Position = 0;
+        if (_memoryStream.Length)
+        {
+            Binary  b = Binary::constructFromMemoryStream(_memoryStream);
+            if (b)
+            {
+                res = b.getContainer();
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doLogProcessing</Name>
+				<Source><![CDATA[
+    public void doLogProcessing()
+    {
+        resRow = '';
+        reportFormat     = DEVSQLReportFormat::find(reportExecutionLog.ReportFormatId);
+        reportDefinition = DEVSQLReportDefinition::find(reportExecutionLog.ReportDefinitionId);
+
+        str fileExt = conPeek(fileNameSplit(reportExecutionLog.Filename), 3);
+
+        reportDelimeter = reportFormat.Delimiter;
+        if (reportDelimeter == 'Tab')
+        {
+            reportDelimeter = '\t';
+        }
+
+        this.doExecuteQueryResult();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addResultRow</Name>
+				<Source><![CDATA[
+    void  addResultRow(container _row, boolean _isHeader = false)
+    {
+        int i;
+        if (! reportFormat.IsIncludeHeader && _isHeader)
+        {
+            return;
+        }
+
+        for (i = 1; i <= conLen(_row); i++)
+        {
+            this.addRowCell(conPeek(_row, i));
+        }
+        this.addNewRow();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addNewRow</Name>
+				<Source><![CDATA[
+    void  addNewRow()
+    {
+        //resRow += '\n';
+        textBuffer.appendText('\n');
+        curCellPosition = 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addRowCell</Name>
+				<Source><![CDATA[
+    void  addRowCell(str  _cellData)
+    {
+        curCellPosition++;
+        if (curCellPosition > 1)
+        {
+            textBuffer.appendText(reportDelimeter);
+            //resRow += reportFormat.Delimiter;
+        }
+        textBuffer.appendText(_cellData);
+        //resRow += strFmt('%1', _cellData);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doExecuteQueryResult</Name>
+				<Source><![CDATA[
+    public void doExecuteQueryResult()
+    {
+        int         i;
+        container   expectedSubResult;
+        ResultSet   resultSet;
+        ResultSetMetaData  resultSetMetaData;
+        boolean     isFirstRow = true;
+        int         maxColumnCount;
+        
+        ;
+        textBuffer = new TextBuffer();
+
+        resultSet = this.getResultSet(reportExecutionLog.SQLText);
+        resultSetMetaData = resultSet.getMetaData();
+        currentRow = 0;
+        /*
+        CustTrans  custTrans;
+
+        while select custTrans
+        {
+            str s = custTrans.AccountNum;
+        }
+        return;
+*/
+        while(resultSet.next())
+        {
+            currentRow++;
+            if (reportDefinition.MaxRows && currentRow > reportDefinition.MaxRows)
+            {
+                warning(strFmt("Exceeding the allowed number of lines %1", reportDefinition.MaxRows));
+                break;
+            }
+            //print row headers
+            if (isFirstRow)
+            {
+                expectedSubResult = connull();
+                for ( i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+                {
+                    expectedSubResult += resultSetMetaData.getColumnName(i);
+                }
+                this.addResultRow(expectedSubResult, true);
+                isFirstRow = false;
+
+                maxColumnCount = resultSetMetaData.getColumnCount();
+            }
+            else
+            {
+                this.addNewRow();
+            }
+            str     sTmp;
+            for ( i = 1; i <= maxColumnCount; i++)
+            {
+                sTmp = resultSet.getString(i);
+
+                this.addRowCell(sTmp);
+            }
+
+            /*
+                for ( i = 1; i <= maxColumnCount; i++)
+                {
+                    //int colType = resultSetMetaData.getColumnType(i);
+                    //Types t = colType;
+                    str     sTmp = resultSet.getString(i);
+
+                }
+                */
+        }
+        resRow = textBuffer.getText();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

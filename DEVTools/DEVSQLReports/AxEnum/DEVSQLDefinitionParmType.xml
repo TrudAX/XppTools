@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLDefinitionParmType</Name>
+	<Help>Parameter type</Help>
+	<Label>Type</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>String</Name>
+			<Label>String</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Date</Name>
+			<Label>Date</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>
