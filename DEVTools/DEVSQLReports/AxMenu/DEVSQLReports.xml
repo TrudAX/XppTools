@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenu xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVSQLReports</Name>
+	<Label>SQL reports</Label>
+	<Elements>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementMenuItem">
+			<Name>DEVSQLReports</Name>
+			<MenuItemName>DEVSQLReports</MenuItemName>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementMenuItem">
+			<Name>DEVSQLReportExecutionLog</Name>
+			<MenuItemName>DEVSQLReportExecutionLog</MenuItemName>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>Setup</Name>
+			<Label>Setup</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVSQLReportFormat</Name>
+					<MenuItemName>DEVSQLReportFormat</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVSQLReportDefinition</Name>
+					<MenuItemName>DEVSQLReportDefinition</MenuItemName>
+				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+	</Elements>
+</AxMenu>

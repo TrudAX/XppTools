@@ -14,8 +14,8 @@
 			<Value>1</Value>
 		</AxEnumValue>
 		<AxEnumValue>
-			<Name>Hold</Name>
-			<Label>Hold</Label>
+			<Name>Cancelled</Name>
+			<Label>@SYS317981</Label>
 			<Value>2</Value>
 		</AxEnumValue>
 		<AxEnumValue>

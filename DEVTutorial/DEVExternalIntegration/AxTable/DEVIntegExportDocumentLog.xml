@@ -33,9 +33,7 @@ public class DEVIntegExportDocumentLog extends common
 				<Source><![CDATA[
     public void initFromCommon(Common _common, DEVIntegExportClassName _className, Description _documentId = '')
     {
-        VendInvoiceJour         vendInvoiceJour;
-        VendTable               vendTable;
-    
+   
         this.RefTableId     =  _common.TableId;
         this.RefRecId       =  _common.RecId;
         this.CompanyId      =  _common.dataAreaId;
@@ -127,7 +125,7 @@ public class DEVIntegExportDocumentLog extends common
     {
         DEVIntegExportDocumentLog integExportDocumentLog;
     
-        select RecId from integExportDocumentLog
+        select firstonly RecId from integExportDocumentLog
             where integExportDocumentLog.RefTableId == _common.TableId
                 && integExportDocumentLog.RefRecId == _common.RecId
                 && integExportDocumentLog.ClassName == _className
@@ -472,6 +470,7 @@ public class DEVIntegExportDocumentLog extends common
 		</AxTableIndex>
 		<AxTableIndex>
 			<Name>RefRecIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
 			<Fields>
 				<AxTableIndexField>
 					<DataField>RefTableId</DataField>

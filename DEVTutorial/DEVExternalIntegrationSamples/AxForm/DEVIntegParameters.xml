@@ -599,6 +599,7 @@ public class DEVIntegParameters extends FormRun
 												<WidthMode>Auto</WidthMode>
 												<FormControlExtension
 													i:nil="true" />
+												<CacheDataMethod>Yes</CacheDataMethod>
 												<DataMethod>referenceLabel</DataMethod>
 												<DataSource>NumberSequenceReference</DataSource>
 											</AxFormControl>
@@ -660,6 +661,7 @@ public class DEVIntegParameters extends FormRun
 												<WidthMode>Auto</WidthMode>
 												<FormControlExtension
 													i:nil="true" />
+												<CacheDataMethod>Yes</CacheDataMethod>
 												<DataMethod>referenceSameAsLabel</DataMethod>
 												<DataSource>NumberSequenceReference</DataSource>
 											</AxFormControl>
@@ -675,6 +677,7 @@ public class DEVIntegParameters extends FormRun
 												<FormControlExtension
 													i:nil="true" />
 												<Border>None</Border>
+												<CacheDataMethod>Yes</CacheDataMethod>
 												<DataMethod>referenceHelp</DataMethod>
 												<DataSource>NumberSequenceReference</DataSource>
 												<MultiLine>Yes</MultiLine>

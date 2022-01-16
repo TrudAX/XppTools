@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLReportExecutionLog</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVSQLReportExecutionLog extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>initFromSQLReport</Name>
+				<Source><![CDATA[
+    public void initFromSQLReport(DEVSQLReports  _SQLReports)
+    {
+        DEVSQLReportDefinition     reportDefinition; 
+        ;
+        select firstonly reportDefinition
+                where reportDefinition.ReportDefinitionId  == _SQLReports.ReportDefinitionId;
+
+        //DEVSQLReports
+        //= DEVSQLReportDefinition::find(_SQLReports.ReportDefinitionId);
+
+        this.ReportId              = _SQLReports.ReportId;
+        this.ReportFormatId        = _SQLReports.ReportFormatId;
+        this.ReportDefinitionId    = _SQLReports.ReportDefinitionId;
+        this.SQLText               = reportDefinition.SQLText;
+        this.Filename              = _SQLReports.Filename;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findRecId</Name>
+				<Source><![CDATA[
+    public static DEVSQLReportExecutionLog findRecId(RefRecId _recId,  boolean _forUpdate = false)
+    {
+        DEVSQLReportExecutionLog reportExecutionLog;
+        ;
+        if (_recId)
+        {
+            reportExecutionLog.selectForUpdate(_forUpdate);
+            
+            select firstonly reportExecutionLog
+                where reportExecutionLog.RecId == _recId;
+        }
+        
+        return reportExecutionLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertErrorByMessage</Name>
+				<Source><![CDATA[
+    public void insertErrorByMessage(int _infoCnt)
+    {
+        container taskInfolog = conNull();
+        if (infologLine() > _infoCnt)
+        {
+            taskInfolog = infolog.copy(_infoCnt + 1, infologLine());
+        }
+        this.InfologData    = taskInfolog;
+        if (taskInfolog != conNull())
+        {
+            this.LogText        = info::infoCon2Str(taskInfolog);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFileStream</Name>
+				<Source><![CDATA[
+    System.IO.MemoryStream  getFileStream()
+    {
+        System.IO.MemoryStream  res;
+        ;
+        if (this.FileData != conNull())
+        {
+            Binary b = Binary::constructFromContainer(this.FileData);
+            res = b.getMemoryStream();
+        }
+        /*
+            else if (messageData.FileDataStr)
+            {
+                res = new System.IO.MemoryStream();
+                var writer = new System.IO.StreamWriter(res);
+                writer.Write(messageData.FileDataStr);
+                writer.Flush();
+                res.Position = 0;
+            }
+        */
+        
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>SQL Report execution log</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ReportId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReportFormatId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReportDefinitionId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Filename</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Execution</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>StartDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EndDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Duration</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Rows</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ReportId</Name>
+			<ExtendedDataType>DEVSQLReportId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ReportFormatId</Name>
+			<ExtendedDataType>DEVSQLReportFormatId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ReportDefinitionId</Name>
+			<ExtendedDataType>DEVSQLReportDefinitionId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SQLText</Name>
+			<ExtendedDataType>DEVSQLText</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>StartDateTime</Name>
+			<ExtendedDataType>StartDateTime</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>EndDateTime</Name>
+			<ExtendedDataType>EndDateTime</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Duration</Name>
+			<ExtendedDataType>Seconds</ExtendedDataType>
+			<Label>Duration(seconds)</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Status</Name>
+			<EnumType>DEVSQLReportExecutionStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Filename</Name>
+			<ExtendedDataType>Filename</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>InfologData</Name>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LogText</Name>
+			<ExtendedDataType>Notes</ExtendedDataType>
+			<HelpText>Execution log text</HelpText>
+			<Label>Log text</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>FileData</Name>
+			<Label>File data</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Rows</Name>
+			<ExtendedDataType>Row</ExtendedDataType>
+			<Label>Total rows</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>StartDateIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>StartDateTime</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVSQLReports</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DEVSQLReports</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ReportId</Name>
+					<SourceEDT>DEVSQLReportId</SourceEDT>
+					<Field>ReportId</Field>
+					<RelatedField>ReportId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVSQLReportFormat</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DEVSQLReportFormat</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ReportFormatId</Name>
+					<SourceEDT>DEVSQLReportFormatId</SourceEDT>
+					<Field>ReportFormatId</Field>
+					<RelatedField>ReportFormatId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVSQLReportDefinition</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DEVSQLReportDefinition</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ReportDefinitionId</Name>
+					<SourceEDT>DEVSQLReportDefinitionId</SourceEDT>
+					<Field>ReportDefinitionId</Field>
+					<RelatedField>ReportDefinitionId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

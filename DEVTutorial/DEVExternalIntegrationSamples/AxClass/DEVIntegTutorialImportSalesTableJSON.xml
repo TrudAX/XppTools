@@ -101,6 +101,84 @@ class DEVIntegTutorialImportSalesTableJSON extends DEVIntegProcessMessageBase
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>createPostalAddress</Name>
+				<Source><![CDATA[
+    //sample address creation
+    public RecId createPostalAddress(DirPartyPostalAddressView   addressView, RefRecId _partyId,
+                                    Name _firstName, Name _lastName, Name _company)
+    {
+        LogisticsPostalAddress logisticsPostalAddress;
+        LogisticsPostalAddressEntity postalAddressEntity;
+        
+        LogisticsAddressCountryRegion       logisticsAddressCountryRegion;
+        LogisticsAddressState               logisticsAddressState;
+
+        if (! addressView.CountryRegionId)
+        {
+            return 0;
+        }
+        if (_firstName || _lastName || _company)
+        {
+            addressView.LocationName = _firstName;
+            if (_lastName)
+            {
+                addressView.LocationName += (addressView.LocationName ? ' ' : '') + _lastName;
+            }
+            if (_company)
+            {
+                addressView.LocationName += (addressView.LocationName ? ' ' : '') + _company;
+            }
+        }
+        
+        addressView.Party = _partyId;
+
+        logisticsAddressCountryRegion = LogisticsAddressCountryRegion::findByISOCode(addressView.CountryRegionId);
+        if (logisticsAddressCountryRegion.RecId)
+        {
+            addressView.CountryRegionId = logisticsAddressCountryRegion.CountryRegionId;
+        }
+        else
+        {
+            if (!LogisticsAddressCountryRegion::exist(addressView.CountryRegionId))
+            {
+                throw error(strFmt("@SYS9347",addressView.CountryRegionId));
+            }
+        }
+        //state not exists
+        if (addressView.State && !LogisticsAddressState::exist(addressView.CountryRegionId, addressView.State))
+        {
+            logisticsAddressState.StateId         = addressView.State;
+            logisticsAddressState.CountryRegionId = addressView.CountryRegionId;
+            logisticsAddressState.modifiedField(fieldNum(LogisticsAddressState, CountryRegionId));
+            logisticsAddressState.Name            = addressView.State;
+            DEV::validateWriteRecordCheck(logisticsAddressState);
+            logisticsAddressState.insert();
+        }
+        if (!LogisticsAddressZipCode::exist(addressView.ZipCode)) //zip code is not exists
+        {
+            addressView.ZipCode = conPeek(str2con_RU(addressView.ZipCode, '-'), 1);
+        }
+
+        DirParty                    dirParty;
+        container                   roles;
+        DirPartyPostalAddressView   partyAddressView;
+
+        dirParty = DirParty::constructFromPartyRecId(_partyId);
+        roles = [LogisticsLocationRole::findBytype(LogisticsLocationRoleType::Delivery).RecId];
+        partyAddressView = dirParty.createOrUpdatePostalAddress(addressView,roles);
+
+        logisticsPostalAddress = LogisticsPostalAddress::findByLocation(partyAddressView.Location);
+
+        //postalAddressEntity = LogisticsPostalAddressEntity::construct();
+        //logisticsPostalAddress = postalAddressEntity.createPostalAddress(addressView);
+
+        return logisticsPostalAddress.RecId;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>createSalesTable</Name>
 				<Source><![CDATA[
     SalesTable createSalesTable()
@@ -202,12 +280,6 @@ class DEVIntegTutorialImportSalesTableJSON extends DEVIntegProcessMessageBase
                                                                                    salesLineStaging.ItemBarCode));
             }
             
-            //if (! InventTable::exist(salesLineStaging.ItemId))
-            //{
-            //    isValidLine = checkFailed(strFmt("Line %1. Item %2 doesn't exist", numLines,
-            //                                                                       salesLineStaging.ItemId));
-            //}
-            
             if (! isValidLine)
             {
                 messageProcessResult.incErrorCount();
@@ -286,6 +358,17 @@ class DEVIntegTutorialImportSalesTableJSON extends DEVIntegProcessMessageBase
 
         ttscommit;
         
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setViewStagingButton</Name>
+				<Source><![CDATA[
+    public void setViewStagingButton(FormFunctionButtonControl  _viewStagingButtonControl, DEVIntegMessageTable  _messageTable)
+    {
+        _viewStagingButtonControl.visible(_messageTable.IsParsed);
+        _viewStagingButtonControl.menuItemName(menuItemDisplayStr(DEVIntegTutorialSalesTableStaging));
     }
 
 ]]></Source>

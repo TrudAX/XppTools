@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLReportsProcess</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
+{
+    DEVSQLReportId  reportId;
+    
+    DialogField      dlgReportId;
+    
+    QueryRun       queryRun;
+    
+    DEVSQLReports   callerReports;
+
+    NoYesId      isDisableUnpackQuery;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        reportId
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgReportId  = dialog.addFieldValue(extendedtypestr(DEVSQLReportId), reportId);
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        reportId   = dlgReportId.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmReportId</Name>
+				<Source><![CDATA[
+    public DEVSQLReportId parmReportId(DEVSQLReportId _reportId = reportId)
+    {
+        reportId = _reportId;
+        return reportId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCallerDEVSQLReports</Name>
+				<Source><![CDATA[
+    public DEVSQLReports parmCallerDEVSQLReports(DEVSQLReports _callerDEVSQLReports = callerReports)
+    {
+        callerReports = _callerDEVSQLReports;
+
+        reportId = callerReports.ReportId;
+        return callerReports;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        this.initQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initQuery</Name>
+				<Source><![CDATA[
+    public void initQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEVSQLReports));
+        QueryBuildRange         qBR;
+        ;
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVSQLReports, IsEnabled));
+        qBR.status(RangeStatus::Locked);
+        qBR.value(SysQuery::value(NoYes::Yes));
+        
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsDisableUnpackQuery</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsDisableUnpackQuery(NoYesId _isDisableUnpackQuery = isDisableUnpackQuery)
+    {
+        isDisableUnpackQuery = _isDisableUnpackQuery;
+        return isDisableUnpackQuery;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        container  queryCon;
+
+        if (isDisableUnpackQuery)
+        {
+            return false;
+        }
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList, queryCon] = _packedClass;
+                if (SysQuery::isPackedOk(queryCon))
+                {
+                    queryRun = new QueryRun(queryCon);
+                }
+                else
+                {
+                    this.initQuery();
+                }
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        int                     processedCounter;
+        QueryBuildDataSource    qBDS;
+        DEVSQLReports    DEVSQLReports;
+        
+        qBDS = queryRun.query().dataSourceTable(tableNum(DEVSQLReports));
+        SysQuery::findOrCreateRange(qBDS, fieldnum(DEVSQLReports, ReportId)).value(queryValue(reportId));
+        
+        while (queryRun.next())
+        {
+            DEVSQLReports = queryRun.get(tablenum(DEVSQLReports));
+
+            DEVSQLReportsProcessor  reportsProcessor = new DEVSQLReportsProcessor();
+            
+            reportsProcessor.processReport(DEVSQLReports);
+
+            processedCounter++;
+        }
+        //info(strfmt(" %1 record(s) processed", processedCounter));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        return false;  //just for now
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVSQLReportsProcess construct()
+    {
+        return new DEVSQLReportsProcess();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Execute SQL report";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVSQLReportsProcess    runObject = DEVSQLReportsProcess::construct();
+        QueryBuildDataSource  qbds;
+        ;
+        if (_args.dataset() != tablenum(DEVSQLReports))
+        {
+            throw error(Error::missingRecord(funcname()));
+        }
+        runObject.parmCallerDEVSQLReports(_args.record());
+
+        runObject.parmIsDisableUnpackQuery(true);
+        /*
+        if (_args && _args.record().TableId == tablenum(DEVSQLReports))
+        {
+            qbds = runObject.queryRun().query().dataSourceTable(tablenum(DEVSQLReports));
+            qbds.clearRanges();
+            qbds.addRange(fieldnum(DEVSQLReports, RecId)).value(queryValue(runObject.parmCallerDEVSQLReports().RecId));
+            //runObject.parmIsDisableUnpackQuery(true);
+        }
+        */
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLReportExecutionStatus</Name>
+	<Help>SQL Report execution status</Help>
+	<Label>Report execution status</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Empty</Name>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>InProgress</Name>
+			<Label>In progress</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Completed</Name>
+			<Label>Completed</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Error</Name>
+			<Label>Error</Label>
+			<Value>3</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

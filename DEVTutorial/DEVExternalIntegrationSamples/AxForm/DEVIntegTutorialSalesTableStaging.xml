@@ -65,6 +65,59 @@ public class DEVIntegTutorialSalesTableStaging extends FormRun
 					</Method>
 				</Methods>
 			</Control>
+			<Control>
+				<Name>DeleteSalesButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            Args            args;
+            MenuFunction    mf;
+            SalesTable      salesTable;
+            DEVIntegMessageTable       integMessageTableLocal;
+            SalesLine       salesLine;
+            ;
+        
+            if (DEVIntegTutorialSalesTableStaging.CompanyId && DEVIntegTutorialSalesTableStaging.SalesId)
+            {
+                if (DEVIntegTutorialSalesTableStaging.CompanyId)
+                {
+                    if (DEVIntegTutorialSalesTableStaging.salesTable().RecId)
+                    {
+                        changecompany(DEVIntegTutorialSalesTableStaging.CompanyId)
+                        {
+                            ttsBegin;
+        
+                            salesTable = DEVIntegTutorialSalesTableStaging.salesTable(true);
+       
+                            if (!salesTable.validateDelete())
+                            {
+                                throw error(strFmt("Failed to delete sales order %1", salesTable.SalesId));
+                            }
+                            salesTable.delete();
+                            integMessageTableLocal = DEVIntegMessageTable::findRecId(DEVIntegTutorialSalesTableStaging.MessageId, true);
+                            integMessageTableLocal.Status = DEVIntegMessageStatus::Ready;
+                            integMessageTableLocal.IsParsed = false;
+                            integMessageTableLocal.update();
+        
+                            ttsCommit;
+        
+                            info(strFmt("Sales order %1 was deleted", salesTable.SalesId));
+        
+                            DEV::dsRefresh(DEVIntegTutorialSalesTableStaging);
+                        }
+                    }
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
 		</DataControls>
 		<Members xmlns="" />
 	</SourceCode>
@@ -271,6 +324,16 @@ public class DEVIntegTutorialSalesTableStaging extends FormRun
 									i:nil="true" />
 								<NeedsRecord>Yes</NeedsRecord>
 								<Text>View sales order</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>DeleteSalesButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<NeedsRecord>Yes</NeedsRecord>
+								<Text>Delete Sales</Text>
 							</AxFormControl>
 						</Controls>
 					</AxFormControl>
