@@ -12,6 +12,7 @@ This repository contains 3 D365FO models:
     - [-Editable table browser](#-editable-table-browser)
     - [-List of Values to Range](#-list-of-values-to-range)
     - [-Execute direct SQL in D365FO database](#-execute-direct-sql-in-d365fo-database)
+    - [-SQL reports](#-sql-reports)
     - [-D365FO Infolog call stack](#-d365fo-infolog-call-stack)
   - [DEVCommon model](#devcommon-model)
     - [-DEV class](#-dev-class)
@@ -94,6 +95,12 @@ Full description: [Execute direct SQL in D365FO database](https://denistrunin.co
 Sub-model name: DEVSQLExecute
 
 ![DEV SQL Execute](assets/DEVSQLExecute.png)
+
+### -SQL reports
+
+'SQL reports' functionality is a set of forms that allow to define and execute direct SQL reports in the D365FO database. There is a "SQL definition" table that defines the SQL text, a "SQL format" table that defines the output format(e.g. CSV, Excel, etc..) and SQL Report table where the user can run the report and output the result to the selected format.
+
+Sub-model name: DEVSQLReports
 
 ### -D365FO Infolog call stack
 
