@@ -47,6 +47,11 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 
         DEVIntegMessageTypeTableOutbound_ds.object(fieldNum(DEVIntegMessageTypeTableOutbound, OutputFolder)).visible(
             connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
+        DEVIntegMessageTypeTableOutbound_ds.object(fieldNum(DEVIntegMessageTypeTableOutbound, AzureShareReference)).visible(
+            connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
+
+        SQLParametersGroup.visible(DEVIntegMessageTypeTableOutbound.ClassName == classStr(DEVIntegExportBulkSQL));
+        FileParametersGroup.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
     }
 
 ]]></Source>
@@ -97,17 +102,37 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
                 sysTableLookup.addLookupfield(fieldnum(TmpIdRef, HelpTxt));
                 sysTableLookup.setLabel("@SYS7576"); // Description
 
-                thisClass = new DictClass(classNum(DEVIntegExportMessageBase));
-                listEnumerator = thisClass.extendedBy(true).getEnumerator();
-                while (listEnumerator.moveNext())
+                if (DEVIntegMessageTypeTableOutbound.IsFullExport)
                 {
-                    dictClass = new DictClass(listEnumerator.current());
-                    if (dictClass && !dictClass.isAbstract())
+                    DEVIntegExportBulkBase  baseImportClassBulk;
+                    thisClass = new DictClass(classNum(DEVIntegExportBulkBase));
+                    listEnumerator = thisClass.extendedBy(true).getEnumerator();
+                    while (listEnumerator.moveNext())
                     {
-                        baseImportClass = dictClass.makeObject();
-                        actionIdRef.Name       = dictClass.name();
-                        actionIdRef.HelpTxt    = baseImportClass.getDescription();
-                        actionIdRef.insert();
+                        dictClass = new DictClass(listEnumerator.current());
+                        if (dictClass && !dictClass.isAbstract())
+                        {
+                            baseImportClassBulk = dictClass.makeObject();
+                            actionIdRef.Name       = dictClass.name();
+                            actionIdRef.HelpTxt    = baseImportClassBulk.getDescription();
+                            actionIdRef.insert();
+                        }
+                    }
+                }
+                else
+                {
+                    thisClass = new DictClass(classNum(DEVIntegExportMessageBase));
+                    listEnumerator = thisClass.extendedBy(true).getEnumerator();
+                    while (listEnumerator.moveNext())
+                    {
+                        dictClass = new DictClass(listEnumerator.current());
+                        if (dictClass && !dictClass.isAbstract())
+                        {
+                            baseImportClass = dictClass.makeObject();
+                            actionIdRef.Name       = dictClass.name();
+                            actionIdRef.HelpTxt    = baseImportClass.getDescription();
+                            actionIdRef.insert();
+                        }
                     }
                 }
 
@@ -161,6 +186,55 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 					</Method>
 				</Methods>
 			</Control>
+			<Control>
+				<Name>DEVIntegMessageTypeInbound_ConnectionTypeId</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+
+            element.enableDSFields();
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>EntiryGroup_ClassName</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+            DEVIntegExportBulkBase  baseImportClass = DEVIntegMessageTypeTableOutbound.getBulkExportClass();
+            if (baseImportClass)
+            {
+                baseImportClass.initDefaultParameters(DEVIntegMessageTypeTableOutbound);
+            }
+
+            element.enableDSFields();
+    
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
 		</DataControls>
 		<Members xmlns="" />
 	</SourceCode>
@@ -169,6 +243,9 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 			<Name>DEVIntegMessageTypeTableOutbound</Name>
 			<Table>DEVIntegMessageTypeTableOutbound</Table>
 			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AzureShareReference</DataField>
+				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ClassName</DataField>
 				</AxFormDataSourceField>
@@ -185,7 +262,19 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 					<DataField>Description</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>FileColumnDelimiter</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileNameParameterD</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>IsEnabled</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsFullExport</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>MessageTypeIdOutbound</DataField>
@@ -210,6 +299,12 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ServiceBusQueueName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SQLMaxRows</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SQLText</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>TableId</DataField>
@@ -369,15 +464,11 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
-										<Name>GridGroup_Description</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
+										<Name>GridGroup_FileNameParameterD</Name>
 										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
 										<FormControlExtension
 											i:nil="true" />
-										<DataField>Description</DataField>
+										<DataField>FileNameParameterD</DataField>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 								</Controls>
@@ -425,11 +516,11 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormStringControl">
-								<Name>ListGroup_Description</Name>
+								<Name>ListGroup_FileNameParameterD</Name>
 								<Type>String</Type>
 								<FormControlExtension
 									i:nil="true" />
-								<DataField>Description</DataField>
+								<DataField>FileNameParameterD</DataField>
 								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 							</AxFormControl>
 							<AxFormControl xmlns=""
@@ -494,6 +585,15 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
+										<Name>DEVIntegMessageTypeTableOutbound_AzureShareReference</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>AzureShareReference</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
 										<Name>DEVIntegMessageTypeTableOutbound_OutputFolder</Name>
 										<Type>String</Type>
 										<FormControlExtension
@@ -514,6 +614,15 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 									i:nil="true" />
 								<Controls>
 									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>EntiryGroup_IsFullExport</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>IsFullExport</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
 										<Name>EntiryGroup_ClassName</Name>
 										<Type>String</Type>
@@ -530,6 +639,93 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 						</Controls>
 						<ColumnsMode>Fill</ColumnsMode>
 						<Caption>Details</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>ParametersTabPage</Name>
+						<Pattern>FieldsFieldGroups</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FileParametersGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FileParameters_FileName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileName</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FileParameters_FileNameParameterD</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileNameParameterD</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>FileParameters_FileColumnDelimiter</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileColumnDelimiter</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>FileParameters</DataGroup>
+								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>SQLParametersGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>SQLParameters_SQLText</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>SQLText</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+										<DisplayLength>100</DisplayLength>
+										<DisplayLengthMode>Fixed</DisplayLengthMode>
+										<MultiLine>Yes</MultiLine>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>SQLParameters_SQLMaxRows</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>SQLMaxRows</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>SQLParameters</DataGroup>
+								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>Operation parameters</Caption>
 					</AxFormControl>
 					<AxFormControl xmlns=""
 						i:type="AxFormTabPageControl">

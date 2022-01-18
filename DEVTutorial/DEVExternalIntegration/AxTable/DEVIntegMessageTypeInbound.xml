@@ -424,7 +424,7 @@ public class DEVIntegMessageTypeInbound extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>FileColumnDelimiter</Name>
-			<ExtendedDataType>char</ExtendedDataType>
+			<ExtendedDataType>Delimiter</ExtendedDataType>
 			<Label>CSV delimiter</Label>
 		</AxTableField>
 		<AxTableField xmlns=""

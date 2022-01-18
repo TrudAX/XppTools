@@ -8,10 +8,16 @@ using Microsoft.WindowsAzure.Storage.File;
 
 class DEVIntegAzureStorageConnectionHelper
 {
-    DEVIntegMessageTypeInbound   messageTypeTable;
+    Common                      messageTypeTableRef;
     CloudFileShare              share;
     CloudFileDirectory          rootDir;
     DEVIntegTmpFiles            fileList;
+
+    str                         folderLocation;
+    str                         archiveLocation;
+    DEVIntegConnectionTypeId    connectionTypeId;
+    str                         messageTypeId;
+    str                         azureShareReference;
 
 }
 ]]></Declaration>
@@ -26,9 +32,11 @@ class DEVIntegAzureStorageConnectionHelper
         {
             this.connect();
 
-            this.getExistingDirectory(messageTypeTable.ReadLocation);
-            this.getExistingDirectory(messageTypeTable.ArchiveLocation);
-
+            this.getExistingDirectory(folderLocation);
+            if (archiveLocation)
+            {
+                this.getExistingDirectory(archiveLocation);
+            }
             this.fillFiles();
 
             this.printFileList();
@@ -59,12 +67,12 @@ class DEVIntegAzureStorageConnectionHelper
     str   getConnectionString()
     {
         str connectionString;
-        DEVIntegConnectionType connectionType = messageTypeTable.connectionType();
+        DEVIntegConnectionType connectionType = DEVIntegConnectionType::find(connectionTypeId);
         connectionString = connectionType.getConnectionString();
 
         if (! connectionString)
         {
-            throw error(strFmt("Connection string is not specified for message type %1", messageTypeTable.MessageTypeId));
+            throw error(strFmt("Connection string is not specified for message type %1", messageTypeId));
         }
 
         return connectionString;
@@ -77,9 +85,9 @@ class DEVIntegAzureStorageConnectionHelper
 				<Source><![CDATA[
     void connect()
     {
-        if (! messageTypeTable.AzureShareReference)
+        if (! azureShareReference)
         {
-            throw error(strFmt("Share reference is not specified for message type %1", messageTypeTable.MessageTypeId));
+            throw error(strFmt("Share reference is not specified for message type %1", messageTypeId));
         }
         try
         {
@@ -87,15 +95,15 @@ class DEVIntegAzureStorageConnectionHelper
             CloudStorageAccount storageAccount    = CloudStorageAccount::Parse(connectionString);
             CloudFileClient     fileClient        = storageAccount.CreateCloudFileClient();
 
-            share = fileClient.GetShareReference(messageTypeTable.AzureShareReference);
+            share = fileClient.GetShareReference(azureShareReference);
             if (! share.Exists(null, null))
             {
-                throw error(strFmt("Share '%1' doesn't exists (Type %2)", messageTypeTable.AzureShareReference, messageTypeTable.MessageTypeId));
+                throw error(strFmt("Share '%1' doesn't exists (Type %2)", azureShareReference, messageTypeId));
             }
             rootDir = share.GetRootDirectoryReference();
             if (! rootDir.Exists(null, null))
             {
-                throw error(strFmt("Root directory '%1' doesn't exists (Type %2)", messageTypeTable.AzureShareReference, messageTypeTable.MessageTypeId));
+                throw error(strFmt("Root directory '%1' doesn't exists (Type %2)", azureShareReference, messageTypeId));
             }
         }
         catch( Exception::CLRError )
@@ -119,7 +127,7 @@ class DEVIntegAzureStorageConnectionHelper
 
             if (! fileDirTo.Exists(null, null))
             {
-                throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _archDir, messageTypeTable.MessageTypeId));
+                throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _archDir, messageTypeId));
             }
 
             _fileDataStream.Position = 0;
@@ -147,7 +155,7 @@ class DEVIntegAzureStorageConnectionHelper
 
             if (! fileDirTo.Exists(null, null))
             {
-                throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _archDir, messageTypeTable.MessageTypeId));
+                throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _archDir, messageTypeId));
             }
 
             CloudFile file = fileDir.GetFileReference(_fileRef.FileName);
@@ -225,7 +233,7 @@ class DEVIntegAzureStorageConnectionHelper
 
         if (! fileDir || ! fileDir.Exists(null, null))
         {
-            throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _folderName, messageTypeTable.MessageTypeId));
+            throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _folderName, messageTypeId));
         }
         return fileDir;
     }
@@ -235,7 +243,7 @@ class DEVIntegAzureStorageConnectionHelper
 			<Method>
 				<Name>fillFiles</Name>
 				<Source><![CDATA[
-    DEVIntegTmpFiles fillFiles(FolderName  _folderName = messageTypeTable.ReadLocation)
+    DEVIntegTmpFiles fillFiles(FolderName  _folderName = folderLocation)
     {
         fileList = null;
 
@@ -283,12 +291,50 @@ class DEVIntegAzureStorageConnectionHelper
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>parmMessageTypeTable</Name>
+				<Name>parmMessageTypeTableRef</Name>
 				<Source><![CDATA[
-    DEVIntegMessageTypeInbound parmMessageTypeTable(DEVIntegMessageTypeInbound     _messageTypeTable = messageTypeTable)
+    public Common parmMessageTypeTableRef(Common _messageTypeTableRef = messageTypeTableRef)
     {
-        messageTypeTable = _messageTypeTable;
-        return messageTypeTable;
+        messageTypeTableRef = _messageTypeTableRef;
+        return messageTypeTableRef;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromMessageTypeTable</Name>
+				<Source><![CDATA[
+    public void initFromMessageTypeTable(Common     _messageTable)
+    {
+
+        DEVIntegMessageTypeInbound          messageTypeInbound;
+        DEVIntegMessageTypeTableOutbound    messageTypeTableOutbound;
+
+        this.parmMessageTypeTableRef(_messageTable);
+
+        switch (_messageTable.TableId)
+        {
+            case tableNum(DEVIntegMessageTypeInbound):
+                messageTypeInbound = _messageTable;
+                folderLocation       = messageTypeInbound.ReadLocation;
+                archiveLocation      = messageTypeInbound.ArchiveLocation;
+                connectionTypeId     = messageTypeInbound.ConnectionTypeId;
+                messageTypeId        = messageTypeInbound.MessageTypeId;
+                azureShareReference  = messageTypeInbound.AzureShareReference;
+                break;
+            case tableNum(DEVIntegMessageTypeTableOutbound):
+                messageTypeTableOutbound = _messageTable;
+                folderLocation       = messageTypeTableOutbound.OutputFolder;
+                archiveLocation      = '';
+                connectionTypeId     = messageTypeTableOutbound.ConnectionTypeId;
+                messageTypeId        = messageTypeTableOutbound.MessageTypeIdOutbound;
+                azureShareReference  = messageTypeTableOutbound.AzureShareReference;
+                break;
+
+            default:
+                throw error(strFmt("Table %1 is not supported", _messageTable.TableId));
+        }
+
     }
 
 ]]></Source>
@@ -319,8 +365,19 @@ class DEVIntegAzureStorageConnectionHelper
     static DEVIntegAzureStorageConnectionHelper construct(DEVIntegMessageTypeInbound     _messageTypeTable)
     {
         DEVIntegAzureStorageConnectionHelper        res = new DEVIntegAzureStorageConnectionHelper();
+        res.initFromMessageTypeTable(_messageTypeTable);
+        return res;
+    }
 
-        res.parmMessageTypeTable(_messageTypeTable);
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructOutbound</Name>
+				<Source><![CDATA[
+    static DEVIntegAzureStorageConnectionHelper constructOutbound(DEVIntegMessageTypeTableOutbound     _messageTypeTableOutbound)
+    {
+        DEVIntegAzureStorageConnectionHelper        res = new DEVIntegAzureStorageConnectionHelper();
+        res.initFromMessageTypeTable(_messageTypeTableOutbound);
         return res;
     }
 

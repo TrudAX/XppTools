@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExportBulkBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryable
+{
+    DEVIntegMessageTypeIdOutbound  messageTypeIdOutbound;
+    NoYesId                        isTestRun;
+    
+    DialogField                    dlgMessageTypeIdOutbound;
+    DialogField                    dlgIsTestRun;
+
+    DEVIntegAzureStorageConnectionHelper   azureStorageConnectionHelper;
+    DEVIntegMessageTypeTableOutbound       messageTypeTableOutbound;
+    
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        messageTypeIdOutbound,
+        isTestRun
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgMessageTypeIdOutbound  = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeIdOutbound), messageTypeIdOutbound);
+        dlgIsTestRun              = dialog.addFieldValue(extendedtypestr(NoYesId), isTestRun, "Test run", "The message will be just displayed to the user");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        messageTypeIdOutbound   = dlgMessageTypeIdOutbound.value();
+        isTestRun               = dlgIsTestRun.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTypeIdOutbound</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeIdOutbound parmMessageTypeIdOutbound(DEVIntegMessageTypeIdOutbound _messageTypeIdOutbound = messageTypeIdOutbound)
+    {
+        messageTypeIdOutbound = _messageTypeIdOutbound;
+        return messageTypeIdOutbound;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsTestRun</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsTestRun(NoYesId _isTestRun = isTestRun)
+    {
+        isTestRun = _isTestRun;
+        return isTestRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        this.exportData();
+
+        this.finalizeExport();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>finalizeExport</Name>
+				<Source><![CDATA[
+    public void finalizeExport()
+    {
+        azureStorageConnectionHelper = null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportData</Name>
+				<Source><![CDATA[
+    public void exportData()
+    {
+        throw error(Error::missingOverload(funcName()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeTableOutbound initDefaultParameters(DEVIntegMessageTypeTableOutbound    _messageTypeTableOutbound)
+    {
+        _messageTypeTableOutbound.FileNameParameterD   = 'yyyymmdd_hhmmss';
+        _messageTypeTableOutbound.FileName             = 'Export_%d.csv';
+        _messageTypeTableOutbound.FileColumnDelimiter  = ',';
+
+        return _messageTypeTableOutbound;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMessageTypeTableOutboundOrDefault</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeTableOutbound getMessageTypeTableOutboundOrDefault()
+    {
+        DEVIntegMessageTypeTableOutbound  res;
+
+        res = DEVIntegMessageTypeTableOutbound::find(messageTypeIdOutbound);
+        if (! res.RecId)
+        {
+            this.initDefaultParameters(res);
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegExportBulkBase construct()
+    {
+        return new DEVIntegExportBulkBase();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Base class for full table export";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeFileAzureStorage</Name>
+				<Source><![CDATA[
+    public void  writeFileAzureStorage(FileName  _fileName, System.IO.MemoryStream  _fileDataStream)
+    {
+        if (! azureStorageConnectionHelper)
+        {
+            azureStorageConnectionHelper = this.getAzureStorageConnectionHelper();
+        }
+        azureStorageConnectionHelper.createFileInDirectory(_fileName, messageTypeTableOutbound.OutputFolder, _fileDataStream);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAzureStorageConnectionHelper</Name>
+				<Source><![CDATA[
+    public DEVIntegAzureStorageConnectionHelper getAzureStorageConnectionHelper()
+    {
+        DEVIntegAzureStorageConnectionHelper res;
+
+        messageTypeTableOutbound = DEVIntegMessageTypeTableOutbound::find(messageTypeIdOutbound);
+        if (! messageTypeTableOutbound.IsEnabled)
+        {
+            throw error(strFmt("Can't find an Enabled message type for %1 type", messageTypeIdOutbound));
+        }
+        if (messageTypeTableOutbound.connectionType().ConnectionTypeResource != DEVIntegConnectionTypeResource::AzureFileShare)
+        {
+            throw error(strFmt("Message type %1 should have %2 connection(but %3 used)",
+                    messageTypeTableOutbound.MessageTypeIdOutbound, DEVIntegConnectionTypeResource::AzureFileShare, messageTypeTableOutbound.connectionType().ConnectionTypeResource));
+        }
+        res = DEVIntegAzureStorageConnectionHelper::constructOutbound(messageTypeTableOutbound);
+
+        return res;
+
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegExportBulkBase    runObject = DEVIntegExportBulkBase::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

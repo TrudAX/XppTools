@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialExportBulkInventOnhand</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegTutorialExportBulkInventOnhand extends DEVIntegExportBulkBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>exportData</Name>
+				<Source><![CDATA[
+    public void exportData()
+    {
+        #File
+        TextStreamIo ioData;
+
+        messageTypeTableOutbound = this.getMessageTypeTableOutboundOrDefault();
+
+        ioData = TextStreamIo::constructForWrite(0);
+        ioData.inFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
+        ioData.outFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
+        ioData.inRecordDelimiter(#delimiterCRLF);
+
+        container  lineData;
+        InventSum  inventSum;
+        while select crosscompany inventSum
+            where inventSum.AvailPhysical 
+        {
+            lineData = [inventSum.DataAreaId, inventSum.ItemId, inventSum.InventLocationId, inventSum.LastUpdDatePhysical, inventSum.AvailPhysical];
+            ioData.writeExp(lineData);
+        }
+        System.IO.MemoryStream memoryStream;
+        memoryStream = ioData.getStream();
+
+        Filename fileName;
+        fileName =  messageTypeTableOutbound.getFileName();
+        
+        if (isTestRun)
+        {
+            File::SendFileToUser(memoryStream, fileName);
+        }
+        else
+        {
+            this.writeFileAzureStorage(fileName, memoryStream);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "Sample export Onhand to CSV";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
