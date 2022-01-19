@@ -152,7 +152,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 				<Source><![CDATA[
     public DEVIntegMessageTypeTableOutbound initDefaultParameters(DEVIntegMessageTypeTableOutbound    _messageTypeTableOutbound)
     {
-        _messageTypeTableOutbound.FileNameParameterD   = 'yyyymmdd_hhmmss';
+        _messageTypeTableOutbound.FileNameParameterD   = 'yyyyMMdd_HHmmss';
         _messageTypeTableOutbound.FileName             = 'Export_%d.csv';
         _messageTypeTableOutbound.FileColumnDelimiter  = ',';
 
@@ -194,7 +194,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 				<Source><![CDATA[
     public boolean canGoBatch()
     {
-        return false;
+        return true;
     }
 
 ]]></Source>
@@ -237,6 +237,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
         if (! azureStorageConnectionHelper)
         {
             azureStorageConnectionHelper = this.getAzureStorageConnectionHelper();
+            azureStorageConnectionHelper.connect();
         }
         azureStorageConnectionHelper.createFileInDirectory(_fileName, messageTypeTableOutbound.OutputFolder, _fileDataStream);
     }
@@ -274,8 +275,18 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 				<Source><![CDATA[
     public static void main(Args _args)
     {
-        DEVIntegExportBulkBase    runObject = DEVIntegExportBulkBase::construct();
+        DEVIntegExportBulkBase              runObject;
+        DEVIntegMessageTypeTableOutbound    messageTypeTableOutbound;
         ;
+        if (_args.dataset() != tablenum(DEVIntegMessageTypeTableOutbound))
+        {
+            throw error(Error::missingRecord(funcname()));
+        }
+        messageTypeTableOutbound = _args.record();
+        runObject = messageTypeTableOutbound.getBulkExportClass();
+
+        runObject.parmMessageTypeIdOutbound(messageTypeTableOutbound.MessageTypeIdOutbound);
+
         if (runObject.prompt())
         {
             runObject.runOperation();

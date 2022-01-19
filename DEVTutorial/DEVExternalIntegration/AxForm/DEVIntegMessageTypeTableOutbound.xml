@@ -52,6 +52,10 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 
         SQLParametersGroup.visible(DEVIntegMessageTypeTableOutbound.ClassName == classStr(DEVIntegExportBulkSQL));
         FileParametersGroup.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
+
+        DEVIntegExportBulkBaseButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport);
+        ExportAllButton.visible(! DEVIntegMessageTypeTableOutbound.IsFullExport);
+
     }
 
 ]]></Source>
@@ -365,12 +369,25 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 							<AxFormControl xmlns=""
 								i:type="AxFormButtonControl">
 								<Name>ExportAllButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
 								<Type>Button</Type>
 								<FormControlExtension
 									i:nil="true" />
 								<AutoRefreshData>Yes</AutoRefreshData>
 								<NeedsRecord>Yes</NeedsRecord>
 								<Text>Export all</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegExportBulkBaseButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+								<MenuItemName>DEVIntegExportBulkBase</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+								<NeedsRecord>Yes</NeedsRecord>
 							</AxFormControl>
 						</Controls>
 						<ArrangeMethod>Vertical</ArrangeMethod>

@@ -340,7 +340,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
 					<DataField>MessageTypeIdOutbound</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>FileNameParameterD</DataField>
+					<DataField>Description</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>IsEnabled</DataField>

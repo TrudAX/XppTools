@@ -22,9 +22,14 @@ class DEVIntegTutorialExportBulkInventOnhand extends DEVIntegExportBulkBase
         ioData.inFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
         ioData.outFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
         ioData.inRecordDelimiter(#delimiterCRLF);
-
+        
         container  lineData;
         InventSum  inventSum;
+
+        lineData = ['Company', 'ItemId', 'InventLocationId', 'LastUpdDatePhysical', 'AvailPhysical'];
+        ioData.writeExp(lineData);
+
+
         while select crosscompany inventSum
             where inventSum.AvailPhysical 
         {

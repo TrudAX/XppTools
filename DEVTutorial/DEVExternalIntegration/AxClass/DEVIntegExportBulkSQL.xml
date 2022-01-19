@@ -47,6 +47,8 @@ public class DEVIntegExportBulkSQL extends DEVIntegExportBulkBase
         else
         {
             this.writeFileAzureStorage(fileName, memoryStream);
+
+            info(strFmt("File %1 created in %2 folder", fileName, messageTypeTableOutbound.OutputFolder));
         }
     }
 
@@ -70,6 +72,8 @@ public class DEVIntegExportBulkSQL extends DEVIntegExportBulkBase
         _messageTypeTableOutbound.SQLText     = 'SELECT * FROM CustGroup';
         _messageTypeTableOutbound.SQLMaxRows  = 1000;
         DEVIntegMessageTypeTableOutbound  res = super(_messageTypeTableOutbound);
+
+        res.FileName             = 'ExportSQL_%d.csv';
 
         return res;
     }

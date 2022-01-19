@@ -80,6 +80,18 @@ class DEVIntegMessagesLoadAzureFileShare extends DEVIntegMessagesLoadBaseType
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>testOutboundConnection</Name>
+				<Source><![CDATA[
+    void testOutboundConnection(DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
+    {
+        DEVIntegAzureStorageConnectionHelper     azureStorageConnectionHelper =  DEVIntegAzureStorageConnectionHelper::constructOutbound(_messageTypeTableOutbound);
+        
+        azureStorageConnectionHelper.testConnection();
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 </AxClass>
