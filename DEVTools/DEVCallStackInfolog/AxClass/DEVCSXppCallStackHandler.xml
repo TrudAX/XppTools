@@ -7,8 +7,7 @@
 //https://github.com/TrudAX/XppTools
 class DEVCSXppCallStackHandler 
 {
-
-  
+    public static UnknownNoYes  isCheckEnabled = UnknownNoYes::Unknown;
 
 }
 ]]></Declaration>
@@ -23,39 +22,66 @@ class DEVCSXppCallStackHandler
         boolean                      isEnabled;
         DEVCSXppCallStackUserSetup   callStackUserSetup;
 
-        callStackUserSetup = DEVCSXppCallStackUserSetup::findCurrent();
+        SqlDictionary  sqlDict;
 
-        if (callStackUserSetup.RecId && callStackUserSetup.IsEnabled)
+        try
         {
-            isEnabled = true;
-            switch (callStackUserSetup.SysInfologLevel)
+            if (DEVCSXppCallStackHandler::isCheckEnabled == UnknownNoYes::Unknown)
             {
-                case SysInfologLevel::None:
-                    isEnabled = false;
-                    break;
-                case SysInfologLevel::Warning:
-                    if (_eventArgs.exception== Exception::Info)
-                    isEnabled = false;
-                    break;
-                case SysInfologLevel::Error:
-                    if (_eventArgs.exception == Exception::Info || 
-                        _eventArgs.exception == Exception::Warning)
-                    isEnabled = false;
-                    break;
+                DEVCSXppCallStackHandler::isCheckEnabled = UnknownNoYes::No;
+
+                select firstonly RecId from sqlDict
+                    where sqlDict.fieldId  == 0 &&
+                            sqlDict.name     == tableStr(DEVCSXppCallStackUserSetup);
+
+                if (sqlDict.recid)
+                {
+                     DEVCSXppCallStackHandler::isCheckEnabled     = UnknownNoYes::Yes;
+                }
+            }
+
+            if (DEVCSXppCallStackHandler::isCheckEnabled == UnknownNoYes::Yes)
+            {
+                callStackUserSetup = DEVCSXppCallStackUserSetup::findCurrent();
+
+                if (callStackUserSetup.RecId && callStackUserSetup.IsEnabled)
+                {
+                    isEnabled = true;
+                    switch (callStackUserSetup.SysInfologLevel)
+                    {
+                        case SysInfologLevel::None:
+                            isEnabled = false;
+                            break;
+                        case SysInfologLevel::Warning:
+                            if (_eventArgs.exception== Exception::Info)
+                            isEnabled = false;
+                            break;
+                        case SysInfologLevel::Error:
+                            if (_eventArgs.exception == Exception::Info ||
+                                _eventArgs.exception == Exception::Warning)
+                            isEnabled = false;
+                            break;
+                    }
+                }
+            }
+
+            if (isEnabled)
+            {
+                UserConnection       userConnection = new UserConnection();
+                callStackTable.setConnection(userConnection);
+                callStackTable.clear();
+                callStackTable.initValue();
+                callStackTable.Exception = _eventArgs.exception;
+                callStackTable.InfologStr = _eventArgs.message;
+                callStackTable.CallStack = xSession::xppCallStack();
+                callStackTable.insert();
             }
         }
-
-        if (isEnabled)
+        catch
         {
-            UserConnection       userConnection = new UserConnection();
-            callStackTable.setConnection(userConnection);
-            callStackTable.clear();
-            callStackTable.initValue();
-            callStackTable.Exception = _eventArgs.exception;
-            callStackTable.InfologStr = _eventArgs.message;
-            callStackTable.CallStack = xSession::xppCallStack();
-            callStackTable.insert();
+            DEVCSXppCallStackHandler::isCheckEnabled = UnknownNoYes::No;
         }
+
     }
 
 ]]></Source>

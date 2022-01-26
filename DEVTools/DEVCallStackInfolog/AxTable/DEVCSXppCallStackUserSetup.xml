@@ -42,6 +42,42 @@ public class DEVCSXppCallStackUserSetup extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        super();
+
+        DEVCSXppCallStackHandler::isCheckEnabled = UnknownNoYes::Unknown;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        super();
+        DEVCSXppCallStackHandler::isCheckEnabled = UnknownNoYes::Unknown;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>delete</Name>
+				<Source><![CDATA[
+    public void delete()
+    {
+        super();
+        DEVCSXppCallStackHandler::isCheckEnabled = UnknownNoYes::Unknown;
+
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>DEV Infolog log user setup</Label>
