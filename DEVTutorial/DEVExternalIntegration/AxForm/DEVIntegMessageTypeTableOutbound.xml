@@ -56,6 +56,8 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
         DEVIntegExportBulkBaseButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport);
         ExportAllButton.visible(! DEVIntegMessageTypeTableOutbound.IsFullExport);
 
+        ExportBulkLogButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport);
+
     }
 
 ]]></Source>
@@ -388,6 +390,17 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 								<MenuItemName>DEVIntegExportBulkBase</MenuItemName>
 								<MenuItemType>Action</MenuItemType>
 								<NeedsRecord>Yes</NeedsRecord>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>ExportBulkLogButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+								<MenuItemName>DEVIntegExportBulkLog</MenuItemName>
+								<Text>Log</Text>
 							</AxFormControl>
 						</Controls>
 						<ArrangeMethod>Vertical</ArrangeMethod>

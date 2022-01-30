@@ -12,12 +12,13 @@ public class DEVIntegErrorLog extends common
 			<Method>
 				<Name>clearMessageLog</Name>
 				<Source><![CDATA[
-    public static void clearMessageLog(RefRecId _messageTableRecId)
+    public static void clearMessageLog(RefRecId _messageTableRecId, RefTableId  _refTableId)
     {
         DEVIntegErrorLog      errorLog;
         ttsbegin;
         delete_from errorLog
-            where errorLog.MessageRefRecId == _messageTableRecId;
+            where errorLog.MessageRefRecId == _messageTableRecId &&
+                  errorLog.MessageTableId  ==  _refTableId;
         ttscommit;
     }
 
@@ -26,7 +27,7 @@ public class DEVIntegErrorLog extends common
 			<Method>
 				<Name>insertErrorByMessage</Name>
 				<Source><![CDATA[
-    public static void insertErrorByMessage(DEVIntegMessageTable _messageTable, int _infoCnt, Exception  _exception)
+    public static void insertErrorByMessage(Common _messageTable, int _infoCnt, Exception  _exception)
     {
         DEVIntegErrorLog      errorLog;
 
@@ -44,6 +45,7 @@ public class DEVIntegErrorLog extends common
         {
             errorLog.LogText        = info::infoCon2Str(taskInfolog);
             errorLog.MessageRefRecId        = _messageTable.RecId;
+            errorLog.MessageTableId         = _messageTable.TableId;
             errorLog.insert();
         }
         ttscommit;
@@ -54,9 +56,11 @@ public class DEVIntegErrorLog extends common
 			<Method>
 				<Name>existForMessageTable</Name>
 				<Source><![CDATA[
-    public static boolean existForMessageTable(DEVIntegMessageRefRecId  _refRecId)
+    public static boolean existForMessageTable(DEVIntegMessageRefRecId  _refRecId, RefTableId  _refTableId)
     {
-        return (select firstonly RecId from DEVIntegErrorLog where DEVIntegErrorLog.MessageRefRecId == _refRecId).RecId != 0;
+        return (select firstonly RecId from DEVIntegErrorLog 
+            where DEVIntegErrorLog.MessageRefRecId ==  _refRecId  &&
+                  DEVIntegErrorLog.MessageTableId  ==  _refTableId).RecId != 0;
     }
 
 ]]></Source>
@@ -173,7 +177,13 @@ public class DEVIntegErrorLog extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt64">
 			<Name>MessageRefRecId</Name>
-			<ExtendedDataType>DEVIntegMessageRefRecId</ExtendedDataType>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>MessageTableId</Name>
+			<ExtendedDataType>RefTableId</ExtendedDataType>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 	</Fields>
@@ -185,6 +195,9 @@ public class DEVIntegErrorLog extends common
 			<Fields>
 				<AxTableIndexField>
 					<DataField>MessageRefRecId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>MessageTableId</DataField>
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>
@@ -206,8 +219,36 @@ public class DEVIntegErrorLog extends common
 					<Field>MessageRefRecId</Field>
 					<RelatedField>RecId</RelatedField>
 				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageTableId</Name>
+					<Field>MessageTableId</Field>
+					<RelatedField>TableId</RelatedField>
+				</AxTableRelationConstraint>
 			</Constraints>
 			<Index>RecId</Index>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>DEVIntegExportBulkLog</Name>
+			<Cardinality>ZeroOne</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DEVIntegExportBulkLog</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageRefRecId</Name>
+					<Field>MessageRefRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageTableId</Name>
+					<Field>MessageTableId</Field>
+					<RelatedField>TableId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
 		</AxTableRelation>
 	</Relations>
 	<StateMachines />

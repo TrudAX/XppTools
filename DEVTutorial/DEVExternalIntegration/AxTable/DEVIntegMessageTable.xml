@@ -123,7 +123,7 @@ public class DEVIntegMessageTable extends common
     [SysClientCacheDataMethodAttribute(true)]
     display DEVIntegIsMessageHasLog hasLog()
     {
-        return DEVIntegErrorLog::existForMessageTable(this.RecId);
+        return DEVIntegErrorLog::existForMessageTable(this.RecId, this.TableId);
     }
 
 ]]></Source>

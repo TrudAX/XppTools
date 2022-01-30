@@ -99,7 +99,7 @@ public class DEVIntegMessageProcessor
         curMessageStatus    = _messageTable.Status;
         processResults      = null;
         isErrorCaught       = false;
-        DEVIntegErrorLog::clearMessageLog(_messageTable.RecId);
+        DEVIntegErrorLog::clearMessageLog(_messageTable.RecId, _messageTable.TableId);
         
         infoCnt = infologLine();
         try

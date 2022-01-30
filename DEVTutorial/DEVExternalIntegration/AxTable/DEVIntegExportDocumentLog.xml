@@ -168,7 +168,7 @@ public class DEVIntegExportDocumentLog extends common
 			</Method>
 		</Methods>
 	</SourceCode>
-	<Label>Vendor Log</Label>
+	<Label>Document Log</Label>
 	<TableGroup>Group</TableGroup>
 	<TitleField1>DocumentId</TitleField1>
 	<TitleField2>CompanyId</TitleField2>

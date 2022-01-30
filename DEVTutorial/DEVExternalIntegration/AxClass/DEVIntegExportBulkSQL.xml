@@ -20,36 +20,15 @@ public class DEVIntegExportBulkSQL extends DEVIntegExportBulkBase
 				<Source><![CDATA[
     public void exportData()
     {
-        #File
-        TextStreamIo ioData;
-
-        messageTypeTableOutbound = this.getMessageTypeTableOutboundOrDefault();
+        this.initCSVStream();
 
         reportDelimeter = messageTypeTableOutbound.getFileColumnDelimiter();
-        Filename fileName;
-        fileName =  messageTypeTableOutbound.getFileName();
-
-        ioData = TextStreamIo::constructForWrite(0);
-        ioData.inFieldDelimiter(reportDelimeter);
-        ioData.outFieldDelimiter(reportDelimeter);
-        ioData.inRecordDelimiter(#delimiterCRLF);
 
         this.doExecuteQueryResult();
-        ioData.writeRaw(resRow);
-       
-        System.IO.MemoryStream memoryStream;
-        memoryStream = ioData.getStream();
+        ioDataStream.writeRaw(resRow);
 
-        if (isTestRun)
-        {
-            File::SendFileToUser(memoryStream, fileName);
-        }
-        else
-        {
-            this.writeFileAzureStorage(fileName, memoryStream);
-
-            info(strFmt("File %1 created in %2 folder", fileName, messageTypeTableOutbound.OutputFolder));
-        }
+        numberOfLines = currentRow;
+        this.sendFileToStorage();
     }
 
 ]]></Source>
@@ -165,12 +144,13 @@ public class DEVIntegExportBulkSQL extends DEVIntegExportBulkBase
 
         while(resultSet.next())
         {
-            currentRow++;
             if (messageTypeTableOutbound.SQLMaxRows && currentRow > messageTypeTableOutbound.SQLMaxRows)
             {
                 warning(strFmt("Exceeding the allowed number of lines %1", messageTypeTableOutbound.SQLMaxRows));
+                this.setExportStatus(DEVIntegExportBulkStatus::Warning);
                 break;
             }
+            currentRow++;
             //print row headers
             if (isFirstRow)
             {

@@ -13,6 +13,13 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 
     DEVIntegAzureStorageConnectionHelper   azureStorageConnectionHelper;
     DEVIntegMessageTypeTableOutbound       messageTypeTableOutbound;
+
+
+    TextStreamIo                ioDataStream;
+    int                         numberOfLines;
+    DEVIntegExportBulkStatus    exportBulkStatus;
+    boolean                     isExportStatusOverrided;
+    NotesLine                   documentDescription;
     
     
     #define.CurrentVersion(1)
@@ -105,14 +112,77 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>setExportStatus</Name>
+				<Source><![CDATA[
+    public void setExportStatus(DEVIntegExportBulkStatus  _exportBulkStatus)
+    {
+        isExportStatusOverrided = true;
+        exportBulkStatus        = _exportBulkStatus;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>run</Name>
 				<Source><![CDATA[
     public void run()
     {
-        this.exportData();
 
-        this.finalizeExport();
+        DEVIntegExportBulkLog  exportBulkLog, exportBulkLogUpd;
+        int                    infoCnt;
+        Exception              exception = Exception::Info;
 
+        try
+        {
+            exportBulkStatus        = DEVIntegExportBulkStatus::InProgress;
+            isExportStatusOverrided = false;
+            numberOfLines           = 0;
+            documentDescription     = "";
+
+            exportBulkLog.clear();
+            exportBulkLog.CompanyId = curExt();
+            exportBulkLog.MessageTypeIdOutbound   = messageTypeIdOutbound;
+            exportBulkLog.ExportStatus            = DEVIntegExportBulkStatus::InProgress;
+            exportBulkLog.StartDateTime           = DateTimeUtil::utcNow();
+            exportBulkLog.insert();
+
+            infoCnt = infologLine();
+
+            this.exportData();
+
+            this.finalizeExport();
+
+            if (! isExportStatusOverrided)
+            {
+                exportBulkStatus        = DEVIntegExportBulkStatus::Done;
+            }
+            else
+            {
+                exception       = Exception::Warning;
+            }
+
+        }
+        catch
+        {
+            exportBulkStatus        = DEVIntegExportBulkStatus::Error;
+            exception               = Exception::Error;
+        }
+
+        ttsbegin;
+        exportBulkLogUpd = DEVIntegExportBulkLog::findRecId(exportBulkLog.RecId, true);
+        if (exportBulkLogUpd.RecId)
+        {
+            exportBulkLogUpd.ExportStatus          = exportBulkStatus;
+            exportBulkLogUpd.EndDateTime = DateTimeUtil::utcNow();
+            exportBulkLogUpd.Duration              = any2Int(DateTimeUtil::getDifference(exportBulkLogUpd.EndDateTime, exportBulkLogUpd.StartDateTime));
+            
+            exportBulkLogUpd.RecordsProcessed      = numberOfLines;
+            exportBulkLogUpd.DocumentDescription   = documentDescription;
+            exportBulkLogUpd.update();
+
+            DEVIntegErrorLog::insertErrorByMessage(exportBulkLogUpd, infoCnt, exception);
+        }
+        ttscommit;
     }
 
 ]]></Source>
@@ -142,7 +212,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 				<Source><![CDATA[
     public str getDescription()
     {
-        return '';
+        return classId2Name(classIdGet(this));
     }
 
 ]]></Source>
@@ -264,8 +334,70 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
         res = DEVIntegAzureStorageConnectionHelper::constructOutbound(messageTypeTableOutbound);
 
         return res;
+    }
 
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeHeaderLine</Name>
+				<Source><![CDATA[
+    public void writeHeaderLine(container  _dataLine)
+    {
+        ioDataStream.writeExp(_dataLine);
+    }
 
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeDataLine</Name>
+				<Source><![CDATA[
+    public void writeDataLine(container  _dataLine)
+    {
+        ioDataStream.writeExp(_dataLine);
+        numberOfLines++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFileToStorage</Name>
+				<Source><![CDATA[
+    public void sendFileToStorage()
+    {
+        System.IO.MemoryStream memoryStream;
+        memoryStream = ioDataStream.getStream();
+
+        Filename fileName;
+        fileName =  messageTypeTableOutbound.getFileName();
+        
+        if (isTestRun)
+        {
+            File::SendFileToUser(memoryStream, fileName);
+        }
+        else
+        {
+            this.writeFileAzureStorage(fileName, memoryStream);
+
+            info(strFmt("File %1 created in %2 folder", fileName, messageTypeTableOutbound.OutputFolder));
+        }
+        documentDescription = fileName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initCSVStream</Name>
+				<Source><![CDATA[
+    public void initCSVStream()
+    {
+        #File
+
+        messageTypeTableOutbound = this.getMessageTypeTableOutboundOrDefault();
+
+        ioDataStream = TextStreamIo::constructForWrite(0);
+        ioDataStream.inFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
+        ioDataStream.outFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
+        ioDataStream.inRecordDelimiter(#delimiterCRLF);
     }
 
 ]]></Source>
