@@ -148,6 +148,10 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 
             infoCnt = infologLine();
 
+
+            messageTypeTableOutbound = DEVIntegMessageTypeTableOutbound::find(messageTypeIdOutbound);
+            messageTypeTableOutbound.validateExportCompany(curExt(), true);
+
             this.exportData();
 
             this.finalizeExport();
@@ -343,7 +347,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 				<Source><![CDATA[
     public void writeHeaderLine(container  _dataLine)
     {
-        ioDataStream.writeExp(_dataLine);
+        ioDataStream.writeExp(_dataLine);    
     }
 
 ]]></Source>
@@ -416,6 +420,8 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
         }
         messageTypeTableOutbound = _args.record();
         runObject = messageTypeTableOutbound.getBulkExportClass();
+
+        messageTypeTableOutbound.validateExportCompany(curExt(), true);
 
         runObject.parmMessageTypeIdOutbound(messageTypeTableOutbound.MessageTypeIdOutbound);
 

@@ -480,25 +480,21 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""
-										i:type="AxFormCheckBoxControl">
-										<Name>GridGroup_IsEnabled</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>CheckBox</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>IsEnabled</DataField>
-										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
-										<Name>GridGroup_FileNameParameterD</Name>
+										<Name>GridGroup_Description</Name>
 										<Type>String</Type>
 										<FormControlExtension
 											i:nil="true" />
-										<DataField>FileNameParameterD</DataField>
+										<DataField>Description</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>GridGroup_IsFullExport</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>IsFullExport</DataField>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 								</Controls>
@@ -546,11 +542,11 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormStringControl">
-								<Name>ListGroup_FileNameParameterD</Name>
+								<Name>ListGroup_Description</Name>
 								<Type>String</Type>
 								<FormControlExtension
 									i:nil="true" />
-								<DataField>FileNameParameterD</DataField>
+								<DataField>Description</DataField>
 								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 							</AxFormControl>
 							<AxFormControl xmlns=""
@@ -563,9 +559,9 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 							</AxFormControl>
 						</Controls>
-						<Breakable>No</Breakable>
 						<DataGroup>ListGroup</DataGroup>
 						<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+						<FrameType>None</FrameType>
 					</AxFormControl>
 				</Controls>
 				<ColumnsMode>Fill</ColumnsMode>
@@ -782,6 +778,15 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<DataField>OutboundLogType</DataField>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Advanced_CompanyRange</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CompanyRange</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 								</Controls>
 								<DataGroup>Advanced</DataGroup>

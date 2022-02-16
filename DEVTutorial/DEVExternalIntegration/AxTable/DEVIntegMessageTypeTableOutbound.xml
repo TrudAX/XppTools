@@ -187,6 +187,32 @@ public class DEVIntegMessageTypeTableOutbound extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>validateExportCompany</Name>
+				<Source><![CDATA[
+    public boolean validateExportCompany(CompanyId _curCompany = curExt(), boolean _isThrowError = true)
+    {
+        boolean  res = true;
+        int      pos;
+        if (this.CompanyRange)
+        {
+            pos = strScan(this.CompanyRange, _curCompany, 1, strLen(this.CompanyRange));
+            if (! pos)
+            {
+                res = false;
+                if (_isThrowError)
+                {
+                    throw error(strFmt("Company %1 is not valid for export %2(%3)", _curCompany, this.MessageTypeIdOutbound, this.CompanyRange));
+                }
+
+            }
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<FormRef>DEVIntegMessageTypeTableOutbound</FormRef>
@@ -292,10 +318,10 @@ public class DEVIntegMessageTypeTableOutbound extends common
 					<DataField>MessageTypeIdOutbound</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>IsEnabled</DataField>
+					<DataField>Description</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>FileNameParameterD</DataField>
+					<DataField>IsFullExport</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -365,6 +391,9 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<Fields>
 				<AxTableFieldGroupField>
 					<DataField>OutboundLogType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CompanyRange</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -495,6 +524,13 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<HelpText>Maximum allowed rows</HelpText>
 			<Label>Max rows</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CompanyRange</Name>
+			<ExtendedDataType>Range</ExtendedDataType>
+			<HelpText>List of companies to perform the export</HelpText>
+			<Label>Company range</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
