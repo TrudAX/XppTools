@@ -635,6 +635,16 @@ class DEVFileReaderBase
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>getCurRowData</Name>
+				<Source><![CDATA[
+    public container getCurRowData()
+    {
+        return curRowData;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 </AxClass>
