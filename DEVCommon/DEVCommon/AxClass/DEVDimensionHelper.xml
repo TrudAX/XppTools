@@ -149,6 +149,22 @@ class DEVDimensionHelper
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>createLedgerDimensionFromStr</Name>
+				<Source><![CDATA[
+    static LedgerDimensionAccount createLedgerDimensionFromStr(MainAccountNum _mainAccountNum, container _defaultDimsCon)
+    {
+        LedgerDimensionAccount  res;
+
+        DimensionDefault dimDef = DEVDimensionHelper::setValueToDefaultDimensionCon(0, _defaultDimsCon);
+        
+        res = LedgerDimensionFacade::serviceCreateLedgerDimension(LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(_mainAccountNum), dimDef);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>setDefaultDimensionRecId</Name>
 				<Source><![CDATA[
     //FILTER VALUES
