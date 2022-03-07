@@ -157,7 +157,12 @@ class DEVDimensionHelper
 
         DimensionDefault dimDef = DEVDimensionHelper::setValueToDefaultDimensionCon(0, _defaultDimsCon);
         
-        res = LedgerDimensionFacade::serviceCreateLedgerDimension(LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(_mainAccountNum), dimDef);
+        LedgerDimensionDefaultAccount  defaultAccount = LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(_mainAccountNum);
+        if (! defaultAccount)
+        {
+            throw error(strFmt("Can't find main account %1", _mainAccountNum));
+        }
+        res = LedgerDimensionFacade::serviceCreateLedgerDimension(defaultAccount, dimDef);
 
         return res;
     }
