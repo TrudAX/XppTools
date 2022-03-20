@@ -58,6 +58,9 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 
         ExportBulkLogButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport);
 
+        BulkQueryTabPage.visible(DEVIntegMessageTypeTableOutbound.IsFullExport && 
+            DEVIntegMessageTypeTableOutbound.queryIsEnabled());
+
     }
 
 ]]></Source>
@@ -235,6 +238,45 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
             element.enableDSFields();
     
             return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>QuerySetDefaultButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            DEVIntegMessageTypeTableOutbound.querySetDefault();
+
+            DEV::dsRefresh(DEVIntegMessageTypeTableOutbound);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>QueryChangeButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            DEVIntegMessageTypeTableOutbound.queryChangeValue();
+
+            DEV::dsRefresh(DEVIntegMessageTypeTableOutbound);
         }
 
 ]]></Source>
@@ -752,6 +794,86 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 						</Controls>
 						<ColumnsMode>Fill</ColumnsMode>
 						<Caption>Operation parameters</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>BulkQueryTabPage</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Pattern>ToolbarFields</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>ToolbarQuery</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupControl1</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>QuerySetDefaultButton</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<NeedsRecord>Yes</NeedsRecord>
+												<Text>Set default</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>QueryChangeButton</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<NeedsRecord>Yes</NeedsRecord>
+												<Text>Change</Text>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FormGroupControl1</Name>
+								<Pattern>FieldsFieldGroups</Pattern>
+								<PatternVersion>1.1</PatternVersion>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>PackedQueryRangeDisp</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<CacheDataMethod>Yes</CacheDataMethod>
+										<DataMethod>packedQueryRangeDisp</DataMethod>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+										<DisplayLength>100</DisplayLength>
+										<DisplayLengthMode>Fixed</DisplayLengthMode>
+										<Label>Query</Label>
+										<MultiLine>Yes</MultiLine>
+									</AxFormControl>
+								</Controls>
+								<ColumnsMode>Fill</ColumnsMode>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>Query filter</Caption>
+						<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 					</AxFormControl>
 					<AxFormControl xmlns=""
 						i:type="AxFormTabPageControl">

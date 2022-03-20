@@ -27,10 +27,21 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
         messageTypeIdOutbound,
         isTestRun
     #endmacro
-    
+   
 }
 ]]></Declaration>
 		<Methods>
+			<Method>
+				<Name>parmCallerMessageTypeTableOutbound</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeTableOutbound parmCallerMessageTypeTableOutbound(DEVIntegMessageTypeTableOutbound _callerMessageTypeTableOutbound = messageTypeTableOutbound)
+    {
+        messageTypeTableOutbound = _callerMessageTypeTableOutbound;
+        return messageTypeTableOutbound;
+    }
+
+]]></Source>
+			</Method>
 			<Method>
 				<Name>dialog</Name>
 				<Source><![CDATA[
@@ -38,6 +49,11 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
     {
         DialogRunbase       dialog = super();
         ;
+        if (messageTypeTableOutbound)
+        {
+            messageTypeIdOutbound = messageTypeTableOutbound.MessageTypeIdOutbound;
+        }
+
         dlgMessageTypeIdOutbound  = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeIdOutbound), messageTypeIdOutbound);
         dlgIsTestRun              = dialog.addFieldValue(extendedtypestr(NoYesId), isTestRun, "Test run", "The message will be just displayed to the user");
         
@@ -336,6 +352,42 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
                     messageTypeTableOutbound.MessageTypeIdOutbound, DEVIntegConnectionTypeResource::AzureFileShare, messageTypeTableOutbound.connectionType().ConnectionTypeResource));
         }
         res = DEVIntegAzureStorageConnectionHelper::constructOutbound(messageTypeTableOutbound);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportQueryInit</Name>
+				<Source><![CDATA[
+    public Query exportQueryInit()
+    {
+        Query  res;
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportQueryGet</Name>
+				<Source><![CDATA[
+    public Query exportQueryGet()
+    {
+        Query           res;
+        QueryRun        queryRun;
+        
+        queryRun = messageTypeTableOutbound.packedQueryRun();
+        if (queryRun)
+        {
+            res = queryRun.query();
+        }
+
+        if (! res)
+        {
+            res = this.exportQueryInit();
+        }
 
         return res;
     }

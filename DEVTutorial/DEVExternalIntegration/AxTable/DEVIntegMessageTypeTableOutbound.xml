@@ -86,15 +86,17 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				<Source><![CDATA[
     DEVIntegExportBulkBase getBulkExportClass()
     {
+        DEVIntegExportBulkBase      res;
         if (this.IsFullExport && this.ClassName)
         {
             SysDictClass dc = new SysDictClass(className2Id(this.ClassName));
             if (dc)
             {
-                return dc.makeObject();
+                res = dc.makeObject();
+                res.parmCallerMessageTypeTableOutbound(this);
             }
         }
-        return null;
+        return res;
     }
 
 ]]></Source>
@@ -209,6 +211,131 @@ public class DEVIntegMessageTypeTableOutbound extends common
         }
 
         return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>packedQueryRun</Name>
+				<Source><![CDATA[
+    public QueryRun packedQueryRun()
+    {
+        QueryRun                queryRun;
+
+        if (this.QueryPacked != conNull())
+        {
+            if (SysQuery::isPackedOk(this.QueryPacked))
+            {
+                queryRun = new QueryRun(this.QueryPacked);
+            }
+        }
+
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>packedQueryRangeDisp</Name>
+				<Source><![CDATA[
+    public display Notes packedQueryRangeDisp()
+    {
+        Notes                   res;
+        QueryRun                queryRun;
+        int                     i;
+        QueryBuildDataSource    qBDS;
+
+        queryRun = this.packedQueryRun();
+
+        if (queryRun)
+        {
+            for(i = 1; i <= queryRun.query().dataSourceCount(); i++)
+            {
+                qBDS = queryRun.query().dataSourceNo(i);
+                res += strFmt('%1(%2):\n', tableId2PName(qBDS.table()), tableId2Name(qBDS.table()));
+                res += DEV::datasourceRangesAsText(qBDS);
+                res += '\n';
+            }
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryIsEnabled</Name>
+				<Source><![CDATA[
+    public boolean queryIsEnabled()
+    {
+        boolean                res;
+        DEVIntegExportBulkBase exportClass = this.getBulkExportClass();
+
+        if (exportClass && exportClass.exportQueryGet())
+        {
+            res = true;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>querySetDefault</Name>
+				<Source><![CDATA[
+    public void querySetDefault()
+    {
+        boolean                 res;
+        DEVIntegExportBulkBase  exportClass = this.getBulkExportClass();
+        Query                   query;
+        QueryRun                queryRun;
+        container               packedCon;
+
+        if (exportClass)
+        {
+            query = exportClass.exportQueryInit();
+            if (query)
+            {
+                queryRun = new QueryRun(query);
+                packedCon = queryRun.pack();
+            }
+        }
+        this.QueryPacked = packedCon;
+        this.update();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryChangeValue</Name>
+				<Source><![CDATA[
+    public void queryChangeValue()
+    {
+        boolean                 res;
+        DEVIntegExportBulkBase  exportClass = this.getBulkExportClass();
+        Query                   query;
+        QueryRun                queryRun;
+        container               packedCon;
+        boolean                 isUpdated;
+
+        if (exportClass)
+        {
+            query = exportClass.exportQueryGet();
+            if (query)
+            {
+                queryRun = new QueryRun(query);
+                if (queryRun.prompt())
+                {
+                    packedCon = queryRun.pack();
+                    isUpdated = true;
+                }
+            }
+        }
+        if (isUpdated)
+        {
+            this.QueryPacked = packedCon;
+            this.update();
+        }
     }
 
 ]]></Source>
@@ -424,6 +551,15 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SystemFields</Name>
+			<Label>System</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>QueryPacked</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -531,6 +667,12 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<ExtendedDataType>Range</ExtendedDataType>
 			<HelpText>List of companies to perform the export</HelpText>
 			<Label>Company range</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>QueryPacked</Name>
+			<HelpText>Packed query value</HelpText>
+			<Label>Packed query</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
