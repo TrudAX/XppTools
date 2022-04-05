@@ -54,6 +54,31 @@ public class DEVIntegConnectionType extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>getFTPPassword</Name>
+				<Source><![CDATA[
+    public DEVIntegAzureConnectionString getFTPPassword()
+    {
+        DEVIntegAzureConnectionString  res;
+        switch(this.ConnectionStringSource)
+        {
+            case DEVIntegConnectionStringSource::ManualEntry:
+                res = this.FTPPassword;
+                break;
+            case DEVIntegConnectionStringSource::KeyVault:
+                if (this.KeyVaultName)
+                {
+                    res = KeyVaultCertificateHelper::getManualSecretValue(KeyVaultCertificateTable::findByName(this.KeyVaultName).RecId);
+                }
+                break;
+
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>Connection Types</Label>
@@ -117,9 +142,6 @@ public class DEVIntegConnectionType extends common
 					<DataField>ConnectionTypeId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>KeyVaultName</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
 					<DataField>ConnectionTypeResource</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
@@ -133,6 +155,30 @@ public class DEVIntegConnectionType extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>AzureConnectionString</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>KeyVaultName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SFTP</Name>
+			<Label>SFTP</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>FTPHostName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FTPPort</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FTPUserName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ConnectionStringSource</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FTPPassword</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>KeyVaultName</DataField>
@@ -175,6 +221,34 @@ public class DEVIntegConnectionType extends common
 			<ExtendedDataType>Name</ExtendedDataType>
 			<HelpText>Key vault link</HelpText>
 			<Label>Key vault</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FTPHostName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<HelpText>FTP Host name</HelpText>
+			<Label>Host name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FTPUserName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<HelpText>FTP User name</HelpText>
+			<Label>User name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FTPPassword</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<HelpText>FTP Password</HelpText>
+			<Label>Password</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>FTPPort</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>FTP Port</HelpText>
+			<Label>Port</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

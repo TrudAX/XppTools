@@ -12,6 +12,8 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
     DialogField                    dlgIsTestRun;
 
     DEVIntegAzureStorageConnectionHelper   azureStorageConnectionHelper;
+    DEVIntegConnectionHelperSFTP           integConnectionHelperSFTP;
+
     DEVIntegMessageTypeTableOutbound       messageTypeTableOutbound;
 
 
@@ -213,6 +215,11 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
     public void finalizeExport()
     {
         azureStorageConnectionHelper = null;
+
+        if (integConnectionHelperSFTP)
+        {
+            integConnectionHelperSFTP.disconnect();
+        }
     }
 
 ]]></Source>
@@ -335,6 +342,46 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>writeFileSFTP</Name>
+				<Source><![CDATA[
+    public void  writeFileSFTP(FileName  _fileName, System.IO.MemoryStream  _fileDataStream)
+    {
+        if (! integConnectionHelperSFTP)
+        {
+            integConnectionHelperSFTP = this.getFTPConnectionHelper();
+            integConnectionHelperSFTP.connect();
+        }
+        _fileDataStream.Position = 0;
+        integConnectionHelperSFTP.createFileInDirectory(_fileName, messageTypeTableOutbound.OutputFolder, _fileDataStream);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFTPConnectionHelper</Name>
+				<Source><![CDATA[
+    public DEVIntegConnectionHelperSFTP getFTPConnectionHelper()
+    {
+        DEVIntegConnectionHelperSFTP res;
+
+        messageTypeTableOutbound = DEVIntegMessageTypeTableOutbound::find(messageTypeIdOutbound);
+        if (! messageTypeTableOutbound.IsEnabled)
+        {
+            throw error(strFmt("Can't find an Enabled message type for %1 type", messageTypeIdOutbound));
+        }
+        if (messageTypeTableOutbound.connectionType().ConnectionTypeResource != DEVIntegConnectionTypeResource::SFTP)
+        {
+            throw error(strFmt("Message type %1 should have %2 connection(but %3 used)",
+                    messageTypeTableOutbound.MessageTypeIdOutbound, DEVIntegConnectionTypeResource::SFTP, messageTypeTableOutbound.connectionType().ConnectionTypeResource));
+        }
+        res = DEVIntegConnectionHelperSFTP::constructOutbound(messageTypeTableOutbound);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>getAzureStorageConnectionHelper</Name>
 				<Source><![CDATA[
     public DEVIntegAzureStorageConnectionHelper getAzureStorageConnectionHelper()
@@ -432,8 +479,15 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
         }
         else
         {
-            this.writeFileAzureStorage(fileName, memoryStream);
-
+            switch(messageTypeTableOutbound.connectionType().ConnectionTypeResource)
+            {
+                case DEVIntegConnectionTypeResource::AzureFileShare:
+                    this.writeFileAzureStorage(fileName, memoryStream);
+                    break;
+                case DEVIntegConnectionTypeResource::SFTP:
+                    this.writeFileSFTP(fileName, memoryStream);
+                    break;
+            }
             info(strFmt("File %1 created in %2 folder", fileName, messageTypeTableOutbound.OutputFolder));
         }
         documentDescription = fileName;

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegConnectionHelperSFTP</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Renci.SshNet;
+using Renci.SshNet.Sftp;
+
+class DEVIntegConnectionHelperSFTP
+{
+    Common                      messageTypeTableRef;
+    DEVIntegTmpFiles            fileList;
+
+    str                         folderLocation;
+    str                         archiveLocation;
+    DEVIntegConnectionTypeId    connectionTypeId;
+    str                         messageTypeId;
+    str                         azureShareReference;
+
+
+    SftpClient                  clientNet;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>constructOutbound</Name>
+				<Source><![CDATA[
+    static DEVIntegConnectionHelperSFTP constructOutbound(DEVIntegMessageTypeTableOutbound     _messageTypeTableOutbound)
+    {
+        DEVIntegConnectionHelperSFTP        res = new DEVIntegConnectionHelperSFTP();
+        res.initFromMessageTypeTable(_messageTypeTableOutbound);
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromMessageTypeTable</Name>
+				<Source><![CDATA[
+    public void initFromMessageTypeTable(Common     _messageTable)
+    {
+
+        DEVIntegMessageTypeInbound          messageTypeInbound;
+        DEVIntegMessageTypeTableOutbound    messageTypeTableOutbound;
+
+        this.parmMessageTypeTableRef(_messageTable);
+
+        switch (_messageTable.TableId)
+        {
+            case tableNum(DEVIntegMessageTypeInbound):
+                messageTypeInbound = _messageTable;
+                folderLocation       = messageTypeInbound.ReadLocation;
+                archiveLocation      = messageTypeInbound.ArchiveLocation;
+                connectionTypeId     = messageTypeInbound.ConnectionTypeId;
+                messageTypeId        = messageTypeInbound.MessageTypeId;
+                azureShareReference  = messageTypeInbound.AzureShareReference;
+                break;
+            case tableNum(DEVIntegMessageTypeTableOutbound):
+                messageTypeTableOutbound = _messageTable;
+                folderLocation       = messageTypeTableOutbound.OutputFolder;
+                archiveLocation      = '';
+                connectionTypeId     = messageTypeTableOutbound.ConnectionTypeId;
+                messageTypeId        = messageTypeTableOutbound.MessageTypeIdOutbound;
+                azureShareReference  = messageTypeTableOutbound.AzureShareReference;
+                break;
+
+            default:
+                throw error(strFmt("Table %1 is not supported", _messageTable.TableId));
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTypeTableRef</Name>
+				<Source><![CDATA[
+    public Common parmMessageTypeTableRef(Common _messageTypeTableRef = messageTypeTableRef)
+    {
+        messageTypeTableRef = _messageTypeTableRef;
+        return messageTypeTableRef;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connect</Name>
+				<Source><![CDATA[
+    public void connect()
+    {
+        if (! folderLocation)
+        {
+            throw error(strFmt("Folder is not specified for message type %1", messageTypeId));
+        }
+        try
+        {
+            DEVIntegConnectionType connectionType = DEVIntegConnectionType::find(connectionTypeId);
+
+            PasswordAuthenticationMethod passwordAuthenticationMethod = new PasswordAuthenticationMethod(connectionType.FTPUserName, connectionType.getFTPPassword());
+            clientNet = new SftpClient(new ConnectionInfo(connectionType.FTPHostName, connectionType.FTPPort, connectionType.FTPUserName, passwordAuthenticationMethod));
+            clientNet.Connect();
+            //if (! rootDir.Exists(null, null))
+            //{
+            //    throw error(strFmt("Root directory '%1' doesn't exists (Type %2)", azureShareReference, messageTypeId));
+            //}
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>disconnect</Name>
+				<Source><![CDATA[
+    public void disconnect()
+    {
+        try
+        {
+            if (clientNet != null)
+            {
+                clientNet.Disconnect();
+            }
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createFileInDirectory</Name>
+				<Source><![CDATA[
+    public void  createFileInDirectory(FileName  _fileName, FolderName  _archDir, System.IO.MemoryStream  _fileDataStream)
+    {
+        str fullPath;
+        try
+        {
+            fullPath = strFmt('%1\\%2', _archDir, _fileName);
+            System.Boolean  b = true;
+            clientNet.UploadFile(_fileDataStream, fullPath, b, null);
+        }
+        catch( Exception::CLRError )
+        {
+            info(fullPath);
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testConnection</Name>
+				<Source><![CDATA[
+    void testConnection()
+    {
+        boolean testisOK = true;
+        try
+        {
+            this.connect();
+             /*
+            this.getExistingDirectory(folderLocation);
+            if (archiveLocation)
+            {
+                this.getExistingDirectory(archiveLocation);
+            }
+            */
+            this.fillFiles(folderLocation, 5);
+
+            this.disconnect();
+
+            this.printFileList();
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+        catch
+        {
+            testisOK = false;
+        }
+        if (testisOK)
+        {
+            info("Test is OK");
+        }
+        else
+        {
+            throw error("Test Failed");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillFiles</Name>
+				<Source><![CDATA[
+    DEVIntegTmpFiles fillFiles(FolderName  _folderName = folderLocation, int _maxFileCount = 0)
+    {
+        fileList = null;
+        
+        var fileItems  = clientNet.ListDirectory(_folderName, null);
+        var enum1  = fileItems.GetEnumerator();
+
+        int curFile;
+        
+        while (enum1.MoveNext())
+        {
+            SftpFile file = enum1.Current as SftpFile;
+                        
+            if (file != null && file.IsRegularFile)
+            {
+                fileList.FileName    = file.FullName;
+                fileList.FolderName  = _folderName;
+                fileList.FileSize    = file.Length / 1000;
+                fileList.insert();
+
+                curFile++;
+                if (_maxFileCount && curFile >= _maxFileCount )
+                {
+                    break;
+                }
+            }
+        }
+        return fileList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>printFileList</Name>
+				<Source><![CDATA[
+    void printFileList()
+    {
+        boolean     isAny;
+
+        fileList.clear();
+        while select fileList
+        {
+            info(strFmt("Name %1, Size %2", fileList.FileName, fileList.FileSize));
+            isAny = true;
+        }
+        if (! isAny)
+        {
+            info("No files found");
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

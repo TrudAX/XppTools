@@ -46,12 +46,15 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
             connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
 
         DEVIntegMessageTypeTableOutbound_ds.object(fieldNum(DEVIntegMessageTypeTableOutbound, OutputFolder)).visible(
-            connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
+            connectionType.RecId && (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
+                                      connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP));
         DEVIntegMessageTypeTableOutbound_ds.object(fieldNum(DEVIntegMessageTypeTableOutbound, AzureShareReference)).visible(
             connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
 
         SQLParametersGroup.visible(DEVIntegMessageTypeTableOutbound.ClassName == classStr(DEVIntegExportBulkSQL));
-        FileParametersGroup.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
+        FileParametersGroup.visible(connectionType.RecId && 
+            (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
+             connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP));
 
         DEVIntegExportBulkBaseButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport);
         ExportAllButton.visible(! DEVIntegMessageTypeTableOutbound.IsFullExport);

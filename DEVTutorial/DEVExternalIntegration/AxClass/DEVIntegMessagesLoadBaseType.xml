@@ -126,6 +126,9 @@ class DEVIntegMessagesLoadBaseType
             case DEVIntegConnectionTypeResource::AzureServiceBus:
                 shareClass = new DEVIntegMessagesLoadAzureServiceBus();
                 break;
+            case DEVIntegConnectionTypeResource::SFTP:
+                shareClass = new DEVIntegMessagesLoadSFTP();
+                break;
         }
         return shareClass;
     }

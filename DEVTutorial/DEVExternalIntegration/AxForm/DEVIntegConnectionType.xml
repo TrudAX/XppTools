@@ -23,6 +23,12 @@ public class DEVIntegConnectionType extends FormRun
         DEVIntegConnectionType_ds.object(fieldNum(DEVIntegConnectionType,KeyVaultName)).visible(
             DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::KeyVault);
 
+        SFTPGroup.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP);
+
+        ConnectionDetail.visible(DEVIntegConnectionType.ConnectionTypeResource != DEVIntegConnectionTypeResource::SFTP);
+
+        DEVIntegConnectionType_ds.object(fieldNum(DEVIntegConnectionType,FTPPassword)).visible(
+            DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::ManualEntry);
     }
 
 ]]></Source>
@@ -81,6 +87,22 @@ public class DEVIntegConnectionType extends FormRun
 							</Method>
 						</Methods>
 					</Field>
+					<Field>
+						<DataField>ConnectionTypeResource</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+                element.enableFields();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
 				</Fields>
 			</DataSource>
 		</DataSources>
@@ -103,6 +125,18 @@ public class DEVIntegConnectionType extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ConnectionTypeResource</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FTPHostName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FTPPassword</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FTPPort</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FTPUserName</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>KeyVaultName</DataField>
@@ -309,6 +343,7 @@ public class DEVIntegConnectionType extends FormRun
 							<AxFormControl xmlns=""
 								i:type="AxFormGroupControl">
 								<Name>ConnectionDetail</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
 								<Type>Group</Type>
 								<FormControlExtension
 									i:nil="true" />
@@ -344,6 +379,76 @@ public class DEVIntegConnectionType extends FormRun
 								</Controls>
 								<Breakable>No</Breakable>
 								<DataGroup>ConnectionDetail</DataGroup>
+								<DataSource>DEVIntegConnectionType</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>SFTPGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>SFTP_FTPHostName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FTPHostName</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>SFTP_FTPPort</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FTPPort</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>SFTP_FTPUserName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FTPUserName</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>SFTPGroup_ConnectionStringSource</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ConnectionStringSource</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<Label>Password storage</Label>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>SFTP_FTPPassword</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FTPPassword</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<PasswordStyle>Yes</PasswordStyle>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>SFTPGroup_KeyVaultName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>KeyVaultName</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>SFTP</DataGroup>
 								<DataSource>DEVIntegConnectionType</DataSource>
 							</AxFormControl>
 						</Controls>

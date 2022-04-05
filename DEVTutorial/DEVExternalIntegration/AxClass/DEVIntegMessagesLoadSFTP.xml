@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessagesLoadSFTP</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegMessagesLoadSFTP extends DEVIntegMessagesLoadBaseType
+{
+    DEVIntegConnectionHelperSFTP            connectionHelper;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>testOutboundConnection</Name>
+				<Source><![CDATA[
+    void testOutboundConnection(DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
+    {
+        connectionHelper =  DEVIntegConnectionHelperSFTP::constructOutbound(_messageTypeTableOutbound);
+        
+        connectionHelper.testConnection();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

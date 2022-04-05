@@ -1,31 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxSecurityPrivilege xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-	<Name>DEVIntegConnectionTypeMaintain</Name>
-	<Label>Integration connections maintain</Label>
+	<Name>DEVIntegConnectionTypeView</Name>
+	<Label>Integration connections view</Label>
 	<DataEntityPermissions />
 	<DirectAccessPermissions />
 	<EntryPoints>
 		<AxSecurityEntryPointReference>
-			<Name>DEVIntegConnectionType</Name>
-			<Grant>
-				<Correct>Allow</Correct>
-				<Create>Allow</Create>
-				<Delete>Allow</Delete>
-				<Read>Allow</Read>
-				<Update>Allow</Update>
-			</Grant>
-			<ObjectName>DEVIntegConnectionType</ObjectName>
-			<ObjectType>MenuItemDisplay</ObjectType>
-			<Forms />
-		</AxSecurityEntryPointReference>
-		<AxSecurityEntryPointReference>
 			<Name>DEVIntegMessageTypeInbound</Name>
 			<Grant>
-				<Correct>Allow</Correct>
-				<Create>Allow</Create>
-				<Delete>Allow</Delete>
 				<Read>Allow</Read>
-				<Update>Allow</Update>
 			</Grant>
 			<ObjectName>DEVIntegMessageTypeInbound</ObjectName>
 			<ObjectType>MenuItemDisplay</ObjectType>
@@ -40,11 +23,7 @@
 		<AxSecurityEntryPointReference>
 			<Name>DEVIntegMessageTypeTableOutbound</Name>
 			<Grant>
-				<Correct>Allow</Correct>
-				<Create>Allow</Create>
-				<Delete>Allow</Delete>
 				<Read>Allow</Read>
-				<Update>Allow</Update>
 			</Grant>
 			<ObjectName>DEVIntegMessageTypeTableOutbound</ObjectName>
 			<ObjectType>MenuItemDisplay</ObjectType>

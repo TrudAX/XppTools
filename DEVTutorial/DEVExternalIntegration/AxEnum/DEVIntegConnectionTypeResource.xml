@@ -14,5 +14,10 @@
 			<Label>Azure service bus</Label>
 			<Value>1</Value>
 		</AxEnumValue>
+		<AxEnumValue>
+			<Name>SFTP</Name>
+			<Label>SFTP</Label>
+			<Value>2</Value>
+		</AxEnumValue>
 	</EnumValues>
 </AxEnum>
