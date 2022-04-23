@@ -29,6 +29,9 @@ public class DEVIntegConnectionType extends FormRun
 
         DEVIntegConnectionType_ds.object(fieldNum(DEVIntegConnectionType,FTPPassword)).visible(
             DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::ManualEntry);
+
+        SFTPGroup_FTPPasswordSecretEdit.visible(DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::Encrypted);
+        ConnectionDetail_connectionStringSecretEdit.visible(DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::Encrypted);
     }
 
 ]]></Source>
@@ -376,6 +379,17 @@ public class DEVIntegConnectionType extends FormRun
 										<DataField>KeyVaultName</DataField>
 										<DataSource>DEVIntegConnectionType</DataSource>
 									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ConnectionDetail_connectionStringSecretEdit</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>connectionStringSecretEdit</DataMethod>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<PasswordStyle>Yes</PasswordStyle>
+									</AxFormControl>
 								</Controls>
 								<Breakable>No</Breakable>
 								<DataGroup>ConnectionDetail</DataGroup>
@@ -445,6 +459,17 @@ public class DEVIntegConnectionType extends FormRun
 											i:nil="true" />
 										<DataField>KeyVaultName</DataField>
 										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>SFTPGroup_FTPPasswordSecretEdit</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>FTPPasswordSecretEdit</DataMethod>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<PasswordStyle>Yes</PasswordStyle>
 									</AxFormControl>
 								</Controls>
 								<Breakable>No</Breakable>

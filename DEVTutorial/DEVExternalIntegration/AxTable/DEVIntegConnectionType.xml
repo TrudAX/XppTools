@@ -9,6 +9,30 @@ public class DEVIntegConnectionType extends common
 ]]></Declaration>
 		<Methods>
 			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        Global::handleEncryptedTablePreInsert(this);
+        super();
+        Global::handleEncryptedTablePostInsert(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        Global::handleEncryptedTablePreUpdate(this);
+        super();
+        Global::handleEncryptedTablePostUpdate(this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>find</Name>
 				<Source><![CDATA[
     public static DEVIntegConnectionType find(DEVIntegConnectionTypeId  _connectionTypeId,
@@ -40,6 +64,9 @@ public class DEVIntegConnectionType extends common
             case DEVIntegConnectionStringSource::ManualEntry:
                 res = this.AzureConnectionString;
                 break;
+            case DEVIntegConnectionStringSource::Encrypted:
+                res = Global::editEncryptedStringField(this, this.AzureConnectionString, fieldNum(DEVIntegConnectionType, AzureConnectionString), false);
+                break;
             case DEVIntegConnectionStringSource::KeyVault:
                 if (this.KeyVaultName)
                 {
@@ -65,6 +92,9 @@ public class DEVIntegConnectionType extends common
             case DEVIntegConnectionStringSource::ManualEntry:
                 res = this.FTPPassword;
                 break;
+            case DEVIntegConnectionStringSource::Encrypted:
+                res = Global::editEncryptedStringField(this, this.FTPPassword, fieldNum(DEVIntegConnectionType, FTPPassword), false);
+                break;
             case DEVIntegConnectionStringSource::KeyVault:
                 if (this.KeyVaultName)
                 {
@@ -75,6 +105,34 @@ public class DEVIntegConnectionType extends common
         }
 
         return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FTPPasswordSecretEdit</Name>
+				<Source><![CDATA[
+    public edit DEVIntegAzureConnectionString FTPPasswordSecretEdit(boolean _set, str _value)
+    {
+        if (this.ConnectionStringSource == DEVIntegConnectionStringSource::Encrypted)
+        {
+            return Global::editEncryptedStringField(this, _value, fieldNum(DEVIntegConnectionType, FTPPassword), _set);
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connectionStringSecretEdit</Name>
+				<Source><![CDATA[
+    public edit DEVIntegAzureConnectionString connectionStringSecretEdit(boolean _set, str _value)
+    {
+        if (this.ConnectionStringSource == DEVIntegConnectionStringSource::Encrypted)
+        {
+            return Global::editEncryptedStringField(this, _value, fieldNum(DEVIntegConnectionType, AzureConnectionString), _set);
+        }
+        return '';
     }
 
 ]]></Source>
@@ -159,6 +217,9 @@ public class DEVIntegConnectionType extends common
 				<AxTableFieldGroupField>
 					<DataField>KeyVaultName</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>connectionStringSecretEdit</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -182,6 +243,9 @@ public class DEVIntegConnectionType extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>KeyVaultName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FTPPasswordSecretEdit</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -239,7 +303,7 @@ public class DEVIntegConnectionType extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>FTPPassword</Name>
-			<ExtendedDataType>Name</ExtendedDataType>
+			<ExtendedDataType>NotesLine</ExtendedDataType>
 			<HelpText>FTP Password</HelpText>
 			<Label>Password</Label>
 		</AxTableField>

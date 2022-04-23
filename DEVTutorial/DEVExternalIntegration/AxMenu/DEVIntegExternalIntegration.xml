@@ -18,6 +18,11 @@
 					<Name>DEVIntegExportDocumentLog</Name>
 					<MenuItemName>DEVIntegExportDocumentLog</MenuItemName>
 				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegExportBulkLog</Name>
+					<MenuItemName>DEVIntegExportBulkLog</MenuItemName>
+				</AxMenuElement>
 			</Elements>
 		</AxMenuElement>
 		<AxMenuElement xmlns=""

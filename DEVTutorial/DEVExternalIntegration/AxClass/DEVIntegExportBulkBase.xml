@@ -235,9 +235,9 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>getDescription</Name>
+				<Name>getExportDescription</Name>
 				<Source><![CDATA[
-    public str getDescription()
+    public str getExportDescription()
     {
         return classId2Name(classIdGet(this));
     }

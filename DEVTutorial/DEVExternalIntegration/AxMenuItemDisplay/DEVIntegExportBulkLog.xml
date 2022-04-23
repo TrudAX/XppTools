@@ -2,6 +2,6 @@
 <AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
 	<Name>DEVIntegExportBulkLog</Name>
 	<HelpText>Full export log</HelpText>
-	<Label>Export log</Label>
+	<Label>Export files log</Label>
 	<Object>DEVIntegExportBulkLog</Object>
 </AxMenuItemDisplay>

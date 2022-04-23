@@ -227,6 +227,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
             if (SysQuery::isPackedOk(this.QueryPacked))
             {
                 queryRun = new QueryRun(this.QueryPacked);
+                queryRun.saveUserSetup(false);
             }
         }
 
@@ -247,11 +248,15 @@ public class DEVIntegMessageTypeTableOutbound extends common
 
         queryRun = this.packedQueryRun();
 
+        Query q = new Query();
+      
         if (queryRun)
         {
             for(i = 1; i <= queryRun.query().dataSourceCount(); i++)
             {
                 qBDS = queryRun.query().dataSourceNo(i);
+                
+               
                 res += strFmt('%1(%2):\n', tableId2PName(qBDS.table()), tableId2Name(qBDS.table()));
                 res += DEV::datasourceRangesAsText(qBDS);
                 res += '\n';
@@ -297,6 +302,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
             if (query)
             {
                 queryRun = new QueryRun(query);
+                queryRun.saveUserSetup(false);
                 packedCon = queryRun.pack();
             }
         }
@@ -314,7 +320,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
         boolean                 res;
         DEVIntegExportBulkBase  exportClass = this.getBulkExportClass();
         Query                   query;
-        QueryRun                queryRun;
+        SysQueryRun             queryRun;
         container               packedCon;
         boolean                 isUpdated;
 
@@ -323,7 +329,9 @@ public class DEVIntegMessageTypeTableOutbound extends common
             query = exportClass.exportQueryGet();
             if (query)
             {
-                queryRun = new QueryRun(query);
+                queryRun = new SysQueryRun(query);
+                queryRun.saveUserSetup(false);
+                queryRun.promptAllowQueryFilters(false);
                 if (queryRun.prompt())
                 {
                     packedCon = queryRun.pack();
@@ -357,6 +365,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
 	<ModifiedBy>Yes</ModifiedBy>
 	<ModifiedDateTime>Yes</ModifiedDateTime>
 	<PrimaryIndex>MessageTypeIdOutboundIdx</PrimaryIndex>
+	<ReplacementKey>MessageTypeIdOutboundIdx</ReplacementKey>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
 	<DeleteActions />
 	<FieldGroups>
@@ -403,7 +412,11 @@ public class DEVIntegMessageTypeTableOutbound extends common
 		<AxTableFieldGroup>
 			<Name>AutoIdentification</Name>
 			<AutoPopulate>Yes</AutoPopulate>
-			<Fields />
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeIdOutbound</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
 			<Name>AutoSummary</Name>
@@ -586,13 +599,14 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<Name>MessageTypeIdOutbound</Name>
 			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>DEVIntegMessageTypeIdOutbound</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>OutputFolder</Name>
 			<ExtendedDataType>FilePath</ExtendedDataType>
-			<HelpText>Output location folder(e.g. ParentDir\ChildDir)</HelpText>
+			<HelpText>Output location folder(e.g. ParentDir\ChildDir or /home/test for FTP)</HelpText>
 			<Label>Output folder</Label>
 		</AxTableField>
 		<AxTableField xmlns=""

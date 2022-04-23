@@ -99,19 +99,19 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 								<Source><![CDATA[
             public void lookup(FormControl _formControl, str _filterStr)
             {
-                SysTableLookup          sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpIdRef), _formControl);
+                SysTableLookup          sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpHelpIndex), _formControl);
                 Query                   query           = new Query();
                 QueryBuildDataSource    qbds;
                 DictClass               dictClass, thisClass;
                 ListEnumerator          listEnumerator;
-                TmpIdRef                actionIdRef;
+                TmpHelpIndex            actionIdRef;
 
                 DEVIntegExportMessageBase  baseImportClass;
                 ;
 
-                sysTableLookup.addLookupfield(fieldnum(TmpIdRef, Name));
+                sysTableLookup.addLookupfield(fieldnum(TmpHelpIndex, Name));
                 sysTableLookup.setLabel("@SYS24724"); // Class name
-                sysTableLookup.addLookupfield(fieldnum(TmpIdRef, HelpTxt));
+                sysTableLookup.addLookupfield(fieldnum(TmpHelpIndex, URL));
                 sysTableLookup.setLabel("@SYS7576"); // Description
 
                 if (DEVIntegMessageTypeTableOutbound.IsFullExport)
@@ -125,8 +125,8 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
                         if (dictClass && !dictClass.isAbstract())
                         {
                             baseImportClassBulk = dictClass.makeObject();
-                            actionIdRef.Name       = dictClass.name();
-                            actionIdRef.HelpTxt    = baseImportClassBulk.getDescription();
+                            actionIdRef.Name    = dictClass.name();
+                            actionIdRef.URL     = baseImportClassBulk.getExportDescription();
                             actionIdRef.insert();
                         }
                     }
@@ -141,15 +141,15 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
                         if (dictClass && !dictClass.isAbstract())
                         {
                             baseImportClass = dictClass.makeObject();
-                            actionIdRef.Name       = dictClass.name();
-                            actionIdRef.HelpTxt    = baseImportClass.getDescription();
+                            actionIdRef.Name    = dictClass.name();
+                            actionIdRef.URL     = baseImportClass.getDescription();
                             actionIdRef.insert();
                         }
                     }
                 }
 
                 sysTableLookup.parmTmpBuffer(actionIdRef);
-                qbds = query.addDataSource(tablenum(TmpIdRef));
+                qbds = query.addDataSource(tablenum(TmpHelpIndex));
                 //qbds.addSortField(fieldnum(TmpIdRef, HelpTxt));
                 sysTableLookup.parmQuery(query);
 

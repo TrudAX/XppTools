@@ -3,7 +3,7 @@
 	<Name>DEVIntegExportDocumentLog</Name>
 	<DisabledResource>0</DisabledResource>
 	<HelpText>View export documents</HelpText>
-	<Label>Export log</Label>
+	<Label>Export documents log</Label>
 	<NormalResource>0</NormalResource>
 	<Object>DEVIntegExportDocumentLog</Object>
 </AxMenuItemDisplay>

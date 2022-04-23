@@ -10,6 +10,11 @@
 			<Label>Manual entry</Label>
 		</AxEnumValue>
 		<AxEnumValue>
+			<Name>Encrypted</Name>
+			<Label>Encrypted</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+		<AxEnumValue>
 			<Name>KeyVault</Name>
 			<Label>Azure Key Vault</Label>
 			<Value>1</Value>

@@ -34,9 +34,9 @@ public class DEVIntegExportBulkSQL extends DEVIntegExportBulkBase
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>getDescription</Name>
+				<Name>getExportDescription</Name>
 				<Source><![CDATA[
-    public str getDescription()
+    public str getExportDescription()
     {
         return "Export SQL query to CSV";
     }

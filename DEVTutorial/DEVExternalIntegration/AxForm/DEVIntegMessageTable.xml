@@ -127,9 +127,14 @@ public class DEVIntegMessageTable extends FormRun
 						<Source><![CDATA[
         public void clicked()
         {
-            if (DEVIntegMessageTable.Name)
+            Filename fileName = DEVIntegMessageTable.Name;
+            if (fileName)
             {
-                File::SendFileToUser(DEVIntegMessageTable.getFileStream(), DEVIntegMessageTable.Name);               
+                if (DEVIntegMessageTable.messageTypeTable().connectionTypeResource() == DEVIntegConnectionTypeResource::AzureServiceBus)
+                {
+                    fileName = strFmt('%1.txt', fileName);
+                }
+                File::SendFileToUser(DEVIntegMessageTable.getFileStream(), fileName);
             }
         }
 

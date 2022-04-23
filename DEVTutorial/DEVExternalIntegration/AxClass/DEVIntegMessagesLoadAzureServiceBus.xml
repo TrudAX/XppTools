@@ -46,11 +46,13 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
             StreamReader reader = new StreamReader(streamLocal);
             str dataStr = reader.ReadToEnd();
 
-            messageCreator.initFromStringData(strFmt('%1.txt', brokeredMessage.MessageId),
+            str label = brokeredMessage.Label;
+
+            messageCreator.initFromStringData(label ? label : strFmt('%1.txt', brokeredMessage.MessageId),
 													messageTypeTable.ServiceBusQueueName,
                                                     dataStr);
 
-            messageCreator.parmServBusLabel(brokeredMessage.Label);
+            messageCreator.parmServBusLabel(label);
 
 			messageCreator.createMessage(messageTypeTable);
 			ttscommit;

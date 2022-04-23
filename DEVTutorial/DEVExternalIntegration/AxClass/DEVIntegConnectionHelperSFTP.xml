@@ -141,7 +141,12 @@ class DEVIntegConnectionHelperSFTP
         str fullPath;
         try
         {
-            fullPath = strFmt('%1\\%2', _archDir, _fileName);
+            fullPath = _archDir;
+            if (_archDir && subStr(_archDir, strLen(_archDir) , 1) != '/')
+            {
+                fullPath += '/'; 
+            }
+            fullPath += strFmt('%1', _fileName);
             System.Boolean  b = true;
             clientNet.UploadFile(_fileDataStream, fullPath, b, null);
         }
@@ -216,7 +221,7 @@ class DEVIntegConnectionHelperSFTP
             {
                 fileList.FileName    = file.FullName;
                 fileList.FolderName  = _folderName;
-                fileList.FileSize    = file.Length / 1000;
+                fileList.FileSize    = any2Int64(file.Length / 1000);
                 fileList.insert();
 
                 curFile++;
