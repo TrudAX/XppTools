@@ -2,7 +2,7 @@
 <AxReference xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
 	<Name>Renci.SshNet</Name>
 	<AssemblyName>Renci.SshNet</AssemblyName>
-	<AssemblyDisplayName>Renci.SshNet, Version=2017.0.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106</AssemblyDisplayName>
+	<AssemblyDisplayName>Renci.SshNet, Version=2020.0.1.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106</AssemblyDisplayName>
 	<PublicKeyToken>1cee9f8bde3db106</PublicKeyToken>
-	<Version>2017.0.0.0</Version>
+	<Version>2020.0.1.0</Version>
 </AxReference>
