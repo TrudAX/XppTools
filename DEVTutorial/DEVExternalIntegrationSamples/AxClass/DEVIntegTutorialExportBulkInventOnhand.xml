@@ -13,43 +13,23 @@ class DEVIntegTutorialExportBulkInventOnhand extends DEVIntegExportBulkBase
 				<Source><![CDATA[
     public void exportData()
     {
-        #File
-        TextStreamIo ioData;
-
-        messageTypeTableOutbound = this.getMessageTypeTableOutboundOrDefault();
-
-        ioData = TextStreamIo::constructForWrite(0);
-        ioData.inFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
-        ioData.outFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
-        ioData.inRecordDelimiter(#delimiterCRLF);
-        
         container  lineData;
         InventSum  inventSum;
 
-        lineData = ['Company', 'ItemId', 'InventLocationId', 'LastUpdDatePhysical', 'AvailPhysical'];
-        ioData.writeExp(lineData);
+        this.initCSVStream();
 
+        lineData = ['Company', 'ItemId', 'InventLocationId', 'LastUpdDatePhysical', 'AvailPhysical'];
+        this.writeHeaderLine(lineData);
 
         while select crosscompany inventSum
             where inventSum.AvailPhysical 
         {
             lineData = [inventSum.DataAreaId, inventSum.ItemId, inventSum.InventLocationId, inventSum.LastUpdDatePhysical, inventSum.AvailPhysical];
-            ioData.writeExp(lineData);
+            this.writeDataLine(lineData);
         }
-        System.IO.MemoryStream memoryStream;
-        memoryStream = ioData.getStream();
 
-        Filename fileName;
-        fileName =  messageTypeTableOutbound.getFileName();
-        
-        if (isTestRun)
-        {
-            File::SendFileToUser(memoryStream, fileName);
-        }
-        else
-        {
-            this.writeFileAzureStorage(fileName, memoryStream);
-        }
+        this.sendFileToStorage();
+
     }
 
 ]]></Source>
