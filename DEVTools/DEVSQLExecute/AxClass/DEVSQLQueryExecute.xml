@@ -7,10 +7,12 @@ class DEVSQLQueryExecute
 {
     DEVSQLExecuteParm        executeParm;
 
-    str                     resRow;
+    
 
     boolean                 isRawOutput;
     DEVSQLQueryExecuteLog   queryExecuteLog;
+
+    TextBuffer              textBuffer;
 
 }
 ]]></Declaration>
@@ -74,7 +76,9 @@ class DEVSQLQueryExecute
     public str execSQL()
     {
         str  res;
-        resRow = '';
+       
+        str  resRow;
+        textBuffer = new TextBuffer();
 
         this.logBegin();
 
@@ -86,6 +90,7 @@ class DEVSQLQueryExecute
         if (executeParm.QueryExecuteMode == DEVSQLQueryExecuteMode::Select)
         {
             this.doExecuteQueryResult();
+            resRow = textBuffer.getText();
             if ( isRawOutput)
             {
                 res = resRow;
@@ -180,19 +185,19 @@ class DEVSQLQueryExecute
     void  addResultRow(container _row, boolean _isHeader = false)
     {
         int i;
-        resRow += '<tr style="border: 1px  solid gray; padding: 1px;">';
+        textBuffer.appendText('<tr style="border: 1px  solid gray; padding: 1px;">');
         for (i = 1; i <= conLen(_row); i++)
         {
             if (_isHeader)
             {
-                resRow += strFmt('<th style="border: 1px  solid gray; padding: 1px;">%1</th>', conPeek(_row, i));
+                textBuffer.appendText(strFmt('<th style="border: 1px  solid gray; padding: 1px;">%1</th>', conPeek(_row, i)));
             }
             else
             {
-                resRow += strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', conPeek(_row, i));
+                textBuffer.appendText(strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', conPeek(_row, i)));
             }
         }
-        resRow += '</tr>';
+        textBuffer.appendText('</tr>');
     }
 
 ]]></Source>
@@ -231,16 +236,16 @@ class DEVSQLQueryExecute
                 }
                 else
                 {
-                    resRow += '\n';
+                    textBuffer.appendText('\n');
                 }
                 for ( i = 1; i <= maxColumnCount; i++)
                 {
                     str     sTmp = resultSet.getString(i);
                     if (i > i)
                     {
-                        resRow += ',';
+                        textBuffer.appendText(',');
                     }
-                    resRow += strFmt('%1', sTmp);
+                    textBuffer.appendText(strFmt('%1', sTmp));
                 }
             }
             else
@@ -258,16 +263,16 @@ class DEVSQLQueryExecute
 
                     maxColumnCount = resultSetMetaData.getColumnCount();
                 }
-                resRow += '<tr style="border: 1px  solid gray; padding: 1px;">';
+                textBuffer.appendText('<tr style="border: 1px  solid gray; padding: 1px;">');
                 for ( i = 1; i <= maxColumnCount; i++)
                 {
                     //int colType = resultSetMetaData.getColumnType(i);
                     //Types t = colType;
                     str     sTmp = resultSet.getString(i);
 
-                    resRow += strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', sTmp);
+                    textBuffer.appendText(strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', sTmp));
                 }
-                resRow += '</tr>';
+                textBuffer.appendText('</tr>');
             }
         }
     }

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SysRecordInfoFormDEVFormQueryInfo_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(formstr(SysRecordInfo))]
+final class SysRecordInfoFormDEVFormQueryInfo_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DEVFormQueryInfo_OnClicked</Name>
+				<Source><![CDATA[
+    [FormControlEventHandler(formControlStr(SysRecordInfo, DEVFormQueryInfo), FormControlEventType::Clicked)]
+    public void DEVFormQueryInfo_OnClicked(FormControl sender, FormControlEventArgs e)
+    {
+        Args    argsLocal = new Args();
+        if (common.TableId)
+        {
+            MenuFunction        mf;
+            ;
+            mf = new MenuFunction(menuItemDisplayStr(DEVFormQueryInfo), MenuItemType::Display);
+            argsLocal.caller(sender.formRun());
+            argsLocal.record(common);
+            mf.run(argsLocal);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
