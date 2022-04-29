@@ -807,6 +807,7 @@ public class DEVFormQueryInfo extends FormRun
 								i:type="AxFormButtonControl">
 								<Name>BtnLinkFormDStoItsRelatedNodes</Name>
 								<AutoDeclaration>Yes</AutoDeclaration>
+								<HelpText>Show tables with active or delayed link type as child nodes </HelpText>
 								<Type>Button</Type>
 								<FormControlExtension
 									i:nil="true" />
