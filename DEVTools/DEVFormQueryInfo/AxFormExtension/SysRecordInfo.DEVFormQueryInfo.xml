@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>SysRecordInfo.DEVFormQueryInfo</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControloe3tabhm1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormButtonControl">
+				<Name>DEVFormQueryInfo</Name>
+				<HelpText>Display the query used in the form</HelpText>
+				<Type>Button</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Text>Query</Text>
+			</FormControl>
+			<Parent>ShowFieldsInfoGroup</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSourceModifications />
+	<DataSourceReferences />
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

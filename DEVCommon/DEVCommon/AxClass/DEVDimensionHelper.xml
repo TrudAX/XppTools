@@ -192,6 +192,12 @@ class DEVDimensionHelper
     //--DefaultDimension merge with DefaultDimension
     //DimensionDefaultFacade::serviceMergeDefaultDimensions
 
+    //Validate dimension structure
+    //LedgerDimensionValidationHelper::validateByTree
+
+    //lookup dimension value
+    //DimensionValueLookupHelper::lookupDimensionValues(
+
     public static DimensionDefault setDefaultDimensionRecId(DimensionDefault _dimensionDefault,RefRecId _dimensionAttributeRecId, DimensionValue  _newDimensionValue)
     {
         DimensionAttributeValueSetStorage   dimStorage;

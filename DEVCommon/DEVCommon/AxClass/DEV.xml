@@ -743,6 +743,163 @@ class DEV
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>checkRecordExist</Name>
+				<Source><![CDATA[
+    public static Common checkRecordExist(Common _record, container _keyFields = conNull(), str _errorTxt = "")
+    {
+        if (! _record.RecId && true)
+        {
+            str errorMessage = DEV::nz(_errorTxt, strFmt("%1 not found", DEV::tableId2Label(_record.TableId)));
+            if (_keyFields)
+            {
+                errorMessage += strFmt(" (%1)", con2Str(_keyFields, ',')); 
+            }
+
+            throw error(errorMessage);
+        }
+        return _record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tableId2Label</Name>
+				<Source><![CDATA[
+    public static LabelString tableId2Label(tableId _tableId)
+    {
+        DictTable dictTable = new DictTable(_tableId);
+        if (dictTable)
+        {
+            return dictTable.label();
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkFilled</Name>
+				<Source><![CDATA[
+    public static boolean checkFilled(anytype _value, str _valueName)
+    {
+        if (! _value && true)
+        {
+            return checkFailed(strfmt("'%1' must be filled", _valueName));
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fail</Name>
+				<Source><![CDATA[
+    public static boolean fail(SysInfoLogStr    _txt,
+                               boolean          _showError     =  true,
+                               boolean          _throwError    = _showError,
+                               Exception        _exception     =  appl.ttsLevel() ? Exception::Error : Exception::Warning,
+                               URL              _helpUrl       =  "",
+                               SysInfoAction    _sysInfoAction =  null)
+    {
+        ;
+        if (_showError && _txt)
+        {
+            infolog.add(_exception, _txt, _helpUrl, _sysInfoAction);
+        }
+        if (_throwError)
+        {
+            throw _exception;
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkPeriod</Name>
+				<Source><![CDATA[
+    public static boolean checkPeriod(FromDate _fromDate, ToDate _toDate, boolean _throwError = true)
+    {
+        if (! (_fromDate && _toDate && _toDate >= _fromDate))
+        {
+            return DEV::fail("Invalid date period", true, _throwError);
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inlist</Name>
+				<Source><![CDATA[
+    public static boolean inlist(anytype _value, container _listValues)
+    {
+        return confind(_listValues, _value) != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>safeDiv</Name>
+				<Source><![CDATA[
+    static anytype safeDiv(anytype _nominator, anytype _denominator, anytype _exceptionValue = 0)
+    {
+        return _denominator ? _nominator / _denominator : _exceptionValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>splitValue</Name>
+				<Source><![CDATA[
+    public static real splitValue(real      _value2Split,
+                                  real      _factorNominator,
+                                  real      _factorDenominator,
+                                  real      _decimals,
+                                  real      _factorIfDenominatorEqZero = 0)
+    {
+        real  splittedValue;
+
+        if (_factorNominator == _factorDenominator)
+        {
+            splittedValue = _value2Split;
+        }
+        else
+        {
+            splittedValue   = _value2Split * DEV::safeDiv(_factorNominator, _factorDenominator, _factorIfDenominatorEqZero);
+            splittedValue   = round(splittedValue, _decimals);
+            splittedValue   = sign(_value2split) * min(abs(splittedValue), abs(_value2Split));
+        }
+        return splittedValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkFieldFilledFailed</Name>
+				<Source><![CDATA[
+    public static boolean checkFieldFilledFailed(TableId _tableId, FieldId _fieldId)
+    {
+        return checkFailed(strFmt("@SYS26332", fieldId2pname(_tableId, _fieldId)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkFieldFilled</Name>
+				<Source><![CDATA[
+    public static boolean checkFieldFilled(Common _record, FieldId _fieldId)
+    {
+        if (! _record.(_fieldId))
+        {
+            return DEV::checkFieldFilledFailed(_record.TableId, _fieldId);
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>		
 		</Methods>
 	</SourceCode>
 </AxClass>

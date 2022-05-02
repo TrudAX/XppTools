@@ -1,0 +1,834 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVFormQueryInfo</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+// Common utilities, Form Query Info, AKA
+// v1.2, Added showing of Query Filters, AKA
+// v1.3, Added definition of the fields in table relations, AKA
+// v1.4, Added new method of linking Form DSs, AKA
+[Form]
+public class DEVFormQueryInfo extends FormRun
+{
+    ImageListAppl_Query     imageList;
+    Map                     nodeList;
+    boolean                 isLinkFormDStoItsRelatedNodes;
+               
+    #resAppl
+    #resource
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calculateNodeTextForRelations</Name>
+				<Source><![CDATA[
+    private str calculateNodeTextForRelations(
+        TableId sourceTable, 
+        TableId relatedTable, 
+        FieldId sourceField,
+        FieldId relatedField)
+    {
+        DictField sourceDictField;
+        DictField relatedDictField;
+
+        str nodeText;
+
+        str relatedTableName = tableid2name(relatedTable);
+        str sourceTableName = tableid2name(sourceTable);
+        str sourceFieldName;
+        str relatedFieldName;
+
+        if(relatedField)
+        {
+            relatedDictField = SysDictField::findFieldById(relatedTable, relatedField);
+            if(relatedDictField)
+            {
+                relatedFieldName = relatedDictField.name();
+                if(relatedDictField.tableid() != relatedTable)
+                {
+                    //If the field belongs on a derived table, add that table's context.
+                    relatedTableName = relatedTableName + ' (' + tableid2name(relatedDictField.tableid()) + ')';
+                }
+            }
+        }
+
+        if(sourceField)
+        {
+            sourceDictField = SysDictField::findFieldById(sourceTable, sourceField);
+            if(sourceDictField)
+            {
+                sourceFieldName = sourceDictField.name();
+
+                sourceFieldName = sourceDictField.name();
+                if(sourceDictField.tableid() != sourceTable)
+                {
+                    //If the field belongs on a derived table, add that table's context.
+                    sourceTableName = sourceTableName + ' (' + tableid2name(sourceDictField.tableid()) + ')';
+                }
+            }
+        }
+
+        nodeText = strfmt('%1.%2 == %3.%4', relatedTableName, relatedFieldName, sourceTableName, sourceFieldName);
+
+        return nodeText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calculateNodeTextForNativeRelationLine</Name>
+				<Source><![CDATA[
+    private str calculateNodeTextForNativeRelationLine(SysDictRelation _dictRel, int _lineNum, str _relationName)
+    {
+        FieldName       fieldName, refFieldName;
+        TableRelation   tableRelation = _dictRel.lineType(_lineNum);
+        TableName       tableName     = _dictRel.tableName();
+        TableName       refTableName  = _dictRel.externTableName();
+
+        str             nodeText;
+
+        #define.FieldTableId('TableId')
+
+        if (tableRelation == TableRelation::Field)
+        {
+            // Child.FieldA == Parent.FieldB
+            fieldName    = fieldid2name(_dictRel.table(),  _dictRel.lineTableValue(_lineNum));
+            refFieldName = fieldid2name(_dictRel.externTable(), _dictRel.lineExternTableValue(_lineNum));
+
+            if (fieldName == #FieldTableId)
+            {
+                //Child.TableID == Parent.FieldB
+                // Use constant value
+                fieldName       = int2str(_dictRel.table());
+
+                // This is really an "extern fixed" relation line.
+                // <value> == Parent.FieldB
+                tableRelation   = TableRelation::ExternFixed;
+            }
+            else if (refFieldName == #FieldTableId)
+            {
+                //Child.FieldA == Parent.TableID
+                // Use constant value
+                refFieldName      = int2str(_dictRel.externTable());
+
+                // Child.FieldA == <value>
+                tableRelation   = TableRelation::ThisFixed;
+            }
+        }
+        else if (tableRelation == TableRelation::ThisFixed)
+        {
+            // Child.FieldA == <value>
+            fieldName    = fieldid2name(_dictRel.table(), _dictRel.lineTableValue(_lineNum));
+            refFieldName = int2str(_dictRel.lineExternTableValue(_lineNum));
+        }
+        else if (tableRelation == TableRelation::ExternFixed)
+        {
+            // <value> == Parent.FieldB
+            fieldName    = int2str(_dictRel.lineTableValue(_lineNum));
+            refFieldName = fieldid2name(_dictRel.externTable(), _dictRel.lineExternTableValue(_lineNum));
+        }
+        else if (tableRelation == TableRelation::Dataset)
+        {
+            // Convert EDT Relation to "Child.FieldA == Parent.FieldB"
+            fieldName    = _relationName;
+            refFieldName = fieldid2name(_dictRel.table(), _dictRel.lineExternTableValue(_lineNum));
+        }
+        else if (tableRelation == TableRelation::Inheritance)
+        {
+            fieldName    = fieldid2name(_dictRel.table(), _dictRel.lineTableValue(_lineNum));
+            refFieldName = fieldid2name(_dictRel.externTable(), _dictRel.lineExternTableValue(_lineNum));
+        }
+
+        switch (tableRelation)
+        {
+            case TableRelation::ThisFixed:
+                nodeText = strfmt('%1.%2 == %3', tableName, fieldName, refFieldName);
+                break;
+
+            case TableRelation::ExternFixed:
+                nodeText = strfmt('%1 == %2.%3', fieldName, refTableName, refFieldName);
+                break;
+
+            default:
+                nodeText = strfmt('%1.%2 == %3.%4', tableName, fieldName, refTableName, refFieldName);
+        }
+
+        return nodeText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillQueryTreeQueryDatasource</Name>
+				<Source><![CDATA[
+    void fillQueryTreeQueryDatasource(
+        QueryBuildDataSource    queryBuildDataSource,
+        Map                     queryFiltersMap,
+        int                     rootId,
+        boolean                 top = false)
+    {
+        int                 i;
+
+        QueryBuildDataSource    childDatasource;
+        QueryBuildFieldList     queryBuildFieldList;
+        QueryBuildRange         queryBuildRange;
+        QueryBuildLink          queryBuildLink;
+        QueryBuildDynalink      queryBuildDynalink;
+
+        QueryFilter             queryFilter;
+        Set                     qbdsFiltersSet;
+        SetEnumerator           se;
+
+        int                     sourceRootId;
+        int                     treeId;
+        FormTreeItem            formTreeItem;
+
+        str                     dataSourceName;
+        str                     nodeText;
+
+        int                     imageNo;
+        DictField               dictField;
+        boolean                 addField;
+
+        if (queryBuildDataSource.enabled())
+        {
+            dataSourceName = queryBuildDataSource.name();
+            
+            nodeText = tableid2name(queryBuildDataSource.table());
+
+            if (nodeText != dataSourceName)
+            {
+                nodeText = strfmt('%1 (%2)', dataSourceName, nodeText);
+            }
+            
+            if (!top)
+            {
+                nodeText += ' | Join: ' + enum2Symbol(
+                    enumNum(JoinMode),
+                    queryBuildDataSource.joinMode());
+            }
+
+            nodeText += ' | Company: ' + enum2Symbol(
+                enumNum(NoYes),
+                SysDictTable::newTableId(queryBuildDataSource.table()).dataPrCompany());
+
+            // BP deviation documented
+            formTreeItem = new FormTreeItem(nodeText,imagelist.image(#ImageDataSource),-1,null);
+            sourceRootId = queryTree.addItem(rootId, FormTreeAdd::Last, formTreeItem);
+
+            if (!top)
+            {
+                if (nodeList.exists(dataSourceName))
+                {
+                    warning(strFmt('Duplicated DS names: %1', dataSourceName));
+                }
+                else
+                {
+                    nodeList.insert(dataSourceName, sourceRootId);
+                }
+            }
+
+            // Dynalink
+            if (queryBuildDataSource.dynalinkCount())
+            {
+                formTreeItem = new FormTreeItem('Dynalink',imagelist.image(#ImageRelations),-1,null);
+                treeId  = queryTree.addItem(sourceRootId,FormTreeAdd::Last,formTreeItem);
+
+                for (i = 1; i <= queryBuildDataSource.dynalinkCount(); i++)
+                {
+                    queryBuildDynalink = queryBuildDataSource.dynalink(i);
+
+                    nodeText = this.CalculateNodeTextForRelations(
+                        queryBuildDynalink.cursor().TableId,
+                        queryBuildDataSource.table(),
+                        queryBuildDynalink.dynamicField(),
+                        queryBuildDynalink.field());
+
+                    // BP deviation documented
+                    formTreeItem = new FormTreeItem(nodeText,imagelist.image(#ImageRelation),-1,null);
+                    queryTree.addItem(treeId,FormTreeAdd::Last,formTreeItem);
+                }
+            }
+
+            // Fields
+
+            queryBuildFieldList = queryBuildDataSource.fields();
+
+            if (!queryBuildFieldList.dynamic())
+            {
+                formTreeItem = new FormTreeItem('Fields',imagelist.image(#ImageFields),-1,null);
+                treeId  = queryTree.addItem(sourceRootId,FormTreeAdd::Last,formTreeItem);
+
+                for (i = 1; i <= queryBuildFieldList.fieldCount(); i ++)
+                {
+                    imageNo = -1;
+                    addField = false;
+                    nodeText = '';
+                    if (queryBuildFieldList.fieldKind(i) != SelectionField::Database)
+                    {
+                        nodeText = strfmt('%1(%2)',queryBuildFieldList.fieldKind(i),fieldid2name(queryBuildDataSource.table(),queryBuildFieldList.field(i)));
+                        imageNo = imagelist.findFieldKind(queryBuildFieldList.fieldKind(i));
+                        addField = true;
+                    }
+                    else
+                    {
+
+                        if (dictField)
+                        {
+                            nodeText = fieldid2name(queryBuildDataSource.table(),queryBuildFieldList.field(i));
+                            imageNo = imagelist.findFieldImage(dictField.baseType());
+                            addField = true;
+                        }
+                    }
+
+                    if (addField)
+                    {
+                        // BP deviation documented
+                        formTreeItem = new FormTreeItem(nodeText,imageNo,-1,null);
+                        queryTree.addItem(treeId,FormTreeAdd::Last,formTreeItem);
+                    }
+                }
+            }
+
+            // Sorting
+
+            if (queryBuildDataSource.sortFieldCount())
+            {
+
+                switch(queryBuildDataSource.orderMode())
+                {
+                    case OrderMode::OrderBy:
+                        nodeText = 'Order by';
+                        break;
+                    case OrderMode::GroupBy:
+                        nodeText = 'Group by';
+                        break;
+                }
+                // BP deviation documented
+                formTreeItem = new FormTreeItem(strfmt('Sorting (%1)',nodeText),imagelist.image(#ImageQuerySortings),-1,null);
+                treeId  = queryTree.addItem(sourceRootId,FormTreeAdd::Last,formTreeItem);
+
+                for (i = 1; i <= queryBuildDataSource.sortFieldCount(); i++)
+                {
+                    nodeText = fieldid2name(queryBuildDataSource.table(),queryBuildDataSource.sortField(i));
+
+                    if (queryBuildDataSource.sortDirection(i) == SortOrder::Ascending)
+                    {
+                        imageNo = imagelist.image(#ImageQuerySortingAscending);
+                    }
+                    else
+                    {
+                        imageNo = imagelist.image(#ImageQuerySortingDescending);
+                    }
+
+                    // BP deviation documented
+                    formTreeItem = new FormTreeItem(nodeText,imageNo,-1,null);
+                    queryTree.addItem(treeId,FormTreeAdd::Last,formTreeItem);
+                }
+            }
+
+            // Index ?
+
+            if (queryBuildDataSource.sortIndexCount())
+            {
+                nodeText = strfmt('Index: %1',indexid2name(queryBuildDataSource.table(),queryBuildDataSource.sortIndex(1)));
+
+                // BP deviation documented
+                formTreeItem = new FormTreeItem(nodeText,imagelist.image(#ImageQuerySortings),-1,null);
+                treeId  = queryTree.addItem(sourceRootId,FormTreeAdd::Last,formTreeItem);
+            }
+
+            // Ranges
+
+            if (queryBuildDataSource.rangeCount())
+            {
+                formTreeItem = new FormTreeItem('Ranges',imagelist.image(#ImageQueryRange),-1,null);
+                treeId  = queryTree.addItem(sourceRootId,FormTreeAdd::Last,formTreeItem);
+
+                for (i = 1; i <= queryBuildDataSource.rangeCount(); i++)
+                {
+                    queryBuildRange = queryBuildDataSource.range(i);
+                    nodeText = strfmt('%1 == %2',fieldid2name(queryBuildDataSource.table(),queryBuildRange.field()),queryBuildRange.value());
+
+                    dictField = SysDictField::findFieldById(queryBuildDataSource.table(), queryBuildRange.field());
+                    imageNo = imagelist.findFieldImage(dictField.baseType());
+
+                    // BP deviation documented
+                    formTreeItem = new FormTreeItem(nodeText,imageNo,-1,null);
+                    queryTree.addItem(treeId,FormTreeAdd::Last,formTreeItem);
+                }
+            }
+
+            // Filters
+
+            if (queryFiltersMap && queryFiltersMap.exists(queryBuildDataSource.name()))
+            {
+                formTreeItem = new FormTreeItem('Filters',imagelist.image(#ImageQueryRange),-1,null);
+                treeId  = queryTree.addItem(sourceRootId,FormTreeAdd::Last,formTreeItem);
+
+                qbdsFiltersSet = queryFiltersMap.lookup(queryBuildDataSource.name());
+                se = qbdsFiltersSet.getEnumerator();
+
+                while (se.moveNext())
+                {
+                    queryFilter = se.current();
+                
+                    nodeText = strfmt('%1 == %2',queryFilter.field(),queryFilter.value());
+
+                    imageNo = imagelist.findFieldImage(Types::AnyType);
+
+                    // BP deviation documented
+                    formTreeItem = new FormTreeItem(nodeText,imageNo,-1,null);
+                    queryTree.addItem(treeId,FormTreeAdd::Last,formTreeItem);
+                }
+            }
+
+            // Relation
+
+            if (queryBuildDataSource.linkCount())
+            {
+                formTreeItem = new FormTreeItem('Relation',imagelist.image(#ImageRelations),-1,null);
+                treeId  = queryTree.addItem(sourceRootId,FormTreeAdd::Last,formTreeItem);
+
+                for (i = 1; i <= queryBuildDataSource.linkCount(); i++)
+                {
+                    queryBuildLink = queryBuildDataSource.link(i);
+
+                    nodeText = this.calculateNodeTextForRelations(
+                        queryBuildLink.table(),
+                        queryBuildLink.relatedTable(),
+                        queryBuildLink.field(),
+                        queryBuildLink.relatedField());
+
+                    // Add the context of the joinRelation name if it is specified.
+                    // This is for Surrogate Foreign Key scenarios where the fields aren't specified in the link.
+                    if(queryBuildLink.joinRelation())
+                    {
+                        SysDictRelation dictRelation;
+
+                        // Relations of current table
+                        dictRelation = new SysDictRelation(queryBuildLink.table());
+
+                        // Try to load relation from current table
+                        if (!dictRelation.loadNameRelation(queryBuildLink.joinRelation()))
+                        {
+                            dictRelation = element.findDictRelation(
+                                queryBuildLink.table(),
+                                queryBuildLink.relatedTable(),
+                                queryBuildLink.joinRelation(),
+                                true);
+
+                            if (!dictRelation)
+                            {
+                                dictRelation = new SysDictRelation(queryBuildLink.relatedTable());
+
+                                if (!dictRelation.loadNameRelation(queryBuildLink.joinRelation()))
+                                {
+                                    dictRelation = element.findDictRelation(
+                                        queryBuildLink.relatedTable(),
+                                        queryBuildLink.table(),
+                                        queryBuildLink.joinRelation(),
+                                        true);
+                                }
+                            }
+                        }
+
+                        if (    !dictRelation
+                             || !dictRelation.lines())
+                        {
+                            warning(strFmt('Relation not found: %1_%2_%3',
+                                tableId2Name(queryBuildLink.table()),
+                                tableId2Name(queryBuildLink.relatedTable()),
+                                queryBuildLink.joinRelation()));
+                            
+                            nodeText += ' Role: ' + queryBuildLink.joinRelation();
+
+                            // BP deviation documented
+                            formTreeItem = new FormTreeItem(nodeText,imagelist.image(#ImageRelation),-1,null);
+                            queryTree.addItem(treeId,FormTreeAdd::Last,formTreeItem);
+                        }
+                        else
+                        {
+                            for (int lineNum = 1; lineNum <= dictRelation.lines(); lineNum++)
+                            {
+                                nodeText = this.calculateNodeTextForNativeRelationLine(dictRelation, lineNum, queryBuildLink.joinRelation());
+                                nodeText += ' Role: ' + queryBuildLink.joinRelation();
+
+                                // BP deviation documented
+                                formTreeItem = new FormTreeItem(nodeText,imagelist.image(#ImageRelation),-1,null);
+                                queryTree.addItem(treeId,FormTreeAdd::Last,formTreeItem);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // BP deviation documented
+                        formTreeItem = new FormTreeItem(nodeText,imagelist.image(#ImageRelation),-1,null);
+                        queryTree.addItem(treeId,FormTreeAdd::Last,formTreeItem);
+                    }
+                }
+            }
+
+            // Datasources
+            if (queryBuildDataSource.childDataSourceCount())
+            {
+                formTreeItem = new FormTreeItem('Data Sources',imagelist.image(#ImageDataSources),-1,null);
+                treeId  = queryTree.addItem(sourceRootId,FormTreeAdd::Last,formTreeItem);
+
+                for (i = 1; i <= queryBuildDataSource.childDataSourceCount(); i++)
+                {
+                    childDatasource = queryBuildDataSource.childDataSourceNo(i);
+                    this.fillQueryTreeQueryDatasource(childDatasource, queryFiltersMap, treeId);
+                }
+                queryTree.expand(treeId,FormTreeExpand::Expand);
+            }
+
+            queryTree.expand(sourceRootId,FormTreeExpand::Expand);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillQueryFiltersMap</Name>
+				<Source><![CDATA[
+    Map fillQueryFiltersMap(Query query)
+    {
+        int                     i;
+
+        QueryFilter             qf;
+        QueryBuildDataSource    qbds;    
+
+        Map                     queryFiltersMap = new Map(Types::String, Types::Class);
+        Set                     qbdsFiltersSet;
+
+        if (query.queryFilterCount())
+        {
+            for (i = 1; i <= query.queryFilterCount(); i++)
+            {
+                qf      = query.queryFilter(i);
+                qbds    = qf.dataSource();
+
+                if (queryFiltersMap.exists(qbds.name()))
+                {
+                    qbdsFiltersSet = queryFiltersMap.lookup(qbds.name());
+                }
+                else
+                {
+                    qbdsFiltersSet = new Set(Types::Class);
+                }
+
+                qbdsFiltersSet.add(qf);
+
+                queryFiltersMap.insert(qbds.name(), qbdsFiltersSet);
+            }
+        }
+
+        return queryFiltersMap;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillQueryTreeFormDatasource</Name>
+				<Source><![CDATA[
+    void fillQueryTreeFormDatasource(FormDataSource formDataSource, int rootId)
+    {
+        Query                   query;
+        QueryBuildDataSource    queryBuildDataSource;
+        int                     i;
+
+        if (! formDataSource.queryRun())
+        {
+            return;
+        }
+
+        query    = formDataSource.queryRun().query();
+
+        for (i = 1; i <= query.childDataSourceCount(); i++)
+        {
+            queryBuildDataSource = query.childDataSourceNo(i);
+
+            this.fillQueryTreeQueryDatasource(
+                queryBuildDataSource,
+                this.fillQueryFiltersMap(query),
+                rootId,
+                true);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findDictRelation</Name>
+				<Source><![CDATA[
+    public SysDictRelation findDictRelation(
+        TableId     _tableId,
+        TableId     _tableIdRelated,
+        str         _relationName,
+        boolean     _findByRelatedRelation)
+    {
+        SysDictTable        dictTable;
+        SysDictRelation     dictRelation;
+        SysDictRelation     dictRelationCheck;
+        
+        // Try to load relation by name
+        dictTable = new SysDictTable(_tableId);
+
+        for (int j = 1; j <= dictTable.relationCnt(); j++)
+        {
+            dictRelationCheck = new SysDictRelation(_tableId);
+            dictRelationCheck.loadNameRelation(dictTable.relation(j));
+
+            str check = strFmt('%1_%2_%3', dictRelationCheck.tableName(), dictRelationCheck.RelatedTableRole(), dictRelationCheck.Role());
+
+            if (!dictRelationCheck.lines())
+            {
+                continue;
+            }
+
+            if (_findByRelatedRelation)
+            {
+                if (    SysDictTable::getRootTable(dictRelationCheck.externTable()) == SysDictTable::getRootTable(_tableIdRelated)
+                     && dictRelationCheck.RelatedTableRole()                        == _relationName)
+                {
+                    dictRelation = dictRelationCheck;
+                    break;
+                }
+            }
+            else
+            {
+                if (    SysDictTable::getRootTable(dictRelationCheck.Table())       == SysDictTable::getRootTable(_tableIdRelated)
+                     && dictRelationCheck.Role()                                    == _relationName)
+                {
+                    dictRelation = dictRelationCheck;
+                    break;
+                }
+            }
+        }
+
+        return dictRelation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+
+        imagelist = new ImageListAppl_Query();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        super();
+
+        element.redrawTree(false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>redrawTree</Name>
+				<Source><![CDATA[
+    void redrawTree(boolean _linkFormDStoItsRelatedNodes)
+    {
+        int                     rootid;
+        int                     parentId;
+        int                     treeId;
+        int                     dataSourceNo;
+        FormTreeItem            formTreeItem;
+        FormDataSource          formRunDataSource;
+        FormDataSource          formRunDataSourceParent;
+
+        str                     dataSourceName;
+        str                     nodeText;
+        
+        Common                  record;
+        FormRun                 sourceFormRun;
+        Form                    sourceForm;
+
+        record = this.args().record();
+
+        if (!FormDataUtil::isFormDataSource(record))
+        {
+            throw error(Error::wrongUseOfFunction(funcName()));
+        }
+
+        sourceFormRun   = FormDataUtil::getFormDataSource(record).formRun();
+        sourceForm      = sourceFormRun.form();
+        
+        queryTree.deleteAll();
+        queryTree.setImagelist( imagelist.imageList() );
+
+        // BP deviation documented
+        formTreeItem = new FormTreeItem(sourceForm.name(),imagelist.image(#ImageForm),-1,null);
+        rootId = queryTree.addItem(0,FormTreeAdd::Root,formTreeItem);
+
+        nodeList = new Map(Types::String, Types::Integer);
+
+        for (datasourceNo = 1; dataSourceNo <= sourceForm.dataSourceCount(); dataSourceNo++)
+        {
+            formRunDataSource = sourceFormRun.dataSource(dataSourceNo);
+
+            if (formRunDataSource.equal(formRunDataSource.masterObjectSet()))
+            {
+                dataSourceName = sourceForm.dataSource(dataSourceNo).name();
+
+                nodeText = dataSourceName;
+
+                if (formRunDataSource.joinSourceDataSource())
+                {
+                    formRunDataSourceParent = formRunDataSource.joinSourceDataSource();
+                    
+                    if (    _linkFormDStoItsRelatedNodes
+                         && nodeList.exists(formRunDataSourceParent.name()))
+                    {
+                        parentId = nodeList.lookup(formRunDataSourceParent.name());
+                    }
+                    else
+                    {
+                        parentId = rootid;
+
+                        nodeText += ' | Join DS: ' + formRunDataSourceParent.name();
+                    }
+
+                    nodeText += ' | Link: ' + enum2Symbol(
+                        enumNum(FormLinkType),
+                        formRunDataSource.linkType());
+                }
+                else
+                {
+                    parentId = rootid;
+                }
+
+                // BP deviation documented
+                formTreeItem = new FormTreeItem(nodeText,imagelist.image(#ImageQuery),1,null);
+
+                treeId = queryTree.addItem(parentId,FormTreeAdd::Last,formTreeItem);
+
+                if (nodeList.exists(dataSourceName))
+                {
+                    warning(strFmt('Duplicated DS names: %1', dataSourceName));
+                }
+                else
+                {
+                    nodeList.insert(dataSourceName, treeId);
+                }
+
+                this.fillQueryTreeFormDatasource(formRunDataSource, treeId);
+
+                queryTree.expand(treeId,FormTreeExpand::Expand);
+            }
+        }
+
+        queryTree.expand(rootId, FormTreeExpand::Expand);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setButtons</Name>
+				<Source><![CDATA[
+    public void setButtons()
+    {
+        BtnLinkFormDStoItsRelatedNodes.toggleValue(isLinkFormDStoItsRelatedNodes);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>toggleBtnLinkFormDStoItsRelatedNodes</Name>
+				<Source><![CDATA[
+    public void toggleBtnLinkFormDStoItsRelatedNodes()
+    {
+        isLinkFormDStoItsRelatedNodes = BtnLinkFormDStoItsRelatedNodes.toggleValue() != 0;
+        element.setButtons();
+        element.redrawTree(isLinkFormDStoItsRelatedNodes);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>BtnLinkFormDStoItsRelatedNodes</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.toggleBtnLinkFormDStoItsRelatedNodes();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">Query</Caption>
+		<Pattern xmlns="">Custom</Pattern>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPaneControl</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ButtonGroupControl</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>BtnLinkFormDStoItsRelatedNodes</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HelpText>Show tables with active or delayed link type as child nodes </HelpText>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Link form DS to its related nodes</Text>
+								<ToggleButton>Check</ToggleButton>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+				<Style>Strip</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTreeControl">
+				<Name>QueryTree</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Tree</Type>
+				<FormControlExtension
+					i:nil="true" />
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>
