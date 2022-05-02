@@ -15,7 +15,7 @@ public class DEVIntegTutorialStagingPurchHeader extends common
     {
         CompanyId           companyId;
         ;
-        companyId = subStr(this.CompanyId, 2, 4);
+        companyId = this.CompanyId;
         if (! xDataArea::exist(companyId))
         {
             if (_generateError)
@@ -115,22 +115,10 @@ public class DEVIntegTutorialStagingPurchHeader extends common
 					<DataField>InventLocationId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>CurrencyCode</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
 					<DataField>DeliveryDate</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>BuyerName</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
 					<DataField>RequestorName</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>WorkerProjectManagerName</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>IsCancel</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -171,7 +159,6 @@ public class DEVIntegTutorialStagingPurchHeader extends common
 			i:type="AxTableFieldString">
 			<Name>CurrencyCode</Name>
 			<ExtendedDataType>VendCurrencyCode</ExtendedDataType>
-			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldDate">
@@ -209,7 +196,7 @@ public class DEVIntegTutorialStagingPurchHeader extends common
 			i:type="AxTableFieldString">
 			<Name>PurchId</Name>
 			<ExtendedDataType>Num</ExtendedDataType>
-			<Label>EAM Purchase order Number</Label>
+			<Label>Purchase order Number</Label>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
@@ -217,7 +204,6 @@ public class DEVIntegTutorialStagingPurchHeader extends common
 			<Name>RequestorName</Name>
 			<ExtendedDataType>Name</ExtendedDataType>
 			<Label>Requestor name</Label>
-			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">

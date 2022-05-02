@@ -62,24 +62,6 @@ public class DEVIntegTutorialStagingPurchLine extends common
 				<AxTableFieldGroupField>
 					<DataField>PurchPrice</DataField>
 				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>LineAmount</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>TaxAmountLineExternal</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>Name</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>TaxGroup</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>TaxItemGroup</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>ProjId</DataField>
-				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -106,7 +88,6 @@ public class DEVIntegTutorialStagingPurchLine extends common
 			<Name>LineAmount</Name>
 			<ExtendedDataType>PurchLineAmount</ExtendedDataType>
 			<Label>Line amount</Label>
-			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt64">
@@ -118,7 +99,6 @@ public class DEVIntegTutorialStagingPurchLine extends common
 			i:type="AxTableFieldString">
 			<Name>Name</Name>
 			<ExtendedDataType>ItemFreeTxt</ExtendedDataType>
-			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldReal">
@@ -171,13 +151,11 @@ public class DEVIntegTutorialStagingPurchLine extends common
 			i:type="AxTableFieldString">
 			<Name>TaxGroup</Name>
 			<ExtendedDataType>TaxGroup</ExtendedDataType>
-			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>TaxItemGroup</Name>
 			<ExtendedDataType>TaxItemGroup</ExtendedDataType>
-			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

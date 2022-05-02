@@ -3,6 +3,59 @@
 	<Name>DEVIntegTutorialProcessPurchConfirmXML</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
+/*
+<?xml version="1.0" encoding="UTF-8"?>
+<SyncPurchaseOrder xmlns="http://schema.infor.com/InforOAGIS/2" xmlns:inforpo="http://schema.infor.com/eam/inforbodmodel/100/purchaseorder" languageCode="en-US">
+    <DataArea>
+        <PurchaseOrder>
+            <PurchaseOrderHeader>
+                <DocumentID>PO00001</DocumentID>
+                <DocumentDateTime>2022-04-16</DocumentDateTime>
+                <SupplierParty>
+                    <PartyIDs>
+                        <ID accountingEntity="USMF">1001</ID>
+                    </PartyIDs>
+                </SupplierParty>
+                <ShipToParty>
+                    <Location type="Warehouse">
+                        <ID accountingEntity="USMF">11</ID>
+                    </Location>
+                </ShipToParty>
+                <UserArea>
+                    <Property>
+                        <NameValue name="eam.UDFCHAR01" type="StringType">Requestor Name</NameValue>
+                    </Property>
+                </UserArea>
+            </PurchaseOrderHeader>
+            <PurchaseOrderLine>
+                <LineNumber>10</LineNumber>
+                <Quantity unitCode="EA">15</Quantity>
+                <UnitPrice>
+                    <Amount currencyID="AUD">10</Amount>
+                </UnitPrice>
+                <UserArea>
+                    <Property>
+                        <NameValue name="eam.UDFCHAR01" type="StringType">M0001</NameValue>
+                    </Property>
+                </UserArea>
+            </PurchaseOrderLine>
+            <PurchaseOrderLine>
+                <LineNumber>20</LineNumber>
+                <Quantity unitCode="EA">2</Quantity>
+                <UnitPrice>
+                    <Amount currencyID="AUD">10</Amount>
+                </UnitPrice>
+                <UserArea>
+                    <Property>
+                        <NameValue name="eam.UDFCHAR01" type="StringType">M0004</NameValue>
+                    </Property>
+                </UserArea>
+            </PurchaseOrderLine>
+        </PurchaseOrder>
+    </DataArea>
+</SyncPurchaseOrder>
+*/
+
 public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessageBase
 {
     DEVIntegTutorialStagingPurchHeader     integStagingPurchHeader;
@@ -113,8 +166,8 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
             purchTable.DeliveryDate = integStagingPurchHeader.DeliveryDate;
             purchTable.modifiedField(fieldNum(PurchTable, DeliveryDate));
     
-            purchTable.CurrencyCode = integStagingPurchHeader.CurrencyCode;
-            DEV::validateCursorFieldValue(purchTable, fieldNum(PurchTable, CurrencyCode));
+            //purchTable.CurrencyCode = integStagingPurchHeader.CurrencyCode;
+            //DEV::validateCursorFieldValue(purchTable, fieldNum(PurchTable, CurrencyCode));
     
             DEV::validateWriteRecordCheck(purchTable);
             purchTable.insert();
@@ -140,20 +193,17 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
                 purchLine.ItemId = integStagingPurchLine.ItemId;
                 purchLine.initFromInventTable(purchLine.inventTable());
     
-                purchLine.Name            = integStagingPurchLine.Name;
-                purchLine.TaxItemGroup    = integStagingPurchLine.TaxItemGroup;
-                purchLine.TaxGroup        = integStagingPurchLine.TaxGroup;
-    
-                DEV::validateCursorFieldValue(purchLine, fieldNum(PurchLine, TaxGroup));
+                //purchLine.Name            = integStagingPurchLine.Name;
+                //purchLine.TaxItemGroup    = integStagingPurchLine.TaxItemGroup;
+                //purchLine.TaxGroup        = integStagingPurchLine.TaxGroup;    
+                //DEV::validateCursorFieldValue(purchLine, fieldNum(PurchLine, TaxGroup));
     
                 purchLine.PurchQty      = integStagingPurchLine.PurchQty;
-                purchLine.PurchUnit     = integStagingPurchLine.PurchUnit;
+                //purchLine.PurchUnit     = integStagingPurchLine.PurchUnit;
                 purchLine.PurchPrice    = integStagingPurchLine.PurchPrice;
-                purchLine.LineAmount    = integStagingPurchLine.LineAmount;
+                
+                purchLine.LineAmount    = purchLine.calcLineAmount();
     
-                purchLine.ProjId       = integStagingPurchLine.ProjId;
-                DEV::validateCursorFieldValue(purchLine, fieldNum(PurchLine, ProjId));
-                purchLine.modifiedField(fieldNum(PurchLine, ProjId));
     
                 purchLine.createLine(true, false, false, true, false, false);
     
@@ -227,7 +277,7 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
 				<Source><![CDATA[
     public str getDescription()
     {
-        return "Purchase Order XML INFOR";
+        return "Tutorial Purchase Order XML Import";
     }
 
 ]]></Source>
@@ -276,16 +326,13 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
         System.Xml.XmlNode          nodePOHeader;
         System.Xml.XmlNode          nodePOLine;
         System.Xml.XmlNodeList      nodeList;
-        System.Xml.XmlElement       xmlElement;
         System.Xml.XmlAttributeCollection  xmlAttributeCollection;
         System.Xml.XmlAttribute    xmlAttribute;
     
         System.IO.MemoryStream      fileStream = messageTable.getFileStream();
         int                         nodeCount;
         int                         i;
-        str                         s1, s2;
-   
-        DEVIntegMessageTable       acknowledgmentData;
+        str                         s1;
     
         DEVIntegXMLReadHelper      readHelper = new DEVIntegXMLReadHelper();
     
@@ -312,8 +359,8 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
     
         integStagingPurchHeader.MessageRefRecId = messageTable.RecId;
     
-        integStagingPurchHeader.PurchId   = readHelper.xmlGetValueNodeStr(nodePOHeader, 'DocumentID/ID');
-        integStagingPurchHeader.BuyerName = readHelper.xmlGetValueNodeStr(nodePOHeader, 'CustomerParty/BuyerContact/ID');
+        integStagingPurchHeader.PurchId   = readHelper.xmlGetValueNodeStr(nodePOHeader, 'DocumentID');
+        //integStagingPurchHeader.BuyerName = readHelper.xmlGetValueNodeStr(nodePOHeader, 'CustomerParty/BuyerContact/ID');
     
         node = readHelper.xmlGetNodeByPath(nodePOHeader, 'SupplierParty/PartyIDs/ID');
         xmlAttributeCollection = node.get_Attributes();
@@ -321,18 +368,15 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
         integStagingPurchHeader.CompanyId    = xmlAttribute.get_InnerText();
         integStagingPurchHeader.OrderAccount = node.get_InnerText();
     
-        node = readHelper.xmlGetNodeByPath(nodePOHeader, 'TotalAmount');
-        xmlAttributeCollection = node.get_Attributes();
-        xmlAttribute = xmlAttributeCollection.get_ItemOf("currencyID");
-        integStagingPurchHeader.CurrencyCode    = xmlAttribute.get_InnerText();
+        //node = readHelper.xmlGetNodeByPath(nodePOHeader, 'TotalAmount');
+        //xmlAttributeCollection = node.get_Attributes();
+        //xmlAttribute = xmlAttributeCollection.get_ItemOf("currencyID");
+        //integStagingPurchHeader.CurrencyCode    = xmlAttribute.get_InnerText();
     
         integStagingPurchHeader.DeliveryDate = readHelper.xmlGetValueNodeDate(nodePOHeader, 'DocumentDateTime');
     
         node = readHelper.xmlSelectSingleNode(nodePOHeader, 'infor:ShipToParty//infor:Location[@type=\'Warehouse\']');
         integStagingPurchHeader.InventLocationId = node.get_InnerText();
-    
-        //node = readHelper.xmlSelectSingleNode(nodePOHeader, 'infor:UserArea//infor:Property//infor:NameValue[@name=\'eam.Approver\']');
-        //integStagingPurchHeader.WorkerProjectManagerName = node.get_InnerText();
     
         node = readHelper.xmlSelectSingleNode(nodePOHeader, 'infor:UserArea//infor:Property//infor:NameValue[@name=\'eam.UDFCHAR01\']');
         integStagingPurchHeader.RequestorName = node.get_InnerText();
@@ -363,26 +407,15 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
             integStagingPurchLine.PurchUnit       = xmlAttribute.get_InnerText();
     
             integStagingPurchLine.PurchPrice      = readHelper.xmlGetValueNodeReal(nodePOLine, 'UnitPrice/Amount');
-            integStagingPurchLine.LineAmount      = readHelper.xmlGetValueNodeReal(nodePOLine, 'TotalAmount');
-    
-            integStagingPurchLine.OpenQuantity     = readHelper.xmlGetValueNodeReal(nodePOLine, 'OpenQuantity');
+            //integStagingPurchLine.LineAmount      = readHelper.xmlGetValueNodeReal(nodePOLine, 'TotalAmount'); 
+            //integStagingPurchLine.OpenQuantity     = readHelper.xmlGetValueNodeReal(nodePOLine, 'OpenQuantity');
             
             node = readHelper.xmlSelectSingleNode(nodePOLine, 'infor:UserArea//infor:Property//infor:NameValue[@name=\'eam.UDFCHAR01\']');
             integStagingPurchLine.ItemId = strLRTrim(node.get_InnerText());
-            if (! integStagingPurchLine.ItemId)
-            {
-                throw error(strFmt("Value 'PurchaseOrderLine/UserArea/Property/NameValue/eam.UDFCHAR01' that defines AX Item number is not specified"));
-            }
     
-    
-            integStagingPurchLine.Name            = readHelper.xmlGetValueNodeStr(nodePOLine, 'Item/SupplierItemID/ID') + ' ' +
-                                                    readHelper.xmlGetValueNodeStr(nodePOLine, 'Item/Description');
-    
-            integStagingPurchLine.TaxGroup        = readHelper.xmlGetValueNodeStr(nodePOLine, 'BuyerParty/PartyIDs/TaxID');
-    
-            node =  readHelper.xmlSelectSingleNode(nodePOLine, 'infor:UserArea//infor:Property//infor:NameValue[@name=\'eam.TotalTaxAmount\']');
-            integStagingPurchLine.TaxAmountLineExternal = readHelper.xmlStr2Real(node.get_InnerText());
-    
+            //integStagingPurchLine.TaxGroup        = readHelper.xmlGetValueNodeStr(nodePOLine, 'BuyerParty/PartyIDs/TaxID');
+            //node =  readHelper.xmlSelectSingleNode(nodePOLine, 'infor:UserArea//infor:Property//infor:NameValue[@name=\'eam.TotalTaxAmount\']');
+            //integStagingPurchLine.TaxAmountLineExternal = readHelper.xmlStr2Real(node.get_InnerText());
     
             DEV::validateWriteRecordCheck(integStagingPurchLine);
             integStagingPurchLine.insert();
@@ -392,6 +425,17 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
     
         ttscommit;
     
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setViewStagingButton</Name>
+				<Source><![CDATA[
+    public void setViewStagingButton(FormFunctionButtonControl  _viewStagingButtonControl, DEVIntegMessageTable  _messageTable)
+    {
+        _viewStagingButtonControl.visible(_messageTable.IsParsed);
+        _viewStagingButtonControl.menuItemName(menuItemDisplayStr(DEVIntegTutorialStagingPurchOrder));
     }
 
 ]]></Source>

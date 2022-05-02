@@ -21,7 +21,8 @@ class DEVIntegTutorialExportBulkInventOnhand extends DEVIntegExportBulkBase
         lineData = ['Company', 'ItemId', 'InventLocationId', 'LastUpdDatePhysical', 'AvailPhysical'];
         this.writeHeaderLine(lineData);
 
-        while select crosscompany inventSum
+        while select crosscompany sum(AvailPhysical), maxof(LastUpdDatePhysical) from inventSum
+            group by ItemId, InventLocationId
             where inventSum.AvailPhysical 
         {
             lineData = [inventSum.DataAreaId, inventSum.ItemId, inventSum.InventLocationId, inventSum.LastUpdDatePhysical, inventSum.AvailPhysical];
@@ -35,11 +36,11 @@ class DEVIntegTutorialExportBulkInventOnhand extends DEVIntegExportBulkBase
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>getDescription</Name>
+				<Name>getExportDescription</Name>
 				<Source><![CDATA[
-    public str getDescription()
+    public str getExportDescription()
     {
-        return "Sample export Onhand to CSV";
+        return "Tutorial export Onhand to CSV";
     }
 
 ]]></Source>

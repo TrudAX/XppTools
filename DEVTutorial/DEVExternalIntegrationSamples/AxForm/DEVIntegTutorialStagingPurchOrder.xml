@@ -153,6 +153,75 @@ public class DEVIntegTutorialStagingPurchOrder extends FormRun
 	</SourceCode>
 	<DataSources>
 		<AxFormDataSource xmlns="">
+			<Name>DEVIntegTutorialStagingPurchHeader</Name>
+			<Table>DEVIntegTutorialStagingPurchHeader</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>BuyerName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompanyId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ConfirmedMessageID</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>createdBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>createdDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CurrencyCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>dataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DeliveryDate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventLocationId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsCancel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MessageRefRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OrderAccount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PurchId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RequestorName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>WorkerProjectManagerName</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowEdit>No</AllowEdit>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
 			<Name>DEVIntegMessageTable</Name>
 			<Table>DEVIntegMessageTable</Table>
 			<Fields>
@@ -233,82 +302,12 @@ public class DEVIntegTutorialStagingPurchOrder extends FormRun
 				</AxFormDataSourceField>
 			</Fields>
 			<ReferencedDataSources />
-			<AllowCreate>No</AllowCreate>
-			<AllowDelete>No</AllowDelete>
-			<AllowEdit>No</AllowEdit>
-			<Index>SurrogateKey</Index>
-			<InsertIfEmpty>No</InsertIfEmpty>
-			<DataSourceLinks />
-			<DerivedDataSources />
-		</AxFormDataSource>
-		<AxFormDataSource xmlns="">
-			<Name>DEVIntegTutorialStagingPurchHeader</Name>
-			<Table>DEVIntegTutorialStagingPurchHeader</Table>
-			<Fields>
-				<AxFormDataSourceField>
-					<DataField>BuyerName</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>CompanyId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>ConfirmedMessageID</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>createdBy</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>createdDateTime</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>CurrencyCode</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>dataAreaId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>DeliveryDate</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>InventLocationId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>IsCancel</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>MessageRefRecId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>modifiedBy</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>modifiedDateTime</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>OrderAccount</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>PurchId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>RecId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>RequestorName</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>TableId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>WorkerProjectManagerName</DataField>
-				</AxFormDataSourceField>
-			</Fields>
-			<ReferencedDataSources />
-			<JoinSource>DEVIntegMessageTable</JoinSource>
+			<JoinSource>DEVIntegTutorialStagingPurchHeader</JoinSource>
 			<LinkType>InnerJoin</LinkType>
 			<AllowCreate>No</AllowCreate>
 			<AllowDelete>No</AllowDelete>
 			<AllowEdit>No</AllowEdit>
+			<Index>SurrogateKey</Index>
 			<InsertIfEmpty>No</InsertIfEmpty>
 			<DataSourceLinks />
 			<DerivedDataSources />
@@ -322,9 +321,6 @@ public class DEVIntegTutorialStagingPurchOrder extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>createdDateTime</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>dataAreaId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ItemId</DataField>
@@ -346,6 +342,9 @@ public class DEVIntegTutorialStagingPurchOrder extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>OpenQuantity</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>POLineNumber</DataField>
@@ -394,6 +393,8 @@ public class DEVIntegTutorialStagingPurchOrder extends FormRun
 	<Design>
 		<Caption xmlns="">Purch staging</Caption>
 		<HeightMode xmlns="">Column</HeightMode>
+		<Pattern xmlns="">TaskParentChild</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
 		<SetCompany xmlns="">No</SetCompany>
 		<TitleDataSource xmlns="">DEVIntegTutorialStagingPurchHeader</TitleDataSource>
 		<WidthMode xmlns="">Column</WidthMode>
@@ -452,344 +453,182 @@ public class DEVIntegTutorialStagingPurchOrder extends FormRun
 				</Controls>
 			</AxFormControl>
 			<AxFormControl xmlns=""
-				i:type="AxFormGroupControl">
-				<Name>HeaderGroup</Name>
-				<AutoDeclaration>Yes</AutoDeclaration>
-				<ElementPosition>644245093</ElementPosition>
-				<FilterExpression>%1</FilterExpression>
-				<HeightMode>SizeToAvailable</HeightMode>
-				<Type>Group</Type>
-				<VerticalSpacing>-1</VerticalSpacing>
-				<WidthMode>SizeToAvailable</WidthMode>
+				i:type="AxFormTabControl">
+				<Name>HeaderTabControl</Name>
+				<Type>Tab</Type>
 				<FormControlExtension
 					i:nil="true" />
 				<Controls>
 					<AxFormControl xmlns=""
-						i:type="AxFormGridControl">
-						<Name>Grid</Name>
-						<ElementPosition>1550960411</ElementPosition>
-						<FilterExpression>%1</FilterExpression>
-						<Type>Grid</Type>
-						<VerticalSpacing>-1</VerticalSpacing>
+						i:type="AxFormTabPageControl">
+						<Name>OverviewTabPageControl1</Name>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
 						<FormControlExtension
 							i:nil="true" />
 						<Controls>
 							<AxFormControl xmlns=""
-								i:type="AxFormGroupControl">
-								<Name>Overview1</Name>
-								<ElementPosition>1431655764</ElementPosition>
+								i:type="AxFormGridControl">
+								<Name>Grid</Name>
+								<ElementPosition>1550960411</ElementPosition>
 								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>Group</Type>
+								<Type>Grid</Type>
 								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
 								<FormControlExtension
 									i:nil="true" />
 								<Controls>
 									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview1_CompanyId</Name>
+										i:type="AxFormGroupControl">
+										<Name>Overview1</Name>
+										<ElementPosition>1431655764</ElementPosition>
 										<FilterExpression>%1</FilterExpression>
 										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
+										<Type>Group</Type>
 										<VerticalSpacing>-1</VerticalSpacing>
 										<WidthMode>Auto</WidthMode>
 										<FormControlExtension
 											i:nil="true" />
-										<DataField>CompanyId</DataField>
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview1_CompanyId</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CompanyId</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview1_PurchId</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>PurchId</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview1_OrderAccount</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>OrderAccount</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview1_InventLocationId</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>InventLocationId</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview1_CurrencyCode</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CurrencyCode</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormDateControl">
+												<Name>Overview1_DeliveryDate</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Date</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>DeliveryDate</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview1_BuyerName</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>BuyerName</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview1_RequestorName</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>RequestorName</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview1_WorkerProjectManagerName</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>WorkerProjectManagerName</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Overview1_IsCancel</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CheckBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>IsCancel</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+											</AxFormControl>
+										</Controls>
+										<BackgroundColor>WindowBackground</BackgroundColor>
+										<DataGroup>Overview</DataGroup>
 										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
-										<Name>Overview1_PurchId</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>PurchId</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview1_OrderAccount</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>OrderAccount</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview1_InventLocationId</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>InventLocationId</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview1_CurrencyCode</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>CurrencyCode</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormDateControl">
-										<Name>Overview1_DeliveryDate</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>Date</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>DeliveryDate</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview1_BuyerName</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>BuyerName</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview1_RequestorName</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>RequestorName</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview1_WorkerProjectManagerName</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>WorkerProjectManagerName</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormCheckBoxControl">
-										<Name>Overview1_IsCancel</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>CheckBox</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>IsCancel</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-									</AxFormControl>
-								</Controls>
-								<BackgroundColor>WindowBackground</BackgroundColor>
-								<DataGroup>Overview</DataGroup>
-								<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-							</AxFormControl>
-							<AxFormControl xmlns=""
-								i:type="AxFormStringControl">
-								<Name>DEVIntegMessageTable_Name</Name>
-								<ElementPosition>1789569705</ElementPosition>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>String</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
-								<FormControlExtension
-									i:nil="true" />
-								<DataField>Name</DataField>
-								<DataSource>DEVIntegMessageTable</DataSource>
-							</AxFormControl>
-						</Controls>
-						<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-					</AxFormControl>
-				</Controls>
-				<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
-			</AxFormControl>
-			<AxFormControl xmlns=""
-				i:type="AxFormGroupControl">
-				<Name>CtrlSplitVertical</Name>
-				<AutoDeclaration>Yes</AutoDeclaration>
-				<ElementPosition>1288490187</ElementPosition>
-				<FilterExpression>%1</FilterExpression>
-				<Height>4</Height>
-				<HeightMode>Auto</HeightMode>
-				<Type>Group</Type>
-				<VerticalSpacing>-1</VerticalSpacing>
-				<WidthMode>SizeToAvailable</WidthMode>
-				<FormControlExtension
-					i:nil="true" />
-				<Controls />
-				<AlignChild>No</AlignChild>
-				<HideIfEmpty>No</HideIfEmpty>
-			</AxFormControl>
-			<AxFormControl xmlns=""
-				i:type="AxFormGroupControl">
-				<Name>LineGroup</Name>
-				<ElementPosition>1717986916</ElementPosition>
-				<FilterExpression>%1</FilterExpression>
-				<HeightMode>SizeToAvailable</HeightMode>
-				<Type>Group</Type>
-				<VerticalSpacing>-1</VerticalSpacing>
-				<WidthMode>SizeToAvailable</WidthMode>
-				<FormControlExtension
-					i:nil="true" />
-				<Controls>
-					<AxFormControl xmlns=""
-						i:type="AxFormGridControl">
-						<Name>Grid1</Name>
-						<ElementPosition>1431655764</ElementPosition>
-						<FilterExpression>%1</FilterExpression>
-						<Type>Grid</Type>
-						<VerticalSpacing>-1</VerticalSpacing>
-						<FormControlExtension
-							i:nil="true" />
-						<Controls>
-							<AxFormControl xmlns=""
-								i:type="AxFormGroupControl">
-								<Name>Overview</Name>
-								<ElementPosition>1431655764</ElementPosition>
-								<FilterExpression>%1</FilterExpression>
-								<HeightMode>Auto</HeightMode>
-								<Type>Group</Type>
-								<VerticalSpacing>-1</VerticalSpacing>
-								<WidthMode>Auto</WidthMode>
-								<FormControlExtension
-									i:nil="true" />
-								<Controls>
-									<AxFormControl xmlns=""
-										i:type="AxFormIntegerControl">
-										<Name>Overview_POLineNumber</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>Integer</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>POLineNumber</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview_ItemId</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>ItemId</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormRealControl">
-										<Name>Overview_PurchQty</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>Real</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>PurchQty</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
-										<NoOfDecimals>-1</NoOfDecimals>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview_PurchUnit</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>PurchUnit</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormRealControl">
-										<Name>Overview_PurchPrice</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>Real</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>PurchPrice</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
-										<NoOfDecimals>-1</NoOfDecimals>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormRealControl">
-										<Name>Overview_LineAmount</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>Real</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>LineAmount</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
-										<NoOfDecimals>-1</NoOfDecimals>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormRealControl">
-										<Name>Overview_TaxAmountLineExternal</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>Real</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>TaxAmountLineExternal</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
-										<NoOfDecimals>-1</NoOfDecimals>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview_Name</Name>
+										<Name>DEVIntegMessageTable_Name</Name>
+										<ElementPosition>1789569705</ElementPosition>
 										<FilterExpression>%1</FilterExpression>
 										<HeightMode>Auto</HeightMode>
 										<Type>String</Type>
@@ -798,57 +637,241 @@ public class DEVIntegTutorialStagingPurchOrder extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>Name</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+										<DataSource>DEVIntegMessageTable</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview_TaxGroup</Name>
+										i:type="AxFormComboBoxControl">
+										<Name>DEVIntegMessageTable_Status</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Status</DataField>
+										<DataSource>DEVIntegMessageTable</DataSource>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateTimeControl">
+										<Name>DEVIntegMessageTable_createdDateTime</Name>
+										<Type>DateTime</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>createdDateTime</DataField>
+										<DataSource>DEVIntegMessageTable</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>DEVIntegTutorialStagingPurchHeader</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>Header</Caption>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>SplitterGroup</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<Style>SplitterHorizontalContainer</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>ChildTabControl</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>ChildOverviewTabPageControl</Name>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>Grid1</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Grid</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>Overview</Name>
+										<ElementPosition>1431655764</ElementPosition>
 										<FilterExpression>%1</FilterExpression>
 										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
+										<Type>Group</Type>
 										<VerticalSpacing>-1</VerticalSpacing>
 										<WidthMode>Auto</WidthMode>
 										<FormControlExtension
 											i:nil="true" />
-										<DataField>TaxGroup</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview_TaxItemGroup</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>TaxItemGroup</DataField>
-										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>Overview_ProjId</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
-										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>ProjId</DataField>
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormIntegerControl">
+												<Name>Overview_POLineNumber</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Integer</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>POLineNumber</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview_ItemId</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ItemId</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormRealControl">
+												<Name>Overview_PurchQty</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Real</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>PurchQty</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+												<NoOfDecimals>-1</NoOfDecimals>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview_PurchUnit</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>PurchUnit</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormRealControl">
+												<Name>Overview_PurchPrice</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Real</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>PurchPrice</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+												<NoOfDecimals>-1</NoOfDecimals>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormRealControl">
+												<Name>Overview_LineAmount</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Real</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>LineAmount</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+												<NoOfDecimals>-1</NoOfDecimals>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormRealControl">
+												<Name>Overview_TaxAmountLineExternal</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Real</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>TaxAmountLineExternal</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+												<NoOfDecimals>-1</NoOfDecimals>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview_Name</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Name</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview_TaxGroup</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>TaxGroup</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview_TaxItemGroup</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>TaxItemGroup</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview_ProjId</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ProjId</DataField>
+												<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+											</AxFormControl>
+										</Controls>
+										<BackgroundColor>WindowBackground</BackgroundColor>
+										<DataGroup>Overview</DataGroup>
 										<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
 									</AxFormControl>
 								</Controls>
-								<BackgroundColor>WindowBackground</BackgroundColor>
-								<DataGroup>Overview</DataGroup>
 								<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
 							</AxFormControl>
 						</Controls>
-						<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
+						<Caption>Lines</Caption>
 					</AxFormControl>
 				</Controls>
-				<DataSource>DEVIntegTutorialStagingPurchLine</DataSource>
 			</AxFormControl>
 		</Controls>
 	</Design>
