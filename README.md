@@ -29,6 +29,7 @@ This repository contains 3 D365FO models:
     - [-File-based integration in Dynamics 365 FinOps using X++](#-file-based-integration-in-dynamics-365-finops-using-x)
     - [-Multicompany DMF integration in Dynamics 365 FinOps using X++](#-multicompany-dmf-integration-in-dynamics-365-finops-using-x)
     - [-XppInteg - Azure Service Bus integration solution for Dynamics 365 FinOps](#-xppinteg---azure-service-bus-integration-solution-for-dynamics-365-finops)
+    - [-XppInteg - Import purchase orders from XML files into D365FO](#-xppinteg---import-purchase-orders-from-xml-files-into-d365fo)
   - [Installation](#installation)
   - [Contribution](#contribution)
 
@@ -184,6 +185,10 @@ A sample code to implement recurring file-based integration in D365FO using X++ 
 ### -XppInteg - Azure Service Bus integration solution for Dynamics 365 FinOps
 
 A sample code to implement Azure Service Bus integration in D365FO using X++ (https://denistrunin.com/xpptools-integservbussalesjson/).
+
+### -XppInteg - Import purchase orders from XML files into D365FO
+
+A sample approach how to implement XML based integration by importing purchase orders from Azure File Share in D365FO using X++ (https://denistrunin.com/xpptools-integfilesharexmlpurch/).
 
 **[⬆ back to top](#XppTools)**
 
