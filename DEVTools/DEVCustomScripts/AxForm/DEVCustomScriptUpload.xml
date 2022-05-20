@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVCustomScriptUpload</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVCustomScriptUpload extends FormRun
+{
+
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+
+        UploadControl.notifyUploadCompleted += eventhandler(element.setEnabled);
+        UploadControl.notifyUploadAttemptStarted += eventhandler(element.onFileUploadStarted);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onFileUploadStarted</Name>
+				<Source><![CDATA[
+    private void onFileUploadStarted()
+    {
+        // User must wait for upload to complete
+        FormCommandButtonOK.enabled(false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setEnabled</Name>
+				<Source><![CDATA[
+    private void setEnabled()
+    {
+        FileUploadTemporaryStorageResult uploadResult = UploadControl.getFileUploadResult();
+
+        FormCommandButtonOK.enabled(
+            Description.text() &&
+            uploadResult && 
+            uploadResult.getUploadStatus());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>close</Name>
+				<Source><![CDATA[
+    public void close()
+    {
+        UploadControl.notifyUploadCompleted -= eventhandler(element.setEnabled);
+        UploadControl.notifyUploadAttemptStarted -= eventhandler(element.onFileUploadStarted);
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>closeOk</Name>
+				<Source><![CDATA[
+    public void closeOk()
+    {
+        FileUploadTemporaryStorageResult uploadResult = UploadControl.getFileUploadResult();
+        DEVCustomScriptPackageTable::create(Description.text(), uploadResult.getFileId());
+
+
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>Description</Name>
+				<Type>String</Type>
+				<Methods>
+					<Method>
+						<Name>textChange</Name>
+						<Source><![CDATA[
+        public void textChange()
+        {
+            super();
+            element.setEnabled();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">Upload deployable package</Caption>
+		<Pattern xmlns="">Dialog</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">Dialog</Style>
+		<WindowType xmlns="">Slider</WindowType>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FormGroupControl</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Pattern>Custom</Pattern>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>Description</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>Description</ExtendedDataType>
+						<LabelPosition>Above</LabelPosition>
+						<Mandatory>Yes</Mandatory>
+						<MultiLine>Yes</MultiLine>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStaticTextControl">
+						<Name>DummyControlSpace</Name>
+						<Type>StaticText</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Text></Text>
+					</AxFormControl>
+					<AxFormControl>
+						<Name>UploadControl</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<FormControlExtension>
+							<Name>FileUpload</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>fileTypesAccepted</Name>
+									<Type>String</Type>
+									<Value>.zip</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>fileNameLabel</Name>
+									<Type>String</Type>
+									<Value>Deployable package</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>browseText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>style</Name>
+									<Type>Enum</Type>
+									<TypeName>FileUploadStyle</TypeName>
+									<Value>MinimalWithFilename</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>baseFileUploadStrategyClassName</Name>
+									<Type>String</Type>
+									<Value>DEVCustomScriptUploadStrategy</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>imageMaxWidth</Name>
+									<Type>Int32</Type>
+									<Value>0</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>imageMaxHeight</Name>
+									<Type>Int32</Type>
+									<Value>0</Value>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStaticTextControl">
+						<Name>DummyControl</Name>
+						<Type>StaticText</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Text></Text>
+					</AxFormControl>
+				</Controls>
+				<AllowUserSetup>No</AllowUserSetup>
+				<Style>DialogContent</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormButtonGroupControl">
+				<Name>FormButtonGroupControl</Name>
+				<Type>ButtonGroup</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>FormCommandButtonOK</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Enabled>No</Enabled>
+						<Type>CommandButton</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Command>OK</Command>
+						<Text>Upload</Text>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCommandButtonControl">
+						<Name>FormCommandButtonCancel</Name>
+						<Type>CommandButton</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Command>Cancel</Command>
+						<SaveRecord>No</SaveRecord>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalRight</ArrangeMethod>
+				<Style>DialogCommitContainer</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

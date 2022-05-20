@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtInt64">
+	<Name>DevCustomScriptRecId</Name>
+	<Extends>RefRecId</Extends>
+	<HelpText>Custom script</HelpText>
+	<Label>Script</Label>
+	<ReferenceTable>DEVCustomScriptPackageTable</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences />
+</AxEdt>

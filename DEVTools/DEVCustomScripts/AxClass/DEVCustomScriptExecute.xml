@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVCustomScriptExecute</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVCustomScriptExecute extends RunBase
+{
+    public DEVCustomScriptRecId scriptRecId;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        scriptRecId
+    #endmacro
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "Execute custom X++ script";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Integer     version = conPeek(_packedClass,1);
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList] = _packedClass;
+                break;
+            default :
+                return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkScript</Name>
+				<Source><![CDATA[
+    protected void checkScript(DEVCustomScriptTable _scriptTable)
+    {
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleScript</Name>
+				<Source><![CDATA[
+    protected void handleScript(DEVCustomScriptTable _scriptTable)
+    {
+        using (DEVCustomScriptFile file = DEVCustomScriptFile::newFromFileId(_scriptTable.packageTable().ServerFileId))
+        {
+            file.executeScript(_scriptTable.ClassName);
+        }
+        Info("Script execution completed");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        DEVCustomScriptTable   scriptTable = DEVCustomScriptTable::findRecId(scriptRecId);
+        if (! scriptTable)
+        {
+            throw error("Script not found");
+        }
+
+        this.checkScript(scriptTable);
+        this.handleScript(scriptTable);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVCustomScriptExecute construct()
+    {
+        return new DEVCustomScriptExecute();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DEVisUserInRole</Name>
+				<Source><![CDATA[
+    public boolean DEVisUserInRole(Description  _roleName)
+    {
+        boolean                 res;
+        SecurityUserRole        securityUserRole;
+        SecurityRole            securityRole;
+        ;
+        select firstonly RecId from securityUserRole
+            where  securityUserRole.User    == curUserId()
+            join RecId from securityRole
+                where  securityRole.RecId == securityUserRole.SecurityRole
+                    && (   securityRole.AotName == _roleName
+                    )    ;
+        if (securityUserRole.RecId)
+        {
+            res = true;
+        }
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVCustomScriptExecute action = DEVCustomScriptExecute::construct();
+
+        if (! action.DEVisUserInRole(roleStr(DEVCustomScriptMaintain)))
+        {
+          //  throw error(strFmt("User %1 should be included to %2 role",
+          //          curUserId(), roleStr(DEVCustomScriptMaintain)));
+        }
+
+        action.scriptRecId = _args.record().RecId;
+        action.saveLast();
+
+        if (action.prompt())
+        {
+            action.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

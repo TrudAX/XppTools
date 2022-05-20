@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVCustomScriptFile</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.IO;
+using System.IO.Compression;
+using System.Reflection;
+
+public class DEVCustomScriptFile implements System.IDisposable
+{
+    //private static DEVCustomScriptInstrumentationLogger logger = DEVCustomScriptInstrumentationLogger::createLogger(classStr(DEVCustomScriptFile));
+
+    const private MethodName MainMethodName = 'main';
+    const private str AXNameSpace = 'Dynamics.AX.Application';
+    const str ScriptFolder = 'CustomScripts';
+    
+    private Filename pathContainingAssembly;
+    private Set classNames;
+    private Assembly assembly;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmAssemblyName</Name>
+				<Source><![CDATA[
+    public Dynamics.AX.Application.AssemblyName parmAssemblyName()
+    {
+        if (assembly)
+        {
+            return assembly.FullName;
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>newFromFileId</Name>
+				<Source><![CDATA[
+    public static DEVCustomScriptFile newFromFileId(SharedServiceUnitFileID _fileId)
+    {
+        return new DEVCustomScriptFile(_fileId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClassNames</Name>
+				<Source><![CDATA[
+    public Set parmClassNames()
+    {
+        return classNames;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    private void new(SharedServiceUnitFileID _fileId)
+    {
+        this.initialize(_fileId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeScript</Name>
+				<Source><![CDATA[
+    public void executeScript(ClassName _className)
+    {
+        System.Type type = assembly.GetType(System.String::Concat(AXNameSpace, '.', _className));
+        System.Reflection.MethodInfo methodInfo = type.GetMethod(MainMethodName);
+
+        System.Object[] parametersArray = new System.Object[1]();
+        parametersArray.Set(0, new Args());
+        methodInfo.Invoke(null, parametersArray);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initialize</Name>
+				<Source><![CDATA[
+    private void initialize(SharedServiceUnitFileID _fileId)
+    {
+        Filename assemblyFileName = this.downloadAndExtractFile(_fileId);
+        this.loadAssembly(assemblyFileName);        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadAssembly</Name>
+				<Source><![CDATA[
+    private void loadAssembly(Filename _filename)
+    {
+        //using (SysInstrumentationActivityContext activityContext = logger.scriptExecutionActivities().loadAssembly(_filename))
+        //{
+            System.Exception ex;
+            try
+            {
+                assembly = Assembly::LoadFrom(_filename);
+            
+                if (assembly)
+                {
+                    classNames = this.findInvokableClasses();
+                }
+            }
+            catch (ex)
+            {
+                error(ex.Message);
+                throw Error("The assemmbly in the deployable package could't loaded");
+            }
+        //}
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>scrubDirectoryForNonAssemblyFiles</Name>
+				<Source><![CDATA[
+    private void scrubDirectoryForNonAssemblyFiles(FileName _path)
+    {
+        System.String[] files = Directory::GetFiles(_path);
+        for (int i = 0; i<files.Length; i++)
+        {
+            str filename = files.Get(i);
+            switch (Path::GetExtension(filename))
+            {
+                case '.DLL':
+                case '.NetModule':
+                    break;
+
+                default:
+                    this.deleteFile(filename);
+                    break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteFile</Name>
+				<Source><![CDATA[
+    private void deleteFile(Filename _filename)
+    {
+        //using (SysInstrumentationActivityContext activityContext = logger.scriptExecutionActivities().deleteFile(_filename))
+        {
+            System.IO.File::Delete(_filename);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>downloadAndExtractFile</Name>
+				<Source><![CDATA[
+    private Filename downloadAndExtractFile(SharedServiceUnitFileID _fileId)
+    {
+       //using (SysInstrumentationActivityContext activityContext = logger.scriptExecutionActivities().prepareOnAOS())
+        {
+            System.Exception ex;
+            System.String[] files;
+            Filename localOrNetworkFile, localPathToExtractDeployablePackageTo, pathToBin;
+
+            const str pathToFiles = 'AOSService\\Packages\\files';
+            const str pathToBinFiles = 'bin';
+            const str postfixToFolderName = 'Assembly';
+            const str assemblyFileMatch = '*.dll';
+
+            try
+            {
+                localOrNetworkFile = DMFStagingWriter::getSharedFilePath(_fileId);
+                //logger.logInformation(DEVCustomScriptInstrumentationActivities::File, localOrNetworkFile);
+                
+                localPathToExtractDeployablePackageTo = Path::Combine(Path::GetTempPath(), scriptFolder, Path::GetFileNameWithoutExtension(localOrNetworkFile));
+                ZipFile::ExtractToDirectory(localOrNetworkFile, localPathToExtractDeployablePackageTo);
+            
+                Filename pathToEmbeddedZip = Path::Combine(localPathToExtractDeployablePackageTo, pathToFiles);
+                files = Directory::GetFiles(pathToEmbeddedZip);
+                Filename embeddedZip = files.Get(0);
+                pathContainingAssembly = System.String::Concat(localPathToExtractDeployablePackageTo, postfixToFolderName);
+                ZipFile::ExtractToDirectory(embeddedZip, pathContainingAssembly);
+
+                pathToBin = Path::Combine(pathContainingAssembly, pathToBinFiles);                
+
+                files = Directory::GetFiles(pathToBin, assemblyFileMatch);
+                if (files.Length != 1)
+                {
+                    throw Error("The upload failed because the deployable package did't contain one DLL file");
+                }
+            }
+            catch (ex)
+            {
+                error(ex.Message);
+                throw Error("The uploaded deployable package uses an unsopported format");
+            }
+            finally
+            {
+                if (localOrNetworkFile &&
+                    System.IO.File::Exists(localOrNetworkFile))
+                {
+                    this.deleteFile(localOrNetworkFile);
+                }
+
+                if (localPathToExtractDeployablePackageTo &&
+                    Directory::Exists(localPathToExtractDeployablePackageTo))
+                {
+                    DEVCustomScriptFile::deleteDirectory(localPathToExtractDeployablePackageTo);
+                }
+
+                if (pathToBin &&
+                    Directory::Exists(pathToBin))
+                {
+                    this.scrubDirectoryForNonAssemblyFiles(pathToBin);
+                }
+            }
+            return files.Get(0);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isXppType</Name>
+				<Source><![CDATA[
+    private boolean isXppType(System.Type _type)
+    {
+        const str allowedCharacters = '0123456789abcdefghijklmnopqrstuvwxyz._';
+
+        if (_type.Namespace == AXNameSpace &&
+            !strNFind(_type.FullName, allowedCharacters, 1, strLen(_type.FullName)))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isProperMainMethod</Name>
+				<Source><![CDATA[
+    private boolean isProperMainMethod(System.Reflection.MethodInfo _methodInfo)
+    {
+        if (_methodInfo &&
+            _methodInfo.IsStatic &&
+            _methodInfo.IsPublic &&
+            _methodInfo.GetParameters().Length == 1)
+        {            
+            return true;
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findInvokableClasses</Name>
+				<Source><![CDATA[
+    protected Set findInvokableClasses()
+    {
+        var types = assembly.GetTypes();
+        var enum = types.GetEnumerator();
+        Set result = new Set(Types::String);
+
+        while (enum.MoveNext())
+        {
+            System.Type type = enum.Current;
+            if (this.isXppType(type))
+            {
+                var methodInfo = type.GetMethod(MainMethodName);
+                if (this.isProperMainMethod(methodInfo))
+                {
+                    result.add(type.Name);
+                }
+            }
+        }
+
+        if (!result.elements())
+        {
+            throw Error("The deployable package must contain at least one class with a 'public static main(args)' method.");
+        }
+
+        return result;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Dispose</Name>
+				<Source><![CDATA[
+    public void Dispose()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteDirectory</Name>
+				<Source><![CDATA[
+    private static void deleteDirectory(str _directory)
+    {    
+        System.Exception ex;
+        try
+        {
+            //using (SysInstrumentationActivityContext activityContext = logger.scriptExecutionActivities().deleteFolder(_directory))
+            {
+                const boolean recursive = true;
+                Directory::Delete(_directory, recursive);
+            }
+        }
+        catch (ex)
+        {
+        }    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanUpScriptFolder</Name>
+				<Source><![CDATA[
+    public static void cleanUpScriptFolder()
+    {
+        System.Exception ex;
+
+        try
+        {
+            str folder = Path::Combine(DMFParameters::find().SharedFolderPath, ScriptFolder);        
+            System.String[] directories = Directory::GetDirectories(folder);
+
+            for (int i = 0; i<directories.Length; i++)
+            {
+                str directory = directories.Get(i);
+                DEVCustomScriptFile::deleteDirectory(directory);
+            }
+        }
+        catch (ex)
+        {
+        }     
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

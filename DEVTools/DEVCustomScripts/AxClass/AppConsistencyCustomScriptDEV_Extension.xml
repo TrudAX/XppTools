@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>AppConsistencyCustomScriptDEV_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(tablestr(AppConsistencyCustomScript))]
+final class AppConsistencyCustomScriptDEV_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        ttsbegin;
+        boolean doApproved = this.Status == AppConsistencyCustomScriptStatus::Approved &&
+                             this.orig().Status == AppConsistencyCustomScriptStatus::Uploaded;
+
+        if (doApproved)
+        {
+            this.Status = this.orig().Status;
+        }
+
+
+        next update();
+    
+        if (doApproved)
+        {
+            AppConsistencyCustomScript this_local;
+            this_local.skipAosValidation(true);
+            this_local.skipBusinessEvents(true);
+            this_local.skipDatabaseLog(true);
+            this_local.skipDataMethods(true);
+
+
+            update_recordset this_local
+                setting Status = AppConsistencyCustomScriptStatus::Approved
+                  where this_local.RecId == this.RecId;
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

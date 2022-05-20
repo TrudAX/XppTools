@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVCustomScriptUploadStrategy</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVCustomScriptUploadStrategy extends FileUploadTemporaryStorageStrategy
+{
+    /*
+    public FileUploadResultBase uploadFile(System.IO.Stream _stream, str _fileName, str _contentType = null, str _fileExtension = null, str _metaData = null)
+    {
+        FileUploadResultBase ret = super(_stream, _fileName, _contentType, _fileExtension, _metaData);
+        if (ret)
+        {
+            ret.useAntiMalwareScanner(true);
+        }
+        return ret;
+    }
+
+    public FileUploadResultBase addBlobMetadata(str _fileName, str _fileId = null, str _contentType = null, str _fileExtension = null, str _metaData = null)
+    {
+        FileUploadResultBase ret = super(_fileName, _fileId, _contentType, _fileExtension, _metaData);
+        if (ret)
+        {
+            ret.useAntiMalwareScanner(true);
+        }
+
+        return ret;
+    }
+    */
+}
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+</AxClass>
