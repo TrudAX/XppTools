@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVDMFEntityList</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVDMFEntityList extends FormRun
+{
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildDataEntityList</Name>
+				<Source><![CDATA[
+    public void buildDataEntityList()
+    {
+        List                dataEntities = DictDataEntity::listOfDataEntities();
+        DictDataEntity      dataEntity;
+        ListEnumerator      e = dataEntities.getEnumerator();
+
+        while (e.moveNext())
+        {
+            dataEntity = new DictDataEntity(tablename2id(e.current()));
+            
+            DEVDMFTmpEntityList.EntityName = dataEntity.name();
+            DEVDMFTmpEntityList.EntityLabel = dataEntity.label();
+            DEVDMFTmpEntityList.EntityModules = dataEntity.modules();
+            DEVDMFTmpEntityList.insert();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+        this.buildDataEntityList();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>ButtonRefreshDataEntity</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            if (Box::yesNo("Refresh selected data entities?", DialogButton::Yes) == DialogButton::Yes)
+            {
+                DEVDMFTmpEntityList record;
+
+                if (DEVDMFTmpEntityList_DS.anyMarked())
+                {
+                    record = DEVDMFTmpEntityList_DS.getFirst(NoYes::Yes);
+                    while (record)
+                    {
+                        DEVDMFDataPopulation::createDefaultMappingNoConfigValidation(record.EntityName);
+                        record = DEVDMFTmpEntityList_DS.getNext();
+                    }
+                }
+                else
+                {
+                    if (DEVDMFTmpEntityList_DS.cursor())
+                    {
+                        record = DEVDMFTmpEntityList_DS.cursor();
+                        DEVDMFDataPopulation::createDefaultMappingNoConfigValidation(record.EntityName);
+                    }
+                }
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>DEVDMFTmpEntityList</Name>
+			<Table>DEVDMFTmpEntityList</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>EntityLabel</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EntityModules</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EntityName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<Index>EntityNameIdx</Index>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">DEVDMF data entities</Caption>
+		<DataSource xmlns="">DEVDMFTmpEntityList</DataSource>
+		<Pattern xmlns="">SimpleList</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<SetCompany xmlns="">No</SetCompany>
+		<Style xmlns="">SimpleList</Style>
+		<TitleDataSource xmlns="">DEVDMFTmpEntityList</TitleDataSource>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ButtonGroupEntity</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ButtonRefreshDataEntity</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MultiSelect>Yes</MultiSelect>
+								<NeedsRecord>Yes</NeedsRecord>
+								<Text>Refresh data entity</Text>
+							</AxFormControl>
+						</Controls>
+						<Caption>Entity</Caption>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>CustomFilter</Name>
+				<Pattern>CustomAndQuickFilters</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>QuickFilterControl</Name>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+									<Value>EntityGrid</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+									<Value>DEVDMFTmpEntityList_EntityName</Value>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<FrameType>None</FrameType>
+				<Style>CustomFilter</Style>
+				<ViewEditMode>Edit</ViewEditMode>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>EntityGrid</Name>
+				<Type>Grid</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>DEVDMFTmpEntityList_EntityName</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>EntityName</DataField>
+						<DataSource>DEVDMFTmpEntityList</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>DEVDMFTmpEntityList_EntityLabel</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>EntityLabel</DataField>
+						<DataSource>DEVDMFTmpEntityList</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>DEVDMFTmpEntityList_EntityModules</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>EntityModules</DataField>
+						<DataSource>DEVDMFTmpEntityList</DataSource>
+					</AxFormControl>
+				</Controls>
+				<Style>Tabular</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

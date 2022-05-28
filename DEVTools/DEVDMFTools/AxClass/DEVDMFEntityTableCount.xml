@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDMFEntityTableCount</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.Dynamics.AX.Metadata.MetaModel;
+
+/// <summary>
+/// This class is used to count the number of table data sources in an entity.  Includes the number of
+/// table data sources by views and entities used as data sources.
+/// </summary>
+class DEVDMFEntityTableCount
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>analyzeEntity</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Count the number of table data soures in an entity
+    /// </summary>
+    /// <param name = "_entityName">AOT name of entity</param>
+    /// <returns>Number of table data sources</returns>
+    internal static int analyzeEntity(EntityName _entityName)
+    {
+        int tableCnt = 0;
+
+        AxDataEntityView entityView = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetDataEntityView(_entityName);
+        if (entityView)
+        {
+            var dataSources = entityView.ViewMetadata.DataSources;
+            var enumer = dataSources.GetEnumerator();
+            while (enumer.MoveNext())
+            {
+                var current = enumer.Current;
+                if (current is AxQuerySimpleDataSource)
+                {
+                    tableCnt += DEVDMFEntityTableCount::analyzeDataSource(current);
+                }
+            }
+        }
+
+        return tableCnt;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>countDataSources</Name>
+				<Source><![CDATA[
+    private static int countDataSources(AxQuerySimpleDataSource _currentDs)
+    {
+        int dataSourceCount = 0;
+
+        AxDataEntity entity = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetDataEntity(_currentDs.Table);
+        AxDataEntityView entityView = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetDataEntityView(_currentDs.Table);
+
+        if (entityView)
+        {
+            dataSourceCount += DEVDMFEntityTableCount::tableCount(_currentDs.Table);
+        }
+        else
+        {
+            dataSourceCount = 1;
+
+            if (_currentDs.DataSources)
+            {
+                var dataSources = _currentDs.DataSources;
+                var enumer = dataSources.GetEnumerator();
+                while (enumer.MoveNext())
+                {
+                    var current = enumer.Current;
+                    if (current is AxQuerySimpleDataSource)
+                    {
+                        AxQuerySimpleDataSource currentDs = current as AxQuerySimpleDataSource;
+                        dataSourceCount += DEVDMFEntityTableCount::countDataSources(currentDs);
+                    }
+                }
+            }
+        }
+
+        return dataSourceCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tableCount</Name>
+				<Source><![CDATA[
+    private static int tableCount(EntityName _entityName)
+    {
+        int tableCount = 0;
+
+        AxDataEntityView entityView = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetDataEntityView(_entityName);
+
+        if (entityView)
+        {
+            var dataSources = entityView.ViewMetadata.DataSources;
+            var enumer = dataSources.GetEnumerator();
+            while (enumer.MoveNext())
+            {
+                var current = enumer.Current;
+                if (current is AxQuerySimpleDataSource)
+                {
+                    AxQuerySimpleDataSource currentDs = current as AxQuerySimpleDataSource;
+                    tableCount += DEVDMFEntityTableCount::countDataSources(currentDs);
+                }
+            }
+
+        }
+
+        return tableCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>analyzeDataSource</Name>
+				<Source><![CDATA[
+    private static int analyzeDataSource(AxQuerySimpleDataSource _ds)
+    {
+        int tableCnt = 0;
+
+        AxDataEntityView entityView = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetDataEntityView(_ds.Table);
+        AxView view = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetView(_ds.Table);
+
+        if (entityView)
+        {
+            tableCnt = DEVDMFEntityTableCount::analyzeEntity(_ds.Table);
+        }
+        else if (view)
+        {
+            tableCnt = DEVDMFEntityTableCount::analyzeView(_ds.Table);
+        }
+        else
+        {
+            tableCnt = 1;
+        }
+        // also analyze all child datasources
+        if (_ds.DataSources && _ds.DataSources.Count > 0)
+        {
+            var children = _ds.DataSources;
+            var enumer = children.GetEnumerator();
+            while (enumer.MoveNext())
+            {
+                tableCnt += DEVDMFEntityTableCount::analyzeDataSource(enumer.current);
+            }
+        }
+
+        return tableCnt;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>analyzeView</Name>
+				<Source><![CDATA[
+    private static int analyzeView(str _viewName)
+    {
+        int tableCnt = 0;
+
+        AxView view = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetView(_viewName);
+        if (view)
+        {
+            var dataSources = view.ViewMetadata.DataSources;
+            var enumer = dataSources.GetEnumerator();
+            while (enumer.MoveNext())
+            {
+                var current = enumer.Current;
+                if (current is AxQuerySimpleDataSource)
+                {
+                    tableCnt += DEVDMFEntityTableCount::analyzeDataSource(current);
+                }
+            }
+        }
+
+        return tableCnt;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

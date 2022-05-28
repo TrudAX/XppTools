@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDMFDataPopulation</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.Dynamics.ApplicationFoundation.DIXF.Instrumentation;
+using Microsoft.Dynamics.AX.Metadata.MetaModel;
+
+class DEVDMFDataPopulation
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createDefaultMappingNoConfigValidation</Name>
+				<Source><![CDATA[
+    public static void createDefaultMappingNoConfigValidation(str _targetEntityName)
+    {
+        boolean              dataPopulationEnded;
+        SysGlobalobjectCache sgoc = new SysGlobalObjectCache();
+        
+        boolean isEntityListRefreshing;
+        [isEntityListRefreshing] = sgoc.find(DMFConstants::DataPopulationGlobalCacheScope, [DMFConstants::DataPopulationKey]);
+
+        if (!isEntityListRefreshing)
+        {
+            sgoc.insert(DMFConstants::DataPopulationGlobalCacheScope, [DMFConstants::DataPopulationKey], [true]);
+            unchecked(Uncheck::XDS)
+            {
+                DEVDMFDataPopulation::createEntity(_targetEntityName);
+            }
+
+            dataPopulationEnded = true;
+        }
+        
+        if (dataPopulationEnded)
+        {
+            sgoc.clear(DMFConstants::DataPopulationGlobalCacheScope);
+        }
+
+        Info(strFmt("%1 refreshed", _targetEntityName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createEntity</Name>
+				<Source><![CDATA[
+    public static void createEntity(str _targetEntityName)
+    {
+        #define.EnLanguageId('en-us')
+        DMFTmpEntityList            dmfTmpEntityList;
+        DictDataEntity              dataEntity;
+        DMFTargetXML                dmfTargetXML;
+        DMFTargetXMLToEntityMap     dmfTargetXMLToEntityMap;
+        DMFTargetEntityHierarchy    dmfTargetEntityHierarchy, dmfTargetEntityHierarchyLoc;
+        DMFTableFieldIdView         dmfFieldIdView,
+                                    fieldIdView;
+        
+        DMFObsoleteFieldsTmp        dmfObsoleteFieldsTmp;
+        DictEnum                    de;
+        System.Exception            ex;
+        DMFEntityName               entityName;
+
+        de = new DictEnum(enumNum(DMFModule));
+        
+        try
+        {
+            ttsbegin;
+
+            using (var task = PerformanceEventsAsIDisposable::DIXFRuntime_DMFEntityRefresh('BulkCreation: Temp list generation'))
+            {
+                dataEntity = new DictDataEntity(tablename2id(_targetEntityName));
+                    entityName = SysLabel::labelId2String2(dataEntity.labelDefined(), #EnLanguageId);
+                    if (!entityName)
+                    {
+                        entityName = dataEntity.name();
+                    }
+
+                    if (dataEntity && dataEntity.dataManagementEnabled())
+                    {
+                        select firstonly RecId from dmfTmpEntityList
+                        where dmfTmpEntityList.EntityName == entityName;
+                                                
+                        if (!dmfTmpEntityList.RecId)
+                        {
+                            dmfTmpEntityList.EntityName = entityName;
+                        }
+                        else
+                        {
+                            //Existing Entity Information in temp entity list before refresh
+                            dmfTmpEntityList.EntityName = dataEntity.name();
+                        }
+                        dmfTmpEntityList.TargetEntity = dataEntity.name();
+                        dmfTmpEntityList.TargetTableId = tableName2Id(dmfTmpEntityList.TargetEntity);
+                        dmfTmpEntityList.EntityTable = dataEntity.dataManagementStagingTable();
+                        dmfTmpEntityList.EntityTableId = tableName2Id(dmfTmpEntityList.EntityTable);
+                        dmfTmpEntityList.TargetIsSetBased = DMFDelegates::isTargetSetBasedByDefault(dmfTmpEntityList.TargetEntity);
+                        dmfTmpEntityList.Type = dmfTmpEntityList.TargetEntity;
+                        dmfTmpEntityList.HasExtensionDataFields = dataEntity.hasExtensionFields();
+                        dmfTmpEntityList.HasExtensionDataSources = dataEntity.hasExtensionDataSources();
+                        dmfTmpEntityList.DataSourceTableCount = DEVDMFEntityTableCount::analyzeEntity(dataEntity.name());
+                        
+                        var entityView = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetDataEntityView(dataEntity.name());
+                        if (entityView)
+                        {
+                            dmfTmpEntityList.SysModule = de.symbol2Value(entityView.Modules);
+                            dmfTmpEntityList.Tags = entityView.Tags;
+                            dmfTmpEntityList.EntityCategory = entityView.EntityCategory;
+                            dmfTmpEntityList.IsObsolete = entityView.IsObsolete;
+
+                            var fields = entityView.Fields;
+
+                            if (fields)
+                            {
+                                for (int i = 0; i < fields.count; ++i)
+                                {
+                                    var field = fields.getObject(i);
+                                    if (field.IsObsolete == Microsoft.Dynamics.AX.Metadata.Core.MetaModel.NoYes::Yes)
+                                    {
+                                        dmfObsoleteFieldsTmp.clear();
+                                        dmfObsoleteFieldsTmp.FieldName = field.Name;
+                                        dmfObsoleteFieldsTmp.EntityName = dataEntity.name();
+                                        dmfObsoleteFieldsTmp.insert();
+                                    }
+                                }
+                            }
+                        
+                            dmfTmpEntityList.IsEntityConfigKeyEnabled = NoYes::Yes;
+                            dmfTmpEntityList.isEntityEnabled = NoYes::Yes;
+                            //Existing Entity Information in temp entity list before refresh
+                            dmfTmpEntityList.insert();
+                        }
+                    }
+            }
+
+            DEVDMFDataPopulation::updateExistingEntities(dmfTmpEntityList);
+            DEVDMFDataPopulation::insertNewEntities(dmfTmpEntityList);
+
+            using(var task = PerformanceEventsAsIDisposable::DIXFRuntime_DMFEntityRefresh('BulkCreation: Target mapping generation'))
+            {
+                dmfTargetXML.skipDataMethods(true);
+                dmfTargetXML.skipEvents(true);
+                dmfTargetXML.skipTTSCheck(true);
+                dmfTargetXML.recordLevelSecurity(false);
+                dmfTargetXML.skipAosValidation(true);
+                dmfTargetXML.skipDatabaseLog(true);
+                dmfTargetXML.skipPostLoad(true);
+
+                delete_from dmfTargetXML
+                    exists join dmfTmpEntityList
+                        where dmfTmpEntityList.EntityName == dmfTargetXML.Entity;
+
+                NoYes enabled = NoYes::Yes;
+                insert_recordset dmfTargetXML (IsFieldEnabled, IsTableConfigKeyEnabled, IsFieldConfigKeyEnabled, Entity, TargetDataSourceName, TargetTable, TargetField, XMLField, ArrayIndex, ShortXMLField)
+                select enabled, enabled, enabled, EntityName, TargetEntity, TargetEntity from dmfTmpEntityList
+                join ArrayFieldName, ArrayFieldName, ArrayIndex, ArrayFieldName from dmfFieldIdView
+                where dmfFieldIdView.ParentID == dmfTmpEntityList.TargetTableId &&
+                      dmfFieldIdView.ID > 0 &&
+                      dmfFieldIdView.ID < 61440 &&
+                      !dmfFieldIdView.IsSystemField
+            notexists join dmfObsoleteFieldsTmp
+                where dmfObsoleteFieldsTmp.EntityName == dmfTmpEntityList.TargetEntity &&
+                      dmfObsoleteFieldsTmp.FieldName == dmfFieldIdView.ArrayFieldName;
+            
+                //Virtual fields collection
+                DMFEntity	dmfEntityRec;
+
+                while select EntityName, TargetEntity, TargetTableId from dmfTmpEntityList
+            join dmfEntityRec
+                where dmfEntityRec.EntityName == dmfTmpEntityList.EntityName
+                {
+                    DMFTargetXML::generateVirtualFields(dmfEntityRec);
+                }
+
+                dmfTargetXMLToEntityMap.skipDataMethods(true);
+                dmfTargetXMLToEntityMap.skipEvents(true);
+                dmfTargetXMLToEntityMap.skipTTSCheck(true);
+                dmfTargetXMLToEntityMap.recordLevelSecurity(false);
+                dmfTargetXMLToEntityMap.skipAosValidation(true);
+                dmfTargetXMLToEntityMap.skipDatabaseLog(true);
+                dmfTargetXMLToEntityMap.skipPostLoad(true);
+
+                DMFMappingType mappingType = DMFMappingType::Assignment;
+
+                boolean runValidateFieldValue = true;
+
+                // Inserting records into dmfTargetXMLToEntityMap
+                // Converting TargetField values to pascal case and inserting into dmfTargetXMLToEntityMap when pascal case compatibility option is enabled.
+
+                RecordInsertList	TargetMapList = new RecordInsertList(tableNum(DMFTargetXMLToEntityMap));
+
+                if (DEVDMFDataPopulation::DMFCompatibilityParameters().xmlAttributeNameForInitialMapping)
+                {
+                    while select Entity, TargetField, XMLField, ArrayIndex from dmfTargetXML
+                exists join dmfTmpEntityList
+                    where dmfTmpEntityList.EntityName == dmfTargetXML.Entity
+                exists join dmfFieldIdView
+                    where dmfFieldIdView.ParentID == dmfTmpEntityList.TargetTableId &&
+                            dmfFieldIdView.ArrayFieldName == dmfTargetXML.TargetField
+                exists join fieldIdView
+                    where fieldIdView.ParentID == dmfTmpEntityList.EntityTableId &&
+                            fieldIdView.ArrayFieldName == dmfTargetXML.TargetField
+                    {
+                        dmfTargetXMLToEntityMap.Entity = dmfTargetXML.Entity;
+                        dmfTargetXMLToEntityMap.RunValidateField = runValidateFieldValue;
+                        dmfTargetXMLToEntityMap.EntityField = str2CapitalWord(dmfTargetXML.TargetField);
+                        dmfTargetXMLToEntityMap.XMLField = dmfTargetXML.XMLField;
+                        dmfTargetXMLToEntityMap.MappingType = mappingType;
+                        dmfTargetXMLToEntityMap.ArrayIndex = dmfTargetXML.ArrayIndex;
+                        TargetMaplist.add(dmfTargetXMLToEntityMap);
+                    }
+                    TargetMapList.insertDatabase();
+                    
+                }
+                else
+                {
+                    insert_recordset dmfTargetXMLToEntityMap (Entity, RunValidateField, EntityField, XMLField, MappingType, ArrayIndex)
+                    select Entity, runValidateFieldValue, TargetField, XMLField, mappingType, ArrayIndex from dmfTargetXML
+                exists join dmfTmpEntityList
+                    where dmfTmpEntityList.EntityName == dmfTargetXML.Entity
+                exists join dmfFieldIdView
+                    where dmfFieldIdView.ParentID == dmfTmpEntityList.TargetTableId &&
+                            dmfFieldIdView.ArrayFieldName == dmfTargetXML.TargetField
+                exists join fieldIdView
+                    where fieldIdView.ParentID == dmfTmpEntityList.EntityTableId &&
+                            fieldIdView.ArrayFieldName == dmfTargetXML.TargetField;
+                }
+
+                RecordInsertList	virtualTargetMapList = new RecordInsertList(tableNum(DMFTargetXMLToEntityMap));
+
+                while select EntityName, TargetEntity, EntityTableId, TargetTableId from dmfTmpEntityList
+                join Entity, TargetField, XMLField, ArrayIndex from dmfTargetXML
+                where dmfTargetXML.Entity == dmfTmpEntityList.EntityName
+            notexists join dmfFieldIdView
+                where dmfFieldIdView.ParentID == dmfTmpEntityList.TargetTableId &&
+                      dmfFieldIdView.ArrayFieldName == dmfTargetXML.TargetField &&
+                      !dmfFieldIdView.IsSystemField  &&
+                      !dmfFieldIdView.isStagingSystemField
+             exists join fieldIdView
+                where fieldIdView.ParentID == dmfTmpEntityList.EntityTableId &&
+                      fieldIdView.ArrayFieldName == dmfTargetXML.TargetField
+                {
+                    DictDataEntity      dictDataEntity    = new DictDataEntity(dmfTmpEntityList.TargetTableId);
+                    DictDataEntityField dictEntityfield   = new DictDataEntityField(dmfTmpEntityList.TargetTableId, fieldName2Id(dmfTmpEntityList.TargetTableId, dmfTargetXML.TargetField) , dmfTargetXML.ArrayIndex);
+
+                    if (dictEntityField && dictEntityField.accessModifier() == FieldAccessModifier::Public &&
+                    dictDataEntity && dictDataEntity.isVirtualField(dmfTargetXML.TargetField))
+                    {
+                        dmfTargetXMLToEntityMap.clear();
+                        dmfTargetXMLToEntityMap.Entity      = dmfTmpEntityList.EntityName;
+                        if (DEVDMFDataPopulation::DMFCompatibilityParameters().xmlAttributeNameForInitialMapping)
+                        {
+                            dMFTargetXMLToEntityMap.EntityField = str2CapitalWord(dmfTargetXML.TargetField);
+                        }
+                        else
+                        {
+                            dMFTargetXMLToEntityMap.EntityField = strUpr(dmfTargetXML.TargetField);
+                        }
+                        if (DEVDMFDataPopulation::DMFCompatibilityParameters().xmlAttributeNameForInitialMapping)
+                        {
+                            dMFTargetXMLToEntityMap.XMLField = dMFTargetXML.XMLField;
+                        }
+                        else
+                        {
+                            dMFTargetXMLToEntityMap.XMLField = strUpr(dMFTargetXML.XMLField);
+                        }
+                        dmfTargetXMLToEntityMap.MappingType = mappingType;
+                        dmfTargetXMLToEntityMap.ArrayIndex  = dmfTargetXML.ArrayIndex;
+                        dmfTargetXMLToEntityMap.RunValidateField = true;
+                        virtualTargetMapList.add(dmfTargetXMLToEntityMap);
+                    }
+                }
+
+                virtualTargetMapList.insertDatabase();
+            }
+
+            int level = 1;
+
+            using(var task = PerformanceEventsAsIDisposable::DIXFRuntime_DMFEntityRefresh('BulkCreation: Entity hierarchy generation'))
+            {
+                dmfTargetEntityHierarchy.skipDataMethods(true);
+                dmfTargetEntityHierarchy.skipEvents(true);
+                dmfTargetEntityHierarchy.skipTTSCheck(true);
+                dmfTargetEntityHierarchy.recordLevelSecurity(false);
+                dmfTargetEntityHierarchy.skipAosValidation(true);
+                dmfTargetEntityHierarchy.skipDatabaseLog(true);
+                dmfTargetEntityHierarchy.skipPostLoad(true);
+                boolean runLogic = true;
+
+                insert_recordset dmfTargetEntityHierarchy (ChildDataSource, QueryName, Level, SequenceNo, RunInsertLogic, RunValidateWrite)
+                select TargetEntity, TargetEntity, level, level, runLogic, runLogic from dmfTmpEntityList
+                notexists join dmfTargetEntityHierarchyLoc
+                    where dmfTargetEntityHierarchyLoc.ChildDataSource == dmfTmpEntityList.TargetEntity;
+            }
+
+            using(var task = PerformanceEventsAsIDisposable::DIXFRuntime_DMFEntityRefresh('BulkCreation: ShortXMLField update'))
+            {
+                dmfTargetXML dmfTargetXMLDup;
+                dmfEntityName prevEntityName;
+                FieldName     prevXMLField;
+                level = 0;
+                while select forupdate dmfTargetXML order by Entity, XMLField where dmfTargetXML.XMLField != dmfTargetXML.ShortXMLField
+                exists join dmfTargetXMLDup where dmfTargetXMLDup.Entity == dmfTargetXML.Entity &&
+                                           dmfTargetXMLDup.XMLField != dmfTargetXML.XMLField &&
+                                           dmfTargetXMLDup.ShortXMLField == dmfTargetXML.ShortXMLField
+                {
+                    if (prevXMLField != dmfTargetXML.XMLField || prevEntityName != dmfTargetXML.Entity)
+                    {
+                        level = 0;
+                    }
+                    if (level > 0)
+                    {
+                        int levelLen = strLen(int2Str(level));
+                        dmfTargetXML.ShortXMLField = strfmt('%1%2', subStr(dmfTargetXML.ShortXMLField,1,strLen(dmfTargetXML.ShortXMLField)-levelLen),level);
+                        dmfTargetXML.update();
+                    }
+                    prevXMLField = dmfTargetXML.XMLField;
+                    prevEntityName = dmfTargetXML.Entity;
+                    level++;
+                }
+            }
+            ttscommit;
+        }
+        catch(ex)
+        {
+            exceptionTextFallThrough();
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateExistingEntities</Name>
+				<Source><![CDATA[
+    private static void updateExistingEntities(DMFTmpEntityList _tmpEntityList)
+    {
+        System.Exception ex;
+
+        try
+        {
+            using(var task = PerformanceEventsAsIDisposable::DIXFRuntime_DMFEntityRefresh('BulkCreation - updating existing entities from tmp table - updateExistingEntities'))
+            {
+                DMFEntity entity;
+
+                _tmpEntityList.clear();
+                entity.skipDataMethods(true);
+                entity.skipEvents(true);
+                entity.skipTTSCheck(true);
+                entity.recordLevelSecurity(false);
+                entity.skipAosValidation(true);
+                entity.skipDatabaseLog(true);
+                entity.skipPostLoad(true);
+
+                update_recordset entity setting
+                    SysModule = _tmpEntityList.SysModule,
+                    Tags = _tmpEntityList.Tags,
+                    EntityCategory = _tmpEntityList.EntityCategory,
+                    IsObsolete = _tmpEntityList.IsObsolete,
+                    HasExtensionDataFields = _tmpEntityList.HasExtensionDataFields,
+                    HasExtensionDataSources = _tmpEntityList.HasExtensionDataSources,
+                    DataSourceTableCount = _tmpEntityList.DataSourceTableCount
+                join _tmpEntityList
+                    where _tmpEntityList.TargetEntity == entity.TargetEntity;
+
+            }
+        }
+        catch (ex)
+        {
+            exceptionTextFallThrough();
+
+            throw;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertNewEntities</Name>
+				<Source><![CDATA[
+    private static void insertNewEntities(DMFTmpEntityList _tmpEntityList)
+    {
+        System.Exception ex;
+
+        try
+        {
+            using(var task = PerformanceEventsAsIDisposable::DIXFRuntime_DMFEntityRefresh('BulkCreation: insert new entities from tmp table - insertNewEntities'))
+            {
+                DMFEntity entity;
+                DMFMyEntities myEntities;
+                DMFEntity notExistsEntity;
+                
+                _tmpEntityList.clear();
+                entity.skipDataMethods(true);
+                entity.skipEvents(true);
+                entity.skipTTSCheck(true);
+                entity.recordLevelSecurity(false);
+                entity.skipAosValidation(true);
+                entity.skipDatabaseLog(true);
+                entity.skipPostLoad(true);
+
+                str emptyString = '';
+
+                insert_recordset entity (EntityName,
+                    EntityTable,
+                    TargetEntity,
+                    Type,
+                    ParentEntityName,
+                    ChildOfEntityName,
+                    EntityCategory,
+                    TargetIsSetBased,
+                    SysModule,
+                    Tags,
+                    IsObsolete,
+                    EntityConfigKeyName,
+                    IsEntityConfigKeyEnabled,
+                    EntityIsEnabled,
+                    HasExtensionDataFields,
+                    HasExtensionDataSources,
+                    DataSourceTableCount)
+                select EntityName,
+                    EntityTable,
+                    TargetEntity,
+                    Type,
+                    emptyString,
+                    emptyString,
+                    EntityCategory,
+                    TargetIsSetBased,
+                    SysModule,
+                    Tags,
+                    IsObsolete,
+                    EntityConfigKeyName,
+                    IsEntityConfigKeyEnabled,
+                    isEntityEnabled,
+                    HasExtensionDataFields,
+                    HasExtensionDataSources,
+                    DataSourceTableCount
+                from _tmpEntityList
+                notexists join notExistsEntity
+                    where notExistsEntity.EntityName == _tmpEntityList.EntityName;
+
+                myEntities.skipDataMethods(true);
+                myEntities.skipEvents(true);
+                myEntities.skipTTSCheck(true);
+                myEntities.recordLevelSecurity(false);
+                myEntities.skipAosValidation(true);
+                myEntities.skipDatabaseLog(true);
+                myEntities.skipPostLoad(true);
+
+                insert_recordset myEntities (Entity)
+                    select EntityName from _tmpEntityList;
+            }
+        }
+        catch (ex)
+        {
+            exceptionTextFallThrough();
+
+            throw;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DMFCompatibilityParameters</Name>
+				<Source><![CDATA[
+    public static DMFCompatibilityParameters DMFCompatibilityParameters(boolean _forupdate = false)
+    {
+        DMFCompatibilityParameters  parameter;
+
+        if (_forupdate)
+        {
+            parameter.selectForUpdate(_forupdate);
+        }
+
+        select firstonly parameter
+            index Key
+            where parameter.Key == 0;
+
+        if (!parameter)
+        {
+            Company::createParameter(parameter);
+        }
+        
+        return parameter;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
