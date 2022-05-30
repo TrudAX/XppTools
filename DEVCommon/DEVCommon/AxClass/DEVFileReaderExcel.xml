@@ -26,7 +26,11 @@ class DEVFileReaderExcel extends DEVFileReaderBase
             return;
         }
         ExcelPackage    package = new ExcelPackage(_stream);
-        
+
+        if (! workShetNo)
+        {
+            workShetNo = package.Workbook.View.ActiveTab + 1;
+        }
         excelWorksheet = package.Workbook.Worksheets.get_Item(workShetNo ? workShetNo : 1);
         if (! excelWorksheet)
         {
@@ -88,6 +92,7 @@ class DEVFileReaderExcel extends DEVFileReaderBase
             switch (typeName)
             {
                 case 'String' :
+                case 'ExcelErrorValue' :
                     typeString = val.ToString();
                     res         = strLRTrim(typeString);
                     break;
