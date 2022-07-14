@@ -1,0 +1,507 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVDocuExpImpJournalLine extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>lastLineNum</Name>
+				<Source><![CDATA[
+    public static Lines lastLineNum(DEVDocuExpImpJournalRecId _journalRecId)
+    {
+        return (select maxof(LineNum) from DEVDocuExpImpJournalLine
+                    where DEVDocuExpImpJournalLine.JournalRecId == _journalRecId).LineNum;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findRecId</Name>
+				<Source><![CDATA[
+    public static DEVDocuExpImpJournalLine findRecId(RefRecId _recId,  boolean _forUpdate = false)
+    {
+        DEVDocuExpImpJournalLine docuExpImpJournalLine;
+        ;
+        if (_recId)
+        {
+            docuExpImpJournalLine.selectForUpdate(_forUpdate);
+            
+            select docuExpImpJournalLine
+                where docuExpImpJournalLine.RecId == _recId;
+        }
+        
+        return docuExpImpJournalLine;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>journalTable</Name>
+				<Source><![CDATA[
+    public DEVDocuExpImpJournalTable journalTable()
+    {
+        return DEVDocuExpImpJournalTable::findRecId(this.JournalRecId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fileNameWithExt</Name>
+				<Source><![CDATA[
+    public FileName fileNameWithExt()
+    {
+        return this.FileName + '.' + this.FileType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fileNameOriginalWithExt</Name>
+				<Source><![CDATA[
+    public FileName fileNameOriginalWithExt()
+    {
+        return this.FileNameOriginal + '.' + this.FileType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>destPKFields</Name>
+				<Source><![CDATA[
+    public container destPKFields()
+    {
+        return str2con_RU(this.DestPKFields, '\\');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>destPKValues</Name>
+				<Source><![CDATA[
+    public container destPKValues(int _fieldCnt = conLen(this.destPKFields()))
+    {
+        container ret;
+        int       fieldIdx;
+
+        for (fieldIdx = 1; fieldIdx <= _fieldCnt; fieldIdx++)
+        {
+            ret += this.DestPKValue[fieldIdx];
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>name</Name>
+				<Source><![CDATA[
+    public Description name()
+    {
+        return DEV::nz(this.Name, this.FileName);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fileNameOriginal</Name>
+				<Source><![CDATA[
+    public Filename fileNameOriginal()
+    {
+        return DEV::nz(this.FileNameOriginal, this.FileName);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>WorksheetLine</TableGroup>
+	<CacheLookup>NotInTTS</CacheLookup>
+	<ClusteredIndex>LineIdx</ClusteredIndex>
+	<PrimaryIndex>LineIdx</PrimaryIndex>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestTableName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LineNum</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SourceTableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SourceCompany</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SourcePKFields</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SourcePKValue</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SourceStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Notes</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocuTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileNameOriginal</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestTableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestCompany</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestPKFields</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestPKValue</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SourcePK</Name>
+			<Label>Source primary key</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>SourcePKValue</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DestPK</Name>
+			<Label>Destination primary key</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestPKValue</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Docu</Name>
+			<Label>Attachment</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Notes</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DocuTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileNameOriginal</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FileType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Source</Name>
+			<Label>Source</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>SourceTableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SourcePKFields</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SourceCompany</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SourceStatus</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Dest</Name>
+			<Label>Destination</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestTableName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestPKFields</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestPKValue</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DestStatusOriginal</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>Identification</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>JournalRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LineNum</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DestStatusText</Name>
+			<Label>Destination status text</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DestStatusText</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>JournalRecId</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>DEVDocuExpImpJournalRecId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SourcePKValue</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>DEVDocuExpImpPKValue</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DocuTypeId</Name>
+			<ExtendedDataType>DocuTypeId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Notes</Name>
+			<AssetClassification>Customer Content</AssetClassification>
+			<ExtendedDataType>Notes</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LineNum</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>Lines</ExtendedDataType>
+			<Label>Attachments export/import journal line</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SourceTableName</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>TableName</ExtendedDataType>
+			<Label>Source table name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DestTableName</Name>
+			<ExtendedDataType>TableName</ExtendedDataType>
+			<Label>Destination table name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DestPKValue</Name>
+			<ExtendedDataType>DEVDocuExpImpPKValue</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SourceCompany</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<Label>Source company</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DestCompany</Name>
+			<ExtendedDataType>SelectableDataArea</ExtendedDataType>
+			<Label>Destination company</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DestStatus</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<EnumType>DEVDocuExpImpJournalDestStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SourceStatus</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<EnumType>DEVDocuExpImpJournalSourceStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FileName</Name>
+			<ExtendedDataType>Filename</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FileType</Name>
+			<ExtendedDataType>FilenameType</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FileNameOriginal</Name>
+			<ExtendedDataType>Filename</ExtendedDataType>
+			<Label>@ApplicationFoundation:DocuValueOriginalFileName</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DestStatusOriginal</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<Label>Destination status original</Label>
+			<EnumType>DEVDocuExpImpJournalDestStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SourcePKFields</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>DEVDocuExpImpPKFields</ExtendedDataType>
+			<Label>Source PK fields</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DestPKFields</Name>
+			<ExtendedDataType>DEVDocuExpImpPKFields</ExtendedDataType>
+			<Label>Dest PK fields</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DestStatusText</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>DEVDocuExpImpJournalStatusText</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>LineIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>JournalRecId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>LineNum</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVDocuExpImpJournalTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DEVDocuExpImpJournalTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Composition</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>JournalRecId</Name>
+					<Field>JournalRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DocuType</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DocuType</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>DocuTypeId</Name>
+					<SourceEDT>DocuTypeId</SourceEDT>
+					<Field>DocuTypeId</Field>
+					<RelatedField>TypeId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

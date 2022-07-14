@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalAzureConnector</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.File;
+
+class DEVDocuExpImpJournalAzureConnector
+{
+    DEVDocuExpImpJournalTable  journalTable;
+    CloudFileShare             share;
+    CloudFileDirectory         rootDir;
+    CloudFileDirectory         currentDir;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>connect</Name>
+				<Source><![CDATA[
+    public void connect()
+    {
+        DEVDocuExpImpJournalName   journalName = DEV::checkRecordExist(journalTable.journalName());
+
+        try
+        {
+            CloudStorageAccount storageAccount    = CloudStorageAccount::Parse(journalName.AzureConnectionString);
+            CloudFileClient     fileClient        = storageAccount.CreateCloudFileClient();
+
+            share = fileClient.GetShareReference(journalName.AzureShareReference);
+            if (! share.Exists(null, null))
+            {
+                throw error(strFmt("Share '%1' doesn't exists", journalName.AzureShareReference));
+            }
+            rootDir = share.GetRootDirectoryReference();
+            if (! rootDir.Exists(null, null))
+            {
+                throw error(strFmt("Root directory '%1' doesn't exists (Type %2)", journalName.AzureShareReference));
+            }
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testConnection</Name>
+				<Source><![CDATA[
+    public void testConnection()
+    {
+        boolean testIsOK;
+        try
+        {
+            this.connect();
+            this.getDirectory(journalTable.AzureLocation);
+            testIsOK = true;
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+        catch
+        {
+        }
+        if (testisOK)
+        {
+            info("Test is OK");
+        }
+        else
+        {
+            throw error("Test Failed");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDirectory</Name>
+				<Source><![CDATA[
+    public CloudFileDirectory  getDirectory(FolderName  _folderName)
+    {
+        CloudFileDirectory fileDir = rootDir.GetDirectoryReference(_folderName);
+
+        if (! fileDir || ! fileDir.Exists(null, null))
+        {
+            throw error(strFmt("Directory '%1' doesn't exists", _folderName));
+        }
+        return fileDir;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readFile</Name>
+				<Source><![CDATA[
+    public System.IO.MemoryStream  readFile(str _fileName,  CloudFileDirectory _fileDir = currentDir)
+    {
+        System.IO.MemoryStream memoryStream;
+
+        CloudFile file = _fileDir.GetFileReference(_fileName);
+
+        // Ensure that the file exists.
+        if (file.Exists(null, null))
+        {
+            memoryStream = new System.IO.MemoryStream();
+            file.DownloadToStream(memoryStream, null, null, null);
+            memoryStream.Position = 0;
+        }
+
+        return memoryStream;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCurrentDirectory</Name>
+				<Source><![CDATA[
+    public void setCurrentDirectory(FolderName  _folderName)
+    {
+        currentDir = this.getDirectory(_folderName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(DEVDocuExpImpJournalTable   _journalTable)
+    {
+        journalTable = _journalTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVDocuExpImpJournalAzureConnector construct(DEVDocuExpImpJournalTable  _journalTable)
+    {
+        return new DEVDocuExpImpJournalAzureConnector(_journalTable);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

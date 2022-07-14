@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalLineDocuImport</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVDocuExpImpJournalLineDocuImport extends DEVDocuExpImpJournalLineHandle
+{
+    DEVDocuExpImpJournalAzureConnector  azureConnector;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>initAzureConnector</Name>
+				<Source><![CDATA[
+    protected void initAzureConnector(DEVDocuExpImpJournalTable _journalTable)
+    {
+        if (! azureConnector)
+        {
+            azureConnector = DEVDocuExpImpJournalAzureConnector::construct(_journalTable);
+            azureConnector.connect();
+            azureConnector.setCurrentDirectory(_journalTable.AzureLocation);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runJournal</Name>
+				<Source><![CDATA[
+    protected void runJournal()
+    {
+        this.initAzureConnector(DEVDocuExpImpJournalTable::findRecId(journalRecId));
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runJournalLines</Name>
+				<Source><![CDATA[
+    protected void runJournalLines()
+    {
+        SetEnumerator e = journalLines.getEnumerator();
+        if (e.moveNext())
+        {
+            this.initAzureConnector(DEVDocuExpImpJournalLine::findRecId(e.current()).journalTable());
+        }
+        
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllowedDestStatuses</Name>
+				<Source><![CDATA[
+    protected container getAllowedDestStatuses()
+    {
+        return [DEVDocuExpImpJournalDestStatus::None, 
+                DEVDocuExpImpJournalDestStatus::Error];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isDocuFound</Name>
+				<Source><![CDATA[
+    protected boolean isDocuFound(DEVDocuExpImpJournalLine _journalLine, Common _destRecord)
+    {
+        DocuRef     docuRefScan;
+        DocuRef     docuRef;
+        DocuValue   docuValue;
+
+        while select  docuRefScan
+            where docuRefScan.RefTableId   == DocuRef::GetRootTableID(_destRecord.TableId)
+               && docuRefScan.RefRecId     == _destRecord.RecId
+               && docuRefScan.RefCompanyId == _destRecord.DataAreaId
+               && docuRefScan.TypeId       == _journalLine.DocuTypeId
+               && docuRefScan.Name         == _journalLine.name()
+        {
+            if (docuRefScan.Notes  == _journalLine.Notes) // memo fileds not supported in query
+            {
+                docuRef.data(docuRefScan);
+                break;
+            }
+        }
+
+        if (docuRef)
+        {
+            if (_journalLine.fileNameOriginal())
+            {
+                docuValue = DocuValue::find(docuRef.ValueRecId);
+                return docuValue.OriginalFileName == _journalLine.fileNameOriginal() &&
+                       docuValue.FileType         == _journalLine.FileType;
+            }
+            return true;
+        }
+        return false;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDocuRefWithoutFile</Name>
+				<Source><![CDATA[
+    protected DocuRef createDocuRefWithoutFile(DEVDocuExpImpJournalLine _journalLine, Common _destRecord)
+    {
+        DocuRef docuRef;
+
+        docuRef.clear();
+        docuRef.RefTableId   =  DocuRef::GetRootTableID(_destRecord.TableId);
+        docuRef.RefRecId     = _destRecord.RecId;
+        docuRef.RefCompanyId = _destRecord.DataAreaId;
+        docuRef.TypeId       = _journalLine.DocuTypeId;
+        docuRef.Name         = _journalLine.Name;
+        docuRef.Notes        = _journalLine.Notes;
+        docuRef.insert();
+
+        return docuRef;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleJournalLine</Name>
+				<Source><![CDATA[
+    protected void handleJournalLine(DEVDocuExpImpJournalLine _journalLine)
+    {
+        DocuType    destDocuType    = DEV::checkRecordExist(DocuType::find(_journalLine.DocuTypeId), [_journalLine.DocuTypeId]);
+        CompanyInfo destCompanyInfo = DEV::checkRecordExist(CompanyInfo::findDataArea(_journalLine.DestCompany), [_journalLine.DestCompany]);
+        DictTable   destDictTable   = DEV::checkNotIsNull(new DictTable(tableName2Id(_journalLine.DestTableName)), strFmt("Table '%1' not found", _journalLine.DestTableName));
+        
+        
+        changecompany (destCompanyInfo.DataArea)
+        {            
+            container               destPKFields = _journalLine.destPKFields();
+            container               destPKValues = _journalLine.destPKValues(conLen(destPKFields));
+            Common                  destRecord   = DEV::recordFindByKey(destDictTable.id(), destPKFields, destPKValues, false, true);
+            System.IO.MemoryStream  destFile;
+
+            if (! this.isDocuFound(_journalLine, destRecord))
+            {
+                if (_journalLine.FileName)
+                {
+                    destFile = azureConnector.readFile(_journalLine.fileNameWithExt());
+                    if (! destFile)
+                    {
+                        throw Error(strFmt("File %1 not found", _journalLine.fileNameWithExt()));
+                    }
+                }
+                if (destFile)
+                {
+                    DocumentManagement::attachFileToCommon(destRecord,
+                                                           destDocuType.TypeId,
+                                                           destFile,
+                                                          _journalLine.fileNameOriginal(),
+                                                          _journalLine.FileType,
+                                                          _journalLine.name(),
+                                                          _journalLine.Notes);
+
+                    destFile.Close();
+                }
+                else
+                {
+                    this.createDocuRefWithoutFile(_journalLine, destRecord);
+                }
+            }
+            else
+            {
+                warning("Attachment already found");
+            }
+
+        }
+        this.setJournalLineDestStatus(_journalLine, DEVDocuExpImpJournalDestStatus::Imported);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVDocuExpImpJournalLineDocuImport construct()
+    {
+        return new DEVDocuExpImpJournalLineDocuImport();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "Import journal line attachment";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVDocuExpImpJournalLineDocuImport::construct().runFromArgs(_args, _args.dataset() == tableNum(DEVDocuExpImpJournalTable));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

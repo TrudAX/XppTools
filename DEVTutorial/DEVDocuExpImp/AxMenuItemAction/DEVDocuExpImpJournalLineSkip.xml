@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemAction xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVDocuExpImpJournalLineSkip</Name>
+	<HelpText>Set journal line destination status to skipped</HelpText>
+	<Label>Set skipped</Label>
+	<MultiSelect>Yes</MultiSelect>
+	<NeedsRecord>Yes</NeedsRecord>
+	<Object>DEVDocuExpImpJournalLineSkip</Object>
+	<ObjectType>Class</ObjectType>
+</AxMenuItemAction>

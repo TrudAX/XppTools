@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalLineSkipUndo</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVDocuExpImpJournalLineSkipUndo extends DEVDocuExpImpJournalLineHandle
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getAllowedDestStatuses</Name>
+				<Source><![CDATA[
+    protected container getAllowedDestStatuses()
+    {
+        return [DEVDocuExpImpJournalDestStatus::Skipped];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleJournalLine</Name>
+				<Source><![CDATA[
+    protected void handleJournalLine(DEVDocuExpImpJournalLine _journalLine)
+    {
+        DEVDocuExpImpJournalDestStatus  destStatus = _journalLine.DestStatusOriginal;
+
+        _journalLine.DestStatusOriginal = DEVDocuExpImpJournalDestStatus::None;
+    
+        this.setJournalLineDestStatus(_journalLine, destStatus);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVDocuExpImpJournalLineSkipUndo construct()
+    {
+        return new DEVDocuExpImpJournalLineSkipUndo();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "Undo journal line destination status skipped";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVDocuExpImpJournalLineSkipUndo::construct().runFromArgs(_args, false);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

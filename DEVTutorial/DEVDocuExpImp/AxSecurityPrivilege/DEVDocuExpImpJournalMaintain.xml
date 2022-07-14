@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityPrivilege xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalMaintain</Name>
+	<Label>DEV Custom X++ scripts maintain</Label>
+	<DataEntityPermissions />
+	<DirectAccessPermissions />
+	<EntryPoints>
+		<AxSecurityEntryPointReference>
+			<Name>DEVDocuExpImpJournalImportLinesFromExcel</Name>
+			<ObjectName>DEVDocuExpImpJournalImportLinesFromExcel</ObjectName>
+			<ObjectType>MenuItemAction</ObjectType>
+			<Forms />
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>DEVDocuExpImpJournalLine</Name>
+			<ObjectName>DEVDocuExpImpJournalLine</ObjectName>
+			<ObjectType>MenuItemDisplay</ObjectType>
+			<Forms>
+				<AxSecurityEntryPointReferenceForm>
+					<Name>DEVDocuExpImpJournalLine</Name>
+					<Controls />
+					<DataSources />
+				</AxSecurityEntryPointReferenceForm>
+			</Forms>
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>DEVDocuExpImpJournalLineDocuImport</Name>
+			<ObjectName>DEVDocuExpImpJournalLineDocuImport</ObjectName>
+			<ObjectType>MenuItemAction</ObjectType>
+			<Forms />
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>DEVDocuExpImpJournalLineSkip</Name>
+			<ObjectName>DEVDocuExpImpJournalLineSkip</ObjectName>
+			<ObjectType>MenuItemAction</ObjectType>
+			<Forms />
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>DEVDocuExpImpJournalLineSkipUndo</Name>
+			<ObjectName>DEVDocuExpImpJournalLineSkipUndo</ObjectName>
+			<ObjectType>MenuItemAction</ObjectType>
+			<Forms />
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>DEVDocuExpImpJournalName</Name>
+			<ObjectName>DEVDocuExpImpJournalName</ObjectName>
+			<ObjectType>MenuItemDisplay</ObjectType>
+			<Forms>
+				<AxSecurityEntryPointReferenceForm>
+					<Name>DEVDocuExpImpJournalName</Name>
+					<Controls />
+					<DataSources />
+				</AxSecurityEntryPointReferenceForm>
+			</Forms>
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>DEVDocuExpImpJournalTable</Name>
+			<ObjectName>DEVDocuExpImpJournalTable</ObjectName>
+			<ObjectType>MenuItemDisplay</ObjectType>
+			<Forms>
+				<AxSecurityEntryPointReferenceForm>
+					<Name>DEVDocuExpImpJournalTable</Name>
+					<Controls />
+					<DataSources />
+				</AxSecurityEntryPointReferenceForm>
+			</Forms>
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>DEVDocuExpImpJournalTestConnection</Name>
+			<ObjectName>DEVDocuExpImpJournalTestConnection</ObjectName>
+			<ObjectType>MenuItemAction</ObjectType>
+			<Forms />
+		</AxSecurityEntryPointReference>
+	</EntryPoints>
+	<FormControlOverrides />
+</AxSecurityPrivilege>

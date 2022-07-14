@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVDocuExpImpHelper
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dsRefresh</Name>
+				<Source><![CDATA[
+    public static void dsRefresh(Common  _record)
+    {
+        FormDataSource  formDataSource = FormDataUtil::getFormDataSource(_record);
+        ;
+    
+        if (formDataSource)
+        {
+            formDataSource.reread();
+            formDataSource.refresh();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dsResearch</Name>
+				<Source><![CDATA[
+    public static void dsResearch(Common _record, NoYes _savePosition = NoYes::Yes)
+    {
+        FormDataSource  formDataSource = FormDataUtil::getFormDataSource(_record);
+        ;
+    
+        if (formDataSource)
+        {
+            formDataSource.research(_savePosition);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateWriteRecordCheck</Name>
+				<Source><![CDATA[
+    public static void validateWriteRecordCheck(Common _record)
+    {
+        if (! _record.validateWrite())
+        {
+            throw error(strFmt("Failed to write %1 table", tableId2pname(_record.TableId)));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateAndWriteRecord</Name>
+				<Source><![CDATA[
+    public static void validateAndWriteRecord(Common _record)
+    {
+        DEV::validateWriteRecordCheck(_record);
+        _record.write();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nz</Name>
+				<Source><![CDATA[
+    public static anytype nz(anytype _value, anytype _nonZeroValue)
+    {
+        return (_value && true) ? _value : _nonZeroValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkRecordExist</Name>
+				<Source><![CDATA[
+    public static Common checkRecordExist(Common _record, container _keyFields = conNull(), str _errorTxt = "")
+    {
+        if (! _record.RecId && true)
+        {
+            str errorMessage = DEV::nz(_errorTxt, strFmt("%1 not found", DEV::tableId2Label(_record.TableId)));
+            if (_keyFields)
+            {
+                errorMessage += strFmt(" (%1)", con2Str(_keyFields, ',')); 
+            }
+
+            throw error(errorMessage);
+        }
+        return _record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tableId2Label</Name>
+				<Source><![CDATA[
+    public static LabelString tableId2Label(tableId _tableId)
+    {
+        DictTable dictTable = new DictTable(_tableId);
+        if (dictTable)
+        {
+            return dictTable.label();
+        }
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>inlist</Name>
+				<Source><![CDATA[
+    public static boolean inlist(anytype _value, container _listValues)
+    {
+        return confind(_listValues, _value) != 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkNotIsNull</Name>
+				<Source><![CDATA[
+    public static Object checkNotIsNull(Object _obj, str _errorMessage)
+    {
+        if (! _obj)
+        {
+            throw error(_errorMessage);
+        }
+        return _obj;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>recordSetModeFast</Name>
+				<Source><![CDATA[
+    public static void recordSetModeFast(Common _common)
+    {
+        
+        _common.skipDatabaseLog  (true);
+        _common.skipDataMethods  (true);
+        _common.skipDeleteActions(true);
+        _common.skipDeleteMethod (true);
+        _common.skipBusinessEvents(true);
+        _common.skipEvents(true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>recordInit</Name>
+				<Source><![CDATA[
+    public static Common recordInit(TableId _tableId,
+                                    boolean _forupdate  = false,
+                                    boolean _modeFast   = false,
+                                    boolean _throwError = true)
+    {
+        DictTable     dictTable = new DictTable(_tableId);
+        Common        common;
+        
+        if (dictTable)
+        {
+            common = dictTable.makeRecord();
+            common.selectForUpdate(_forupdate);
+
+            if (_modeFast)
+            {
+                DEV::recordSetModeFast(common);
+            }
+        }
+        else
+        {
+            if (_throwError)
+            {
+                throw error(strFmt("Table with id %1 not found", _tableId));
+            }
+        }
+
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>recordFindRecId</Name>
+				<Source><![CDATA[
+    public static Common recordFindRecId(TableId _tableId,
+                                         RecId   _recId,
+                                         boolean _forupdate  = false,
+                                         boolean _mustExist  = false)
+    {
+        Common        common = DEV::recordInit(_tableId, _forupdate);
+
+        select common
+            where common.RecId == _recId;
+
+        if (_mustExist && !common)
+        {
+            throw error(strFmt("%1 with record Id %2 not found",  tableId2PName(_tableId), _recId));
+        }
+        return common;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>recordFindByKey</Name>
+				<Source><![CDATA[
+    public static Common recordFindByKey(TableId   _tableId,
+                                         container _keyFields,
+                                         container _keyValues,
+                                         boolean   _forupdate  = false,
+                                         boolean   _mustExist  = false,
+                                         boolean   _modeFast   = false)
+    {
+        Common                  record    = DEV::recordInit(_tableId, _forupdate, _modeFast);
+        DictTable               dictTable = DEV::checkNotIsNull(new DictTable(_tableId), strFmt("Table with id %1 not found", _tableId));
+        Query                   query     = new Query();
+        QueryBuildDataSource    qbds      = query.addDataSource(_tableId);
+        int                     fieldCnt  = conLen(_keyFields);
+        int                     fieldIdx;
+        
+        if (! fieldCnt || fieldCnt != conLen(_keyValues))
+        {
+            throw error("Invalid record key");
+        }
+
+        boolean                 isKeyFieldNames = typeOf(conPeek(_keyFields, 1)) == Types::String;
+        DictField               dictField;
+        
+        for (fieldIdx = 1; fieldIdx <= fieldCnt; fieldIdx++)
+        {
+            if (isKeyFieldNames)
+            {
+                dictField = dictTable.fieldObject(dictTable.fieldName2Id(conPeek(_keyFields, fieldIdx)));
+            }
+            else
+            {
+                dictField = dictTable.fieldObject(conPeek(_keyFields, fieldIdx));
+            }
+            if (! dictField)
+            {
+                throw error(strFmt("Invalid record key field '%1'", conPeek(_keyFields, fieldIdx)));
+            }
+            qbds.addRange(dictField.id()).value(queryValue(conPeek(_keyValues, fieldIdx)));
+        }
+
+        QueryRun  queryRun = new QueryRun(query);
+        queryRun.setRecord(record);
+
+        if (queryRun.next())
+        {
+            record = queryRun.get(_tableId);
+        }
+
+        if (_mustExist && ! record)
+        {
+            throw error(strfmt("Record with key fields '%1' and values '%2' not found in table '%3'", con2Str(_keyFields), con2Str(_keyValues), tableId2PName(_tableId)));
+        }
+
+        return record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>recordFindByPrimaryKey</Name>
+				<Source><![CDATA[
+    public static Common recordFindByPrimaryKey(TableId   _tableId,
+                                                container _keyValues,
+                                                boolean   _forupdate  = false,
+                                                boolean   _mustExist  = false,
+                                                boolean   _modeFast   = false)
+    {
+        DictTable               dictTable  = DEV::checkNotIsNull(new DictTable(_tableId), strFmt("Table with id %1 not found", _tableId));
+        DictIndex               dictIndex  = DEV::checkNotIsNull(new DictIndex(_tableId, dictTable.primaryIndex()), "Primary key not found");
+        int                     fieldCnt   = dictIndex.numberOfFields();
+        int                     fieldIdx;
+        container               keyFields;
+
+        for (fieldIdx = 1; fieldIdx <= fieldCnt; fieldIdx++)
+        {
+            keyFields += dictIndex.field(fieldIdx);
+        }
+
+        return DEV::recordFindByKey(_tableId, keyFields, _keyValues, _forupdate, _mustExist, _modeFast);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryValueByList</Name>
+				<Source><![CDATA[
+    public static str queryValueByList(str _tableName, str _fieldName, container _rangeValues, boolean _addBrackets = true)
+    {
+        str     rangeValue;
+        int     rangeCnt;
+        int     i;
+        ;
+        if (_rangeValues)
+        {
+            rangeCnt = conlen(_rangeValues);
+            for (i = 1; i <= rangeCnt; i++)
+            {
+                if (rangeValue)
+                {
+                    rangeValue += ' || ';
+                }
+                rangeValue += strfmt('(%1.%2 == %3)',
+                                  _tableName,
+                                  _fieldName,
+                                  conpeek(_rangeValues, i) + 0
+                                );
+            }
+            if (_addBrackets)
+            {
+                rangeValue = '(' + rangeValue + ')';
+            }
+        }
+        return rangeValue;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

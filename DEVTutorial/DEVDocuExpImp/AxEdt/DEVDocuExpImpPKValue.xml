@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEVDocuExpImpPKValue</Name>
+	<Extends>ExtCodeValue</Extends>
+	<Label>PK Value 1</Label>
+	<ArrayElements>
+		<AxEdtArrayElement>
+			<Name>PK2</Name>
+			<Index>2</Index>
+			<Label>PK Value 2</Label>
+			<Relations />
+			<TableReferences />
+		</AxEdtArrayElement>
+		<AxEdtArrayElement>
+			<Name>PK3</Name>
+			<Index>3</Index>
+			<Label>PK Value 3</Label>
+			<Relations />
+			<TableReferences />
+		</AxEdtArrayElement>
+		<AxEdtArrayElement>
+			<Name>PK4</Name>
+			<Index>4</Index>
+			<Label>PK Value 4</Label>
+			<Relations />
+			<TableReferences />
+		</AxEdtArrayElement>
+		<AxEdtArrayElement>
+			<Name>PK5</Name>
+			<Index>5</Index>
+			<Label>PK Value 5</Label>
+			<Relations />
+			<TableReferences />
+		</AxEdtArrayElement>
+	</ArrayElements>
+	<Relations />
+	<TableReferences />
+</AxEdt>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalTestConnection</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVDocuExpImpJournalTestConnection extends DEVDocuExpImpJournalHandle
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>handleJournal</Name>
+				<Source><![CDATA[
+    protected void handleJournal(DEVDocuExpImpJournalTable _journalTable)
+    {
+        DEVDocuExpImpJournalAzureConnector::construct(_journalTable).testConnection();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "Test azure connection";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVDocuExpImpJournalTestConnection construct()
+    {
+        return new DEVDocuExpImpJournalTestConnection();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVDocuExpImpJournalTestConnection action = DEVDocuExpImpJournalTestConnection::construct();
+
+        action.journalRecId = _args.record().RecId;
+        action.runOperation();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

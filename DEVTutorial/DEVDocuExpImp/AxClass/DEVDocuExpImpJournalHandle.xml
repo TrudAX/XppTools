@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalHandle</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class DEVDocuExpImpJournalHandle extends RunBaseBatch
+{
+    public DEVDocuExpImpJournalRecId       journalRecId;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        journalRecId
+    #endmacro
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Integer     version = conPeek(_packedClass,1);
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList] = _packedClass;
+                break;
+            default :
+                return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkJournal</Name>
+				<Source><![CDATA[
+    protected void checkJournal(DEVDocuExpImpJournalTable _journalTable)
+    {
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleJournal</Name>
+				<Source><![CDATA[
+    protected abstract void handleJournal(DEVDocuExpImpJournalTable _journalTable)
+    {
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        ttsbegin;
+        DEVDocuExpImpJournalTable   journalTable = DEV::checkRecordExist(DEVDocuExpImpJournalTable::findRecId(journalRecId, true));
+        this.checkJournal(journalTable);
+        this.handleJournal(journalTable);
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

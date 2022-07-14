@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalImportLinesFromExcel</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using OfficeOpenXml;
+using OfficeOpenXml.ExcelPackage;
+using OfficeOpenXml.ExcelRange;
+
+class DEVDocuExpImpJournalImportLinesFromExcel extends RunBase
+{
+    protected DialogRunbase             dialog;
+    private const str                   FileUploadName = 'FileUpload';
+    private const str                   OkButtonName   = 'OkButton';
+    FileUploadTemporaryStorageResult    fileUploadResult;
+
+    public DEVDocuExpImpJournalRecId    journalRecId;
+    public NoYesId                      deleteLines;
+    public NoYesId                      destCompanyCurExt;
+
+    DialogField                         fieldDeleteLines;
+    DialogField                         fieldDestCompanyCurExt;
+    Map                                 enumCache;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        journalRecId,
+        deleteLines,
+        destCompanyCurExt
+    #endmacro
+    #File
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getCellValue</Name>
+				<Source><![CDATA[
+    protected anytype getCellValue(OfficeOpenXml.ExcelRange _range, str _column, int _row)
+    {
+        return _range.get_Item(strFmt('%1%2', _column, _row)).Value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getEnumValue</Name>
+				<Source><![CDATA[
+    private anytype getEnumValue(EnumId _enumId, str _enumValueStr)
+    {
+        if (! enumCache)
+        {
+            enumCache = new Map(Types::Container, Types::Enum);
+        }
+        container enumKey = [_enumId, _enumValueStr];
+        if (! enumCache.exists(enumKey))
+        {
+            enumCache.insert(enumKey, new DictEnum(_enumId).symbol2Value(_enumValueStr));
+        }
+
+        return enumCache.lookup(enumKey);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        dialog = super();
+        DialogGroup       dialogGroup;
+        FormBuildControl  formBuildControl;
+        FileUploadBuild   dialogFileUpload;
+        ;
+        dialogGroup      = dialog.addGroup("File");
+        formBuildControl = dialog.formBuildDesign().control(dialogGroup.name());
+        dialogFileUpload = formBuildControl.addControlEx(classstr(FileUpload), FileUploadName);
+        dialogFileUpload.style(FileUploadStyle::MinimalWithFilename);
+        dialogFileUpload.baseFileUploadStrategyClassName(classstr(FileUploadTemporaryStorageStrategy));
+        dialogFileUpload.fileTypesAccepted('.xlsx');
+        dialogFileUpload.fileNameLabel("@SYS308842");
+        
+
+        fieldDeleteLines = dialog.addField(extendedTypeStr(NoYesId), "Delete existing journal lines before import");
+        fieldDestCompanyCurExt = dialog.addField(extendedTypeStr(NoYesId), "Set current legal entity as destination company");
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteFile</Name>
+				<Source><![CDATA[
+    private void deleteFile(SharedServiceUnitFileID _fileId)
+    {
+        FileUploadTemporaryStorageResult result = new FileUploadTemporaryStorageResult('', '', true, '', '', _fileId);
+        result.deleteResult();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        FileUpload  fileUploadControl = this.getFormControl(dialog, FileUploadName);
+        fileUploadResult  = fileUploadControl.getFileUploadResult();
+        deleteLines       = fieldDeleteLines.value();
+        destCompanyCurExt = fieldDestCompanyCurExt.value();
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList, (fileUploadResult ? fileUploadResult.pack() : conNull())];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Integer     version = conPeek(_packedClass, 1);
+        container   packedFileUploadResult;
+        
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList, packedFileUploadResult] = _packedClass;
+
+                if (packedFileUploadResult)
+                {
+                    fileUploadResult = new FileUploadTemporaryStorageResult();
+                    fileUploadResult.unpack(packedFileUploadResult);
+                }
+                break;
+        }
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        System.IO.MemoryStream memoryStreamFile;
+        boolean                isError;
+        try
+        {
+            if (!(fileUploadResult && fileUploadResult.getUploadStatus()))
+            {
+                throw error("File not loaded");
+            }
+
+            memoryStreamFile = fileUploadResult.openResult();
+
+            OfficeOpenXml.ExcelPackage package = new OfficeOpenXml.ExcelPackage(memoryStreamFile);
+            package.Load(memoryStreamFile);
+
+            this.import(package);
+        }
+        catch (Exception::CLRError)
+        {
+            error(AifUtil::getClrErrorMessage());
+            isError = true;
+        }
+        catch
+        {
+            isError = true;
+        }
+        finally
+        {
+            if (fileUploadResult)
+            {
+                fileUploadResult.deleteResult();
+                memoryStreamFile = null;
+            }
+        }
+        if (isError)
+        {
+            throw Error("Operation cancelled");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialogPostRun</Name>
+				<Source><![CDATA[
+    public void dialogPostRun(DialogRunbase _dialog)
+    {
+        FileUpload fileUpload = this.getFormControl(_dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted += eventhandler(this.uploadCompleted);
+        this.setDialogOkButtonEnabled(_dialog, false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uploadCompleted</Name>
+				<Source><![CDATA[
+    protected void uploadCompleted()
+    {
+        FileUpload fileUpload = this.getFormControl(dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted -= eventhandler(this.uploadCompleted);
+        this.setDialogOkButtonEnabled(dialog, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDialogOkButtonEnabled</Name>
+				<Source><![CDATA[
+    protected void setDialogOkButtonEnabled(DialogRunbase _dialog, boolean _isEnabled)
+    {
+        FormControl okButtonControl = this.getFormControl(_dialog, OkButtonName);
+        if (okButtonControl)
+        {
+            okButtonControl.enabled(_isEnabled);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFormControl</Name>
+				<Source><![CDATA[
+    protected FormControl getFormControl(DialogRunbase _dialog, str _controlName)
+    {
+        return _dialog.formRun().control(_dialog.formRun().controlId( _controlName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>import</Name>
+				<Source><![CDATA[
+    protected void import(OfficeOpenXml.ExcelPackage _package)
+    {
+
+        ttsbegin;
+
+        DEVDocuExpImpJournalTable   journalTable =  DEV::checkRecordExist(DEVDocuExpImpJournalTable::findRecId(journalRecId, true), [journalRecId]);
+
+        if (deleteLines)
+        {
+            this.deleteLines(journalTable);
+        }
+        
+        this.importLines(journalTable, _package);
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVDocuExpImpJournalImportLinesFromExcel construct()
+    {
+        return new DEVDocuExpImpJournalImportLinesFromExcel();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "Import attachments export/import journal lines from Excel";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVDocuExpImpJournalImportLinesFromExcel    action = DEVDocuExpImpJournalImportLinesFromExcel::construct();
+        
+        action.getLast();
+        action.journalRecId = _args.record().RecId;
+        action.saveLast();
+
+        if (action.prompt())
+        {
+            action.runOperation();
+            DEV::dsRefresh(_args.record());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteLines</Name>
+				<Source><![CDATA[
+    protected void deleteLines(DEVDocuExpImpJournalTable _journalTable)
+    {
+        DEVDocuExpImpJournalLine    journalLine;
+
+        delete_from journalLine 
+            where journalLine.JournalRecId == _journalTable.RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>importLines</Name>
+				<Source><![CDATA[
+    protected void importLines(DEVDocuExpImpJournalTable _journalTable, OfficeOpenXml.ExcelPackage _package)
+    {
+        Lines                       lineNum   = DEVDocuExpImpJournalLine::lastLineNum(_journalTable.RecId);
+        ExcelWorksheet              worksheet = _package.get_Workbook().get_Worksheets().get_Item(1);
+        if (! worksheet)
+        {
+            throw error("Worksheet not found");
+        }
+
+        OfficeOpenXml.ExcelRange    cells    = worksheet.Cells;
+        int                         rowCount = worksheet.Dimension.End.Row - worksheet.Dimension.Start.Row + 1;
+        int                         cntTotal;
+        int                         row;
+        
+
+        for (row = 2; row <= rowCount; row++)
+        {
+            setPrefix(strFmt("Line %1", row));
+            cntTotal++;
+            lineNum++;
+            this.importLine(_journalTable, lineNum, cells, row);
+        }
+
+        if (cntTotal)
+        {
+            Info(strFmt("Imported lines %1", cntTotal));
+        }
+        else
+        {
+            warning("No lines found");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>importLine</Name>
+				<Source><![CDATA[
+    protected void importLine(DEVDocuExpImpJournalTable _journalTable, Lines _lineNum, OfficeOpenXml.ExcelRange  _cells, int _row)
+    {
+        DEVDocuExpImpJournalLine                     journalLine;
+    
+
+        journalLine.clear();
+        journalLine.initValue();
+        journalLine.JournalRecId     = _journalTable.RecId;
+        journalLine.LineNum          = _lineNum;
+        journalLine.SourceTableName  =  this.getCellValue(_cells, 'A', _row);
+        journalLine.SourceCompany    =  this.getCellValue(_cells, 'B', _row);
+        journalLine.SourcePKFields   =  this.getCellValue(_cells, 'C', _row);
+        journalLine.SourcePKValue[1] =  this.getCellValue(_cells, 'D', _row);
+        journalLine.SourcePKValue[2] =  this.getCellValue(_cells, 'E', _row);
+        journalLine.SourcePKValue[3] =  this.getCellValue(_cells, 'F', _row);
+        journalLine.SourcePKValue[4] =  this.getCellValue(_cells, 'G', _row);
+        journalLine.SourcePKValue[5] =  this.getCellValue(_cells, 'H', _row);
+        journalLine.Name             =  this.getCellValue(_cells, 'I', _row);
+        journalLine.Notes            =  this.getCellValue(_cells, 'J', _row);
+        journalLine.DocuTypeId       =  this.getCellValue(_cells, 'K', _row);
+        journalLine.FileNameOriginal =  this.getCellValue(_cells, 'L', _row);
+        journalLine.FileName         =  this.getCellValue(_cells, 'M', _row);
+        journalLine.FileType         =  this.getCellValue(_cells, 'N', _row);
+        journalLine.SourceStatus     =  this.getEnumValue(enumNum(DEVDocuExpImpJournalSourceStatus), this.getCellValue(_cells, "O", _row)); 
+        journalLine.DestTableName    =  this.getCellValue(_cells, 'P', _row);
+        journalLine.DestCompany      =  this.getCellValue(_cells, 'Q', _row);
+        journalLine.DestPKFields     =  this.getCellValue(_cells, 'R', _row);
+        journalLine.DestPKValue[1]   =  this.getCellValue(_cells, 'S', _row);
+        journalLine.DestPKValue[2]   =  this.getCellValue(_cells, 'T', _row);
+        journalLine.DestPKValue[3]   =  this.getCellValue(_cells, 'U', _row);
+        journalLine.DestPKValue[4]   =  this.getCellValue(_cells, 'V', _row);
+        journalLine.DestPKValue[5]   =  this.getCellValue(_cells, 'W', _row);
+        journalLine.DestStatus       =  this.getEnumValue(enumNum(DEVDocuExpImpJournalDestStatus), this.getCellValue(_cells, "X", _row));
+        
+
+
+
+        if (!(journalLine.DestTableName  ||
+              journalLine.DestPKFields   ||
+              journalLine.DestCompany    || 
+              journalLine.DestPKValue[1]))
+        {
+            journalLine.DestTableName    =  journalLine.SourceTableName;
+            journalLine.DestCompany      =  journalLine.SourceCompany;
+            journalLine.DestPKFields     =  journalLine.SourcePKFields;
+            journalLine.DestPKValue      =  journalLine.SourcePKValue;
+        }
+
+        if (destCompanyCurExt)
+        {
+            journalLine.DestCompany = curExt();
+        }
+
+        DEV::validateAndWriteRecord(journalLine);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

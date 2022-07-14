@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalLineHandle</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+abstract class DEVDocuExpImpJournalLineHandle extends RunBaseBatch
+{
+    Set                              journalLines;
+    public DEVDocuExpImpJournalRecId journalRecId;
+    int                              infologFromLine;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        journalRecId
+    #endmacro
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #currentList, journalLines ? journalLines.pack() : conNull()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initJournalLines</Name>
+				<Source><![CDATA[
+    private void initJournalLines()
+    {
+        journalLines = new Set(Types::Int64);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        super();
+        this.initJournalLines();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initJournalLinesMarked</Name>
+				<Source><![CDATA[
+    public void initJournalLinesMarked(FormDataSource _ds)
+    {
+        this.initJournalLines();
+
+        if (_ds.anyMarked())
+        {
+            Common record = _ds.getFirst(NoYes::Yes);
+            while (record)
+            {
+                journalLines.add(record.RecId);
+                record = _ds.getNext();
+            }
+        }
+        else
+        {
+            if (_ds.cursor())
+            {
+                journalLines.add(_ds.cursor().RecId);
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Integer     version = conPeek(_packedClass,1);
+        container   packedJournalLines;
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #currentList, packedJournalLines] = _packedClass;
+                if (packedJournalLines)
+                {
+                    journalLines = Set::create(packedJournalLines);
+                }
+                break;
+            default :
+                return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>allowHandleJournalLine</Name>
+				<Source><![CDATA[
+    protected boolean allowHandleJournalLine(DEVDocuExpImpJournalLine _journalLine)
+    {
+        container allowedDestStatuses = this.getAllowedDestStatuses();
+
+        if (allowedDestStatuses && !DEV::inlist(_journalLine.DestStatus, allowedDestStatuses))
+        {
+            return checkFailed(strFmt("Line in destination status '%1' can't be processed", _journalLine.DestStatus));
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleJournalLine</Name>
+				<Source><![CDATA[
+    protected abstract void handleJournalLine(DEVDocuExpImpJournalLine _journalLine)
+    {
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getJournalLinesQuery</Name>
+				<Source><![CDATA[
+    protected Query getJournalLinesQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds  = query.addDataSource(tableNum(DEVDocuExpImpJournalLine));
+        
+        qbds.addRange(fieldNum(DEVDocuExpImpJournalLine, JournalRecId)).value(queryValue(journalRecId));
+        qbds.addRange(fieldNum(DEVDocuExpImpJournalLine, DestStatus)).value(DEV::queryValueByList(qbds.name(), fieldStr(DEVDocuExpImpJournalLine, DestStatus), this.getAllowedDestStatuses()));
+
+        return query;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runJournal</Name>
+				<Source><![CDATA[
+    protected void runJournal()
+    {
+        QueryRun                    queryRun = new QueryRun(this.getJournalLinesQuery());
+        DEVDocuExpImpJournalLine    journalLine;
+        int                         handledCnt;
+        int                         errorCnt;
+        boolean                     isError;
+
+        while (queryRun.next())
+        {
+            journalLine = queryRun.get(tableNum(DEVDocuExpImpJournalLine));
+            isError = false;
+            infologFromLine = infologLine();
+            try
+            {
+                ttsbegin;
+                DEVDocuExpImpJournalLine journalLineForUpdate = DEV::checkRecordExist(DEVDocuExpImpJournalLine::findRecId(journalLine.RecId, true), [journalLine.RecId]);
+                if (this.allowHandleJournalLine(journalLineForUpdate))
+                {
+                    this.handleJournalLine(journalLineForUpdate);
+                    handledCnt++;
+                }
+                ttscommit;
+            }
+            catch (Exception::CLRError)
+            {
+                error(AifUtil::getClrErrorMessage());
+                isError = true;
+            }
+            catch
+            {
+                isError = true;
+            }
+            if (isError)
+            {
+                this.setJournalLineDestStatus(journalLine, DEVDocuExpImpJournalDestStatus::Error);
+                errorCnt++;
+            }
+        }
+        this.showTotals(handledCnt, errorCnt);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showTotals</Name>
+				<Source><![CDATA[
+    protected void showTotals(int _handledCnt, int _errorCnt)
+    {
+        if (_errorCnt)
+        {
+            warning(strFmt("Processed lines: %1, with errors: %2", _handledCnt, _errorCnt));
+        }
+        else
+        {
+            info(strFmt("Processed lines: %1", _handledCnt));
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getInfologTxt</Name>
+				<Source><![CDATA[
+    protected str getInfologTxt()
+    {
+        container                infologTxt;
+        int                      infologLine = infologLine();
+        if (infologFromLine < infologLine)
+        {
+            infologTxt = infolog.copy(infologFromLine + 1, infologLine);
+        }
+        return Info::infoCon2Str(infologTxt);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setJournalLineDestStatus</Name>
+				<Source><![CDATA[
+    protected void setJournalLineDestStatus(DEVDocuExpImpJournalLine    _journalLine, DEVDocuExpImpJournalDestStatus _destStatus)
+    {
+        boolean                  isSelectedForUpdate = _journalLine.selectForUpdate() && appl.ttsLevel();
+        DEVDocuExpImpJournalLine journalLine         = _journalLine;
+
+        if (! isSelectedForUpdate)
+        {
+            ttsbegin;
+            journalLine = DEV::checkRecordExist(DEVDocuExpImpJournalLine::findRecId(_journalLine.RecId, true), [_journalLine.RecId]);
+        }
+
+        journalLine.DestStatus     = _destStatus;
+
+
+        journalLine.DestStatusText = this.getInfologTxt();
+        journalLine.update();
+
+        if (! isSelectedForUpdate)
+        {
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runJournalLines</Name>
+				<Source><![CDATA[
+    protected void runJournalLines()
+    {
+        DEVDocuExpImpJournalLine    journalLine;
+        SetEnumerator               e = journalLines.getEnumerator();
+        int                         handledCnt;
+        int                         errorCnt;
+        boolean                     isError;
+
+        while (e.moveNext())
+        {
+            isError = false;
+            infologFromLine = infologLine();
+            try
+            {
+                ttsbegin;
+                journalLine = DEV::checkRecordExist(DEVDocuExpImpJournalLine::findRecId(e.current(), true), [e.current()]);
+                 
+                if (this.allowHandleJournalLine(journalLine))
+                {
+                    handledCnt++;
+                    this.handleJournalLine(journalLine);
+
+                }
+                ttscommit;
+            }
+            catch (Exception::CLRError)
+            {
+                error(AifUtil::getClrErrorMessage());
+                isError = true;
+            }
+            catch
+            {
+                isError = true;
+            }
+            if (isError)
+            {
+                this.setJournalLineDestStatus(journalLine, DEVDocuExpImpJournalDestStatus::Error);
+                errorCnt++;
+            }
+
+        }
+        this.showTotals(handledCnt, errorCnt);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAllowedDestStatuses</Name>
+				<Source><![CDATA[
+    protected container getAllowedDestStatuses()
+    {
+        return connull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        if (journalRecId)
+        {
+            this.runJournal();
+        }
+        else
+        {
+            this.runJournalLines();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromArgs</Name>
+				<Source><![CDATA[
+    public void initFromArgs(Args _args)
+    {
+        switch (_args.dataset())
+        {
+            case tableNum(DEVDocuExpImpJournalTable):
+                journalRecId = _args.record().RecId;
+                this.initJournalLines();
+                break;
+            case tableNum(DEVDocuExpImpJournalLine):
+                journalRecId = 0;
+                this.initJournalLinesMarked(_args.record().dataSource());
+                break;
+
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runFromArgs</Name>
+				<Source><![CDATA[
+    public void runFromArgs(Args _args, boolean _showPrompt)
+    {
+        this.getLast();
+        this.initFromArgs(_args);
+        this.saveLast();
+
+        if (! _showPrompt || this.prompt())
+        {
+
+            this.runOperation();
+
+            DEV::dsResearch(_args.record());
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

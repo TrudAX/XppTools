@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtInt64">
+	<Name>DEVDocuExpImpJournalNameRecId</Name>
+	<Extends>RefRecId</Extends>
+	<HelpText>Attachments export/import journal name ID</HelpText>
+	<Label>Journal name</Label>
+	<ReferenceTable>DEVDocuExpImpJournalName</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>RecId</RelatedField>
+			<Table>DEVDocuExpImpJournalName</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+</AxEdt>

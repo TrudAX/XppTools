@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVDocuExpImpJournalLineSkip</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVDocuExpImpJournalLineSkip extends DEVDocuExpImpJournalLineHandle
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getAllowedDestStatuses</Name>
+				<Source><![CDATA[
+    protected container getAllowedDestStatuses()
+    {
+        return [DEVDocuExpImpJournalDestStatus::None, 
+                DEVDocuExpImpJournalDestStatus::Error];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleJournalLine</Name>
+				<Source><![CDATA[
+    protected void handleJournalLine(DEVDocuExpImpJournalLine _journalLine)
+    {
+        _journalLine.DestStatusOriginal = _journalLine.DestStatus;
+        this.setJournalLineDestStatus(_journalLine, DEVDocuExpImpJournalDestStatus::Skipped);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVDocuExpImpJournalLineSkip construct()
+    {
+        return new DEVDocuExpImpJournalLineSkip();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "Set journal line destination status to skipped";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVDocuExpImpJournalLineSkip::construct().runFromArgs(_args, false);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
