@@ -10,7 +10,7 @@
 [Form]
 public class DEVCSXppCallStackTable extends FormRun
 {
-
+    QueryBuildRange     qBRUser;
 
 }
 ]]></Source>
@@ -72,8 +72,28 @@ public class DEVCSXppCallStackTable extends FormRun
         public void init()
         {
             super();
-            SysXppCallStackTable_ds.queryBuildDataSource().addRange(fieldNum(DEVCSXppCallStackTable, CreatedBy)).value(curUserId());
+            qBRUser = SysXppCallStackTable_ds.queryBuildDataSource().addRange(fieldNum(DEVCSXppCallStackTable, CreatedBy));//.value(curUserId());
             SysXppCallStackTable_ds.queryBuildDataSource().addOrderByField(fieldNum(DEVCSXppCallStackTable, RecId), SortOrder::Descending);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>executeQuery</Name>
+						<Source><![CDATA[
+        public void executeQuery()
+        {
+            DECSXppFilterType  typeLocal = formControlValue(DECSXppFilterTypeControl, Types::Enum);
+            switch(typeLocal)
+            {
+                case DECSXppFilterType::All:
+                    qBRUser.value('');
+                    break;
+                case DECSXppFilterType::CurrentUser:
+                    qBRUser.value(SysQuery::value(curUserId()));
+                    break;
+            }
+            super();
         }
 
 ]]></Source>
@@ -97,6 +117,27 @@ public class DEVCSXppCallStackTable extends FormRun
             delete_from callStackTableLocal;
 
             SysXppCallStackTable_ds.executeQuery();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DECSXppFilterTypeControl</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean ret;
+    
+            ret = super();
+            SysXppCallStackTable_ds.executeQuery();
+    
+            return ret;
         }
 
 ]]></Source>
@@ -295,27 +336,27 @@ public class DEVCSXppCallStackTable extends FormRun
 								<FormControlExtension
 									i:nil="true" />
 								<Controls>
-									<AxFormControl>
-										<Name>QuickFilterControl</Name>
-										<WidthMode>SizeToAvailable</WidthMode>
-										<FormControlExtension>
-											<Name>QuickFilterControl</Name>
-											<ExtensionComponents />
-											<ExtensionProperties>
-												<AxFormControlExtensionProperty>
-													<Name>targetControlName</Name>
-													<Type>String</Type>
-												</AxFormControlExtensionProperty>
-												<AxFormControlExtensionProperty>
-													<Name>placeholderText</Name>
-													<Type>String</Type>
-												</AxFormControlExtensionProperty>
-												<AxFormControlExtensionProperty>
-													<Name>defaultColumnName</Name>
-													<Type>String</Type>
-												</AxFormControlExtensionProperty>
-											</ExtensionProperties>
-										</FormControlExtension>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>FilterFormGroupControl1</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>DECSXppFilterTypeControl</Name>
+												<AutoDeclaration>Yes</AutoDeclaration>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<EnumType>DECSXppFilterType</EnumType>
+												<ViewEditMode>Edit</ViewEditMode>
+												<Items />
+											</AxFormControl>
+										</Controls>
+										<Columns>2</Columns>
+										<FrameType>None</FrameType>
 									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormGridControl">
@@ -407,9 +448,29 @@ public class DEVCSXppCallStackTable extends FormRun
 															i:nil="true" />
 														<Text>Add all(Warning level)</Text>
 													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCommandButtonControl">
+														<Name>RemoveSettingsButton</Name>
+														<ElementPosition>1610612733</ElementPosition>
+														<FilterExpression>%1</FilterExpression>
+														<HeightMode>Auto</HeightMode>
+														<Type>CommandButton</Type>
+														<VerticalSpacing>-1</VerticalSpacing>
+														<WidthMode>Auto</WidthMode>
+														<FormControlExtension
+															i:nil="true" />
+														<ButtonDisplay>TextWithImageLeft</ButtonDisplay>
+														<Command>DeleteRecord</Command>
+														<NormalImage>Delete</NormalImage>
+														<Primary>Yes</Primary>
+														<SaveRecord>No</SaveRecord>
+														<Text>@sys26394</Text>
+													</AxFormControl>
 												</Controls>
+												<DataSource>XppCallStackUserSetup</DataSource>
 											</AxFormControl>
 										</Controls>
+										<DataSource>XppCallStackUserSetup</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormGridControl">

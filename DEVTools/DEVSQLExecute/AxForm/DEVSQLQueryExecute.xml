@@ -24,7 +24,7 @@ public class DEVSQLQueryExecute extends FormRun
             throw error(strFmt("User %1 should be included to %2 role", 
                     curUserId(), roleStr(DEVSQLQueryExecute)));
         }
-
+        /*
         ttsbegin;
 
         DEVSQLExecuteParm  executeParmLocal = DEVSQLExecuteParm::find(curUserId(), true);
@@ -38,9 +38,18 @@ public class DEVSQLQueryExecute extends FormRun
 
         ttscommit;
 
-        QueryBuildRange   qbr = ExecuteParm_ds.queryBuildDataSource().addRange(fieldNum(DEVSQLExecuteParm, UserId));
-        qbr.status(RangeStatus::Locked);
-        qbr.value(SysQuery::value(curUserId()));
+        //QueryBuildRange   qbr = ExecuteParm_ds.queryBuildDataSource().addRange(fieldNum(DEVSQLExecuteParm, UserId));
+        //qbr.status(RangeStatus::Locked);
+        //qbr.value(SysQuery::value(curUserId()));
+        */
+        ExecuteParm.SQLText = 'select * from CustGroup';
+        ExecuteParm.MaxRows = 100;
+        ExecuteParm.QueryExecuteMode = DEVSQLQueryExecuteMode::Select;
+        ExecuteParm.Filename = 'SQLResult.html';
+        ExecuteParm.UserId = curUserId();
+        ExecuteParm.write();
+
+        QueryExecuteLog_ds.queryBuildDataSource().addOrderByField(fieldNum(DEVSQLQueryExecuteLog, StartDateTime), SortOrder::Descending);
 
         this.updateHelpText();
     }
@@ -62,6 +71,36 @@ public class DEVSQLQueryExecute extends FormRun
         helpText += '\n\n';
         helpText += 'Use qs.plan_handle to get "plan ID" value\n';
 
+        helpText += '\n--Database size\n';
+        helpText += 'select o.name, max(s.row_count) AS \'Rows\',\n';
+        helpText += 'sum(s.reserved_page_count) * 8.0 / (1024 * 1024) as \'GB\',\n';
+        helpText += '(8 * 1024 * sum(s.reserved_page_count)) / (max(s.row_count)) as \'Bytes/Row\'\n';
+        helpText += @'from sys.dm_db_partition_stats s, sys.objects o
+                    where o.object_id = s.object_id
+                    group by o.name
+                    having max(s.row_count) > 0
+                    order by GB desc';
+
+        helpText += '\n\n--TOP SQL\n';
+        helpText += @'SELECT TOP 50
+            qt.[TEXT],
+            qs.execution_count,
+            qs.last_elapsed_time/1000 last_elapsed_time_in_mS,
+            qs.total_logical_reads, qs.last_logical_reads,
+            qs.total_logical_writes, qs.last_logical_writes,
+            qs.last_physical_reads, qs.total_physical_reads,
+            qs.total_worker_time/1000000 total_worker_time_in_S,
+            qs.last_worker_time/1000 last_worker_time_in_mS,
+            qs.total_elapsed_time/1000000 total_elapsed_time_in_S,
+            qs.last_execution_time,
+            DATEDIFF(MI,creation_time,GETDATE()) AS [Age of the Plan(Minutes)]
+            FROM sys.dm_exec_query_stats qs
+            CROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) qt
+            ORDER BY qs.total_logical_reads DESC -- logical reads';
+
+        helpText += '\n\n--Enable users\n';
+        helpText += 'update UserInfo set Enable = 1\n';
+        helpText += '\n';
         HelpTextControl.text(helpText);
     }
 
@@ -128,6 +167,29 @@ public class DEVSQLQueryExecute extends FormRun
         {
             QueryExecuteLog_ds.research();
             super();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>CopyToLogButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            if (QueryExecuteLog.RecId)
+            {
+                ExecuteParm.QueryExecuteMode = QueryExecuteLog.QueryExecuteMode;
+                ExecuteParm.SQLText = QueryExecuteLog.SQLText;
+                ExecuteParm.update();
+                SQLTabPageControl.activatePage();
+            }
         }
 
 ]]></Source>
@@ -215,8 +277,6 @@ public class DEVSQLQueryExecute extends FormRun
 			<AllowCreate>No</AllowCreate>
 			<AllowDelete>No</AllowDelete>
 			<AllowEdit>No</AllowEdit>
-			<Index>RecId</Index>
-			<StartPosition>Last</StartPosition>
 			<DataSourceLinks />
 			<DerivedDataSources />
 		</AxFormDataSource>
@@ -240,7 +300,8 @@ public class DEVSQLQueryExecute extends FormRun
 				<Controls>
 					<AxFormControl xmlns=""
 						i:type="AxFormTabPageControl">
-						<Name>SQLTabPageControl1</Name>
+						<Name>SQLTabPageControl</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
 						<Type>TabPage</Type>
 						<FormControlExtension
 							i:nil="true" />
@@ -427,10 +488,42 @@ public class DEVSQLQueryExecute extends FormRun
 					<AxFormControl xmlns=""
 						i:type="AxFormTabPageControl">
 						<Name>HistoryFormTabPageControl</Name>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
 						<Type>TabPage</Type>
 						<FormControlExtension
 							i:nil="true" />
 						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>FormActionPaneControl1</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupControl1</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>CopyToLogButton</Name>
+												<HelpText>Copy to active window</HelpText>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<NeedsRecord>Yes</NeedsRecord>
+												<Text>Copy</Text>
+											</AxFormControl>
+										</Controls>
+										<DataSource>QueryExecuteLog</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Style>Strip</Style>
+							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormGridControl">
 								<Name>LogGrid</Name>

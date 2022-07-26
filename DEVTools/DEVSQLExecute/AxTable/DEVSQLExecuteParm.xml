@@ -38,6 +38,7 @@ public class DEVSQLExecuteParm extends common
 	<PrimaryIndex>UserIdIdx</PrimaryIndex>
 	<ReplacementKey>UserIdIdx</ReplacementKey>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<TableType>InMemory</TableType>
 	<DeleteActions />
 	<FieldGroups>
 		<AxTableFieldGroup>

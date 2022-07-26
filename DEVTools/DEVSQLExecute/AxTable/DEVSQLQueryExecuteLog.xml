@@ -38,6 +38,7 @@ public class DEVSQLQueryExecuteLog extends common
 	<TitleField2>StartDateTime</TitleField2>
 	<CreatedBy>Yes</CreatedBy>
 	<CreatedDateTime>Yes</CreatedDateTime>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
 	<DeleteActions />
 	<FieldGroups>
 		<AxTableFieldGroup>
@@ -76,6 +77,9 @@ public class DEVSQLQueryExecuteLog extends common
 			<Label>@SYS34991</Label>
 			<Fields>
 				<AxTableFieldGroupField>
+					<DataField>QueryExecuteMode</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>SQLText</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
@@ -86,6 +90,9 @@ public class DEVSQLQueryExecuteLog extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>Duration</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExecCount</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>CreatedBy</DataField>
@@ -114,6 +121,17 @@ public class DEVSQLQueryExecuteLog extends common
 			i:type="AxTableFieldInt">
 			<Name>Duration</Name>
 			<ExtendedDataType>Seconds</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>QueryExecuteMode</Name>
+			<EnumType>DEVSQLQueryExecuteMode</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ExecCount</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<Label>ExecCount</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

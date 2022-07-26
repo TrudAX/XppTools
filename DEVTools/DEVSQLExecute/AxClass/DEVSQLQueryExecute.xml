@@ -46,9 +46,19 @@ class DEVSQLQueryExecute
 				<Source><![CDATA[
     void logBegin()
     {
+        ttsbegin;
+        queryExecuteLog.clear();
+        select firstonly forupdate queryExecuteLog
+            where queryExecuteLog.SQLText   == executeParm.SQLText &&
+                  queryExecuteLog.CreatedBy == curUserId();
+
         queryExecuteLog.SQLText = executeParm.SQLText;
         queryExecuteLog.StartDateTime = DateTimeUtil::getSystemDateTime();
-        queryExecuteLog.insert();
+        queryExecuteLog.QueryExecuteMode = executeParm.QueryExecuteMode;
+        queryExecuteLog.EndDateTime = utcDateTimeNull();
+        queryExecuteLog.ExecCount++;
+        queryExecuteLog.write();
+        ttscommit;
     }
 
 ]]></Source>
@@ -61,7 +71,6 @@ class DEVSQLQueryExecute
         ;
         ttsbegin;
         queryExecuteLog = DEVSQLQueryExecuteLog::findRecId(queryExecuteLog.RecId, true);
-        queryExecuteLog.SQLText = executeParm.SQLText;
         queryExecuteLog.EndDateTime = DateTimeUtil::getSystemDateTime();
         queryExecuteLog.Duration = any2Int(DateTimeUtil::getDifference(queryExecuteLog.EndDateTime, queryExecuteLog.StartDateTime));
         queryExecuteLog.write();
