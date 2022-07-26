@@ -83,9 +83,10 @@ class DEVIntegXMLReadHelper
         ;
         nodeInner = this.xmlGetNodeByPath(_node, _path);
         curElement = nodeInner.get_InnerText();
-    
-        res = System.DateTime::ParseExact(curElement, _format, provider);
-    
+        if (curElement)
+        {
+            res = System.DateTime::ParseExact(curElement, _format, provider);
+        }
         return res;
     }
 

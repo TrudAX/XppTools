@@ -382,6 +382,17 @@ class DEVIntegAzureStorageConnectionHelper
     }
 
 ]]></Source>
+			</Method>			<Method>
+				<Name>getAzureEnvHostedServiceName</Name>
+				<Source><![CDATA[
+    public static DEVIntegAzureEnvHostedServiceName getAzureEnvHostedServiceName()
+    {
+        var env = Microsoft.Dynamics.ApplicationPlatform.Environment.EnvironmentFactory::GetApplicationEnvironment();
+
+        return env.Infrastructure.HostedServiceName;
+    }
+
+]]></Source>
 			</Method>
 		</Methods>
 	</SourceCode>
