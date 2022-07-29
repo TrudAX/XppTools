@@ -64,7 +64,8 @@ public class DEVIntegMessageTypeInbound extends common
     {
         boolean  res;
         DEVIntegConnectionTypeResource connectionTypeResource = this.connectionTypeResource();
-        if (connectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare)
+        if (connectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
+            connectionTypeResource == DEVIntegConnectionTypeResource::SFTP)
         {
             res = true;   
         }
@@ -158,6 +159,33 @@ public class DEVIntegMessageTypeInbound extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>getClassDescription</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethod(true)]
+    public display Description getClassDescription()
+    {
+        Description  res = '<NOT DEFINED>';
+
+        if (this.ClassName)
+        {
+            DEVIntegProcessMessageBase  processMessageBase = this.getActionClass();
+            if (processMessageBase)
+            {
+                res = processMessageBase.getDescription();
+            }
+        }
+        else
+        {
+            res = '';
+        }
+
+        return res;
+
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<FormRef>DEVIntegMessageTypeInbound</FormRef>
@@ -242,6 +270,9 @@ public class DEVIntegMessageTypeInbound extends common
 			<Fields>
 				<AxTableFieldGroupField>
 					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>getClassDescription</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -350,6 +381,18 @@ public class DEVIntegMessageTypeInbound extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>ReadLimitMessages</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SourceGroupSFTP</Name>
+			<Label>Source files SFTP</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ReadLocation</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ArchiveLocation</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>

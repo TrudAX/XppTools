@@ -137,6 +137,27 @@ public class DEVIntegConnectionType extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>modifiedField</Name>
+				<Source><![CDATA[
+    public void modifiedField(FieldId _fieldId)
+    {
+        switch (_fieldId)
+        {
+            case  fieldNum(DEVIntegConnectionType, ConnectionStringSource):
+                if (this.ConnectionStringSource == DEVIntegConnectionStringSource::Encrypted &&
+                    this.orig().ConnectionStringSource != DEVIntegConnectionStringSource::Encrypted)
+                {
+                    this.AzureConnectionString = '';
+                    this.FTPPassword = '';
+                }
+                break;
+        }
+        super(_fieldId);
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>Connection Types</Label>
@@ -303,7 +324,7 @@ public class DEVIntegConnectionType extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>FTPPassword</Name>
-			<ExtendedDataType>NotesLine</ExtendedDataType>
+			<ExtendedDataType>DEVIntegAzureConnectionString</ExtendedDataType>
 			<HelpText>FTP Password</HelpText>
 			<Label>Password</Label>
 		</AxTableField>

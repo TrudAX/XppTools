@@ -12,6 +12,65 @@ class DEVIntegMessagesLoadSFTP extends DEVIntegMessagesLoadBaseType
 ]]></Declaration>
 		<Methods>
 			<Method>
+				<Name>loadMessageType</Name>
+				<Source><![CDATA[
+    public int loadMessageType()
+    {
+        int                 recordCount;
+        DEVIntegTmpFiles    fileList;
+
+        ;
+        if (! messageTypeTable.ArchiveLocation)
+        {
+            throw error(strFmt("Message type %1. Archive location is not specified", messageTypeTable.messageTypeId));
+        }
+
+        connectionHelper = DEVIntegConnectionHelperSFTP::construct(messageTypeTable);
+        connectionHelper.connect();
+
+        fileList = connectionHelper.fillFiles();
+
+        fileList.clear();
+        while select fileList
+            order by Filename
+        {
+            this.handleIncomingFile(messageTypeTable, fileList);
+            recordCount++;
+
+            if (this.checkMessageReadLimit())
+            {
+                break;
+            }
+        }
+    
+        return recordCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>handleIncomingFile</Name>
+				<Source><![CDATA[
+    void handleIncomingFile(DEVIntegMessageTypeInbound   _messageTypeTable, DEVIntegTmpFiles     _fileRef)
+    {
+        System.IO.MemoryStream  memoryStream;
+
+        memoryStream = connectionHelper.readFile(_fileRef);
+        if (memoryStream != null)
+        {
+            ttsbegin;
+            DEVIntegMessageCreator messageCreator = DEVIntegMessageCreator::construct();
+            messageCreator.initFromStreamCopy(_fileRef, memoryStream).createMessage(_messageTypeTable);
+
+            connectionHelper.moveFileToDirectory(_fileRef, _messageTypeTable.ArchiveLocation,                 
+                _messageTypeTable.FileMoveNameChange == DEVIntegFileMoveNameChange::AppendDateTime ? true : false);
+            ttscommit;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>testOutboundConnection</Name>
 				<Source><![CDATA[
     void testOutboundConnection(DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
@@ -19,6 +78,17 @@ class DEVIntegMessagesLoadSFTP extends DEVIntegMessagesLoadBaseType
         connectionHelper =  DEVIntegConnectionHelperSFTP::constructOutbound(_messageTypeTableOutbound);
         
         connectionHelper.testConnection();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testConnection</Name>
+				<Source><![CDATA[
+    void testConnection()
+    {
+        DEVIntegConnectionHelperSFTP     azureStorageConnectionHelper =  DEVIntegConnectionHelperSFTP::construct(messageTypeTable);
+        azureStorageConnectionHelper.testConnection();
     }
 
 ]]></Source>

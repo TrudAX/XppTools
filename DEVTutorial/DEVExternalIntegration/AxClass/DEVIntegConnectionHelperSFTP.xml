@@ -36,6 +36,18 @@ class DEVIntegConnectionHelperSFTP
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    static DEVIntegConnectionHelperSFTP construct(DEVIntegMessageTypeInbound     _messageTypeTable)
+    {
+        DEVIntegConnectionHelperSFTP        res = new DEVIntegConnectionHelperSFTP();
+        res.initFromMessageTypeTable(_messageTypeTable);
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>initFromMessageTypeTable</Name>
 				<Source><![CDATA[
     public void initFromMessageTypeTable(Common     _messageTable)
@@ -85,6 +97,23 @@ class DEVIntegConnectionHelperSFTP
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>directoryName</Name>
+				<Source><![CDATA[
+    public str directoryName(str _dirName)
+    {
+        str res = _dirName;
+
+        if (strEndsWith(res, @'\') || strEndsWith(res, @'/'))
+        {
+            res = subStr(res, 1, strLen(res) - 1);
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>connect</Name>
 				<Source><![CDATA[
     public void connect()
@@ -100,10 +129,6 @@ class DEVIntegConnectionHelperSFTP
             PasswordAuthenticationMethod passwordAuthenticationMethod = new PasswordAuthenticationMethod(connectionType.FTPUserName, connectionType.getFTPPassword());
             clientNet = new SftpClient(new ConnectionInfo(connectionType.FTPHostName, connectionType.FTPPort, connectionType.FTPUserName, passwordAuthenticationMethod));
             clientNet.Connect();
-            //if (! rootDir.Exists(null, null))
-            //{
-            //    throw error(strFmt("Root directory '%1' doesn't exists (Type %2)", azureShareReference, messageTypeId));
-            //}
         }
         catch( Exception::CLRError )
         {
@@ -168,13 +193,13 @@ class DEVIntegConnectionHelperSFTP
         try
         {
             this.connect();
-             /*
+             
             this.getExistingDirectory(folderLocation);
             if (archiveLocation)
             {
                 this.getExistingDirectory(archiveLocation);
             }
-            */
+            
             this.fillFiles(folderLocation, 5);
 
             this.disconnect();
@@ -202,12 +227,27 @@ class DEVIntegConnectionHelperSFTP
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>getExistingDirectory</Name>
+				<Source><![CDATA[
+    public void  getExistingDirectory(FolderName  _folderName)
+    {
+        if (! clientNet.Exists(_folderName))
+        {
+            throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _folderName, messageTypeId));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>fillFiles</Name>
 				<Source><![CDATA[
     DEVIntegTmpFiles fillFiles(FolderName  _folderName = folderLocation, int _maxFileCount = 0)
     {
         fileList = null;
         
+        _folderName = this.directoryName(_folderName);
+
         var fileItems  = clientNet.ListDirectory(_folderName, null);
         var enum1  = fileItems.GetEnumerator();
 
@@ -219,7 +259,10 @@ class DEVIntegConnectionHelperSFTP
                         
             if (file != null && file.IsRegularFile)
             {
-                fileList.FileName    = file.FullName;
+                Filename    filenameOnly,type;
+                [filenameOnly,type] = Docu::splitFilename(file.FullName);
+
+                fileList.FileName    = strFmt('%1%2%3', filenameOnly, type ? '.' : '', type);
                 fileList.FolderName  = _folderName;
                 fileList.FileSize    = any2Int64(file.Length / 1000);
                 fileList.insert();
@@ -232,6 +275,81 @@ class DEVIntegConnectionHelperSFTP
             }
         }
         return fileList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>moveFileToDirectory</Name>
+				<Source><![CDATA[
+    public void  moveFileToDirectory(DEVIntegTmpFiles  _fileRef, FolderName  _archDir, boolean _appendTimeStamp = true)
+    {
+        try
+        {
+            str fileOrigName = _fileRef.FolderName + '/' + _fileRef.FileName;
+            SftpFile file = clientNet.Get(fileOrigName);
+            if (! file)
+            {
+                throw error(strFmt("Can't find a file %1", fileOrigName));
+            }
+
+            FileName  newFileName = _fileRef.FileName;
+
+            if (_appendTimeStamp)
+            {
+                container entityFileData = Docu::splitFilename(newFileName);
+
+                FileName            entityName = conPeek(entityFileData, 1);
+                DMFDefaultExtension extension = conPeek(entityFileData, 2);
+
+                System.DateTime dt = System.DateTime::Now;
+    
+                str timeStamp = dt.ToString("yyyy'-'MM'-'dd'T'HHmmss");
+
+                entityName = entityName + '_' + timeStamp;
+                entityName = subStr(entityName, 1, 254);
+
+                newFileName = entityName + (extension ? strFmt('.%1', extension) : '');
+            }
+            str destFileName = this.directoryName(_archDir) + '/' + newFileName;
+
+            if (clientNet.Exists(destFileName))
+            {
+                clientNet.DeleteFile(destFileName);
+            }
+            file.MoveTo(destFileName);
+        }
+        catch( Exception::CLRError )
+        {
+            info(_fileRef.FileName);
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readFile</Name>
+				<Source><![CDATA[
+    System.IO.MemoryStream  readFile(DEVIntegTmpFiles  _fileRef)
+    {
+        System.IO.MemoryStream memoryStream;
+
+        SftpFileStream fileStream = clientNet.OpenRead(this.directoryName(_fileRef.FolderName) + '/' + _fileRef.FileName);
+
+        // Ensure that the file exists.
+        if (fileStream != null)
+        {
+            memoryStream = new System.IO.MemoryStream();
+            fileStream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+        }
+        else
+        {
+            warning(strFmt("File '%1' doesn't exist", _fileRef.FileName));
+        }
+
+        return memoryStream;
     }
 
 ]]></Source>

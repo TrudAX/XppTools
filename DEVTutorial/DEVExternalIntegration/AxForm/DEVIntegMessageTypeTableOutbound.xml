@@ -301,6 +301,9 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 					<DataField>ClassName</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>CompanyRange</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>ConnectionTypeId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -344,6 +347,9 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>QueryPacked</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>RecId</DataField>
@@ -700,6 +706,15 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>ClassName</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>EntiryGroup_getClassDescription</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>getClassDescription</DataMethod>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 								</Controls>

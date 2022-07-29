@@ -38,6 +38,7 @@ public class DEVIntegMessageTypeInbound extends FormRun
 
         SourceGroupServiceBus.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
         SourceGroupFileShare.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
+        SourceGroupSFTP.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP);
         
         DEVIntegManualTextImport.visible(! isFileBasedConnection);
         DEVIntegManualFileImport.visible(isFileBasedConnection);
@@ -585,6 +586,38 @@ public class DEVIntegMessageTypeInbound extends FormRun
 										<DataGroup>SourceGroupFileShare</DataGroup>
 										<DataSource>DEVIntegMessageTypeInbound</DataSource>
 									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>SourceGroupSFTP</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>Group</Type>
+										<Visible>No</Visible>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SourceGroupSFTP_ReadLocation</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ReadLocation</DataField>
+												<DataSource>DEVIntegMessageTypeInbound</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>SourceGroupSFTP_ArchiveLocation</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ArchiveLocation</DataField>
+												<DataSource>DEVIntegMessageTypeInbound</DataSource>
+											</AxFormControl>
+										</Controls>
+										<Breakable>No</Breakable>
+										<DataGroup>SourceGroupSFTP</DataGroup>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
 								</Controls>
 								<Breakable>No</Breakable>
 								<Caption>Source</Caption>
@@ -604,6 +637,15 @@ public class DEVIntegMessageTypeInbound extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>ClassName</DataField>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>EntiryGroup_getClassDescription</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>getClassDescription</DataMethod>
 										<DataSource>DEVIntegMessageTypeInbound</DataSource>
 									</AxFormControl>
 								</Controls>

@@ -102,6 +102,44 @@ public class DEVIntegMessageTypeTableOutbound extends common
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>getClassDescription</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethod(true)]
+    public display Description getClassDescription()
+    {
+        Description  res = '<NOT DEFINED>';
+
+        if (this.ClassName)
+        {
+            if (this.IsFullExport)
+            {
+                DEVIntegExportBulkBase  bulkBase = this.getBulkExportClass();
+                if (bulkBase)
+                {
+                    res = bulkBase.getExportDescription();
+                }
+            }
+            else
+            {
+                DEVIntegExportMessageBase  exportMessageBase = this.getActionClass();
+                if (exportMessageBase)
+                {
+                    res = exportMessageBase.getDescription();
+                }
+            }
+        }
+        else
+        {
+            res = '';
+        }
+
+        return res;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>validateWrite</Name>
 				<Source><![CDATA[
     public boolean validateWrite()
@@ -447,6 +485,9 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>getClassDescription</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
