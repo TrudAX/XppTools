@@ -165,6 +165,156 @@ class DEVCustomScriptExecute extends RunBase
         }
     }
 
+    /*
+    --SEARCH ALL Numeric fields
+ SET NOCOUNT ON
+ --drop table #Results
+ CREATE TABLE #Results (ColumnName nvarchar(370), ColumnValue nvarchar(3630))
+ DECLARE @TableName nvarchar(256), @ColumnName nvarchar(128), @SearchStr2 nvarchar(110)
+ DECLARE @Total_Rows bigint
+
+ DECLARE table_cursor CURSOR  FOR
+ SELECT --QUOTENAME(TABLE_SCHEMA) + '.' +
+        TABLE_NAME
+        FROM     INFORMATION_SCHEMA.TABLES
+        WHERE         TABLE_TYPE = 'BASE TABLE'
+            and TABLE_SCHEMA = 'DBO'
+            AND    OBJECTPROPERTY(
+                    OBJECT_ID(
+                        QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME)
+                         ), 'IsMSShipped'
+                           ) = 0 --and TABLE_NAME = 'InventTrans'
+                           ORDER BY TABLE_NAME
+OPEN table_cursor
+FETCH NEXT FROM table_cursor into @TableName
+WHILE @@FETCH_STATUS = 0
+BEGIN
+ 
+
+    SELECT @Total_Rows	= SUM(st.row_count)
+    FROM
+       sys.dm_db_partition_stats st
+    WHERE
+        object_name(object_id) = @TableName AND (index_id < 2)
+    IF @Total_Rows > 5
+    BEGIN
+        print @TableName
+        print @Total_Rows
+        --RAISERROR( N'',0,1) WITH NOWAIT
+
+
+        DECLARE columns_cursor CURSOR  FOR
+        SELECT COLUMN_NAME
+            FROM     INFORMATION_SCHEMA.COLUMNS
+            WHERE         TABLE_SCHEMA    = 'DBO'
+                AND    TABLE_NAME    = @TableName
+                AND    DATA_TYPE ='numeric'
+                AND    COLUMN_NAME <> 'DATAAREAID'
+        OPEN columns_cursor
+        FETCH NEXT FROM columns_cursor into @ColumnName
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+          --  print @ColumnName
+            INSERT INTO #Results
+            EXEC
+            (
+                'SELECT TOP 100 ''' + @TableName + '.' + @ColumnName + ''', LEFT(' + @ColumnName + ', 3630) FROM ' + @TableName + ' (NOLOCK) ' +
+               -- ' WHERE ' + @ColumnName + ' = ' + @SearchStr2
+                ' WHERE Round(' + @ColumnName + ', 2) <> ' + @ColumnName
+            )
+            FETCH NEXT FROM columns_cursor into @ColumnName
+        END
+        CLOSE columns_cursor
+        DEALLOCATE columns_cursor
+
+
+    END
+    FETCH NEXT FROM table_cursor into @TableName
+END
+CLOSE table_cursor
+DEALLOCATE table_cursor
+SELECT ColumnName, ColumnValue FROM #Results
+ 
+DROP TABLE #Results
+
+
+
+--SEARCH ALL VALUES
+SQL FOR SCAN ALL TEXT FIELDS IN DATABASE
+
+ SET NOCOUNT ON
+ CREATE TABLE #Results (ColumnName nvarchar(370), ColumnValue nvarchar(3630))
+ DECLARE @TableName nvarchar(256), @ColumnName nvarchar(128), @SearchStr2 nvarchar(110)
+ DECLARE @Total_Rows bigint
+ DECLARE @SearchStr nvarchar(100)
+ SET @SearchStr = N'DEAF-017824'
+ SET @SearchStr2 = QUOTENAME('' + @SearchStr + '','''')
+
+ DECLARE table_cursor CURSOR  FOR
+ SELECT --QUOTENAME(TABLE_SCHEMA) + '.' +
+        TABLE_NAME
+        FROM     INFORMATION_SCHEMA.TABLES
+        WHERE         TABLE_TYPE = 'BASE TABLE'
+            and TABLE_SCHEMA = 'DBO'
+            AND    OBJECTPROPERTY(
+                    OBJECT_ID(
+                        QUOTENAME(TABLE_SCHEMA) + '.' + QUOTENAME(TABLE_NAME)
+                         ), 'IsMSShipped'
+                           ) = 0 --and TABLE_NAME = 'PROJTRANSPOSTING'
+                           ORDER BY TABLE_NAME
+OPEN table_cursor
+FETCH NEXT FROM table_cursor into @TableName
+WHILE @@FETCH_STATUS = 0
+BEGIN
+ 
+
+    SELECT @Total_Rows	= SUM(st.row_count)
+    FROM
+       sys.dm_db_partition_stats st
+    WHERE
+        object_name(object_id) = @TableName AND (index_id < 2)
+    IF @Total_Rows > 0
+    BEGIN
+        --print @TableName
+        --print @Total_Rows
+        --RAISERROR( N'',0,1) WITH NOWAIT
+
+
+        DECLARE columns_cursor CURSOR  FOR
+        SELECT COLUMN_NAME
+            FROM     INFORMATION_SCHEMA.COLUMNS
+            WHERE         TABLE_SCHEMA    = 'DBO'
+                AND    TABLE_NAME    = @TableName
+                AND    DATA_TYPE ='nvarchar'
+                AND    COLUMN_NAME <> 'DATAAREAID'
+        OPEN columns_cursor
+        FETCH NEXT FROM columns_cursor into @ColumnName
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            --print @ColumnName
+            INSERT INTO #Results
+            EXEC
+            (
+                'SELECT TOP 1 ''' + @TableName + '.' + @ColumnName + ''', LEFT(' + @ColumnName + ', 3630) FROM ' + @TableName + ' (NOLOCK) ' +
+                ' WHERE ' + @ColumnName + ' = ' + @SearchStr2
+            )
+            FETCH NEXT FROM columns_cursor into @ColumnName
+        END
+        CLOSE columns_cursor
+        DEALLOCATE columns_cursor
+
+
+    END
+    FETCH NEXT FROM table_cursor into @TableName
+END
+CLOSE table_cursor
+DEALLOCATE table_cursor
+SELECT ColumnName, ColumnValue FROM #Results
+ 
+DROP TABLE #Results
+
+    */
+
 ]]></Source>
 			</Method>
 		</Methods>
