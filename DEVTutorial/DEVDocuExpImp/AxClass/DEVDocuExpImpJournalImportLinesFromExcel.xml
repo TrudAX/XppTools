@@ -432,7 +432,7 @@ class DEVDocuExpImpJournalImportLinesFromExcel extends RunBase
             journalLine.DestCompany = curExt();
         }
 
-        DEV::validateAndWriteRecord(journalLine);
+        DEVDocuExpImpHelper::validateAndWriteRecord(journalLine);
     }
 
 ]]></Source>

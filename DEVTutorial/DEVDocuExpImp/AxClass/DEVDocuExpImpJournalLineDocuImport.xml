@@ -128,16 +128,16 @@ class DEVDocuExpImpJournalLineDocuImport extends DEVDocuExpImpJournalLineHandle
 				<Source><![CDATA[
     protected void handleJournalLine(DEVDocuExpImpJournalLine _journalLine)
     {
-        DocuType    destDocuType    = DEV::checkRecordExist(DocuType::find(_journalLine.DocuTypeId), [_journalLine.DocuTypeId]);
-        CompanyInfo destCompanyInfo = DEV::checkRecordExist(CompanyInfo::findDataArea(_journalLine.DestCompany), [_journalLine.DestCompany]);
-        DictTable   destDictTable   = DEV::checkNotIsNull(new DictTable(tableName2Id(_journalLine.DestTableName)), strFmt("Table '%1' not found", _journalLine.DestTableName));
+        DocuType    destDocuType    = DEVDocuExpImpHelper::checkRecordExist(DocuType::find(_journalLine.DocuTypeId), [_journalLine.DocuTypeId]);
+        CompanyInfo destCompanyInfo = DEVDocuExpImpHelper::checkRecordExist(CompanyInfo::findDataArea(_journalLine.DestCompany), [_journalLine.DestCompany]);
+        DictTable   destDictTable   = DEVDocuExpImpHelper::checkNotIsNull(new DictTable(tableName2Id(_journalLine.DestTableName)), strFmt("Table '%1' not found", _journalLine.DestTableName));
         
         
         changecompany (destCompanyInfo.DataArea)
         {            
             container               destPKFields = _journalLine.destPKFields();
             container               destPKValues = _journalLine.destPKValues(conLen(destPKFields));
-            Common                  destRecord   = DEV::recordFindByKey(destDictTable.id(), destPKFields, destPKValues, false, true);
+            Common                  destRecord   = DEVDocuExpImpHelper::recordFindByKey(destDictTable.id(), destPKFields, destPKValues, false, true);
             System.IO.MemoryStream  destFile;
 
             if (! this.isDocuFound(_journalLine, destRecord))

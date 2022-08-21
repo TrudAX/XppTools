@@ -136,7 +136,7 @@ abstract class DEVDocuExpImpJournalLineHandle extends RunBaseBatch
         QueryBuildDataSource    qbds  = query.addDataSource(tableNum(DEVDocuExpImpJournalLine));
         
         qbds.addRange(fieldNum(DEVDocuExpImpJournalLine, JournalRecId)).value(queryValue(journalRecId));
-        qbds.addRange(fieldNum(DEVDocuExpImpJournalLine, DestStatus)).value(DEV::queryValueByList(qbds.name(), fieldStr(DEVDocuExpImpJournalLine, DestStatus), this.getAllowedDestStatuses()));
+        qbds.addRange(fieldNum(DEVDocuExpImpJournalLine, DestStatus)).value(DEVDocuExpImpHelper::queryValueByList(qbds.name(), fieldStr(DEVDocuExpImpJournalLine, DestStatus), this.getAllowedDestStatuses()));
 
         return query;
     }

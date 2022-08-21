@@ -168,7 +168,7 @@ public class DEVDocuExpImpHelper
 
             if (_modeFast)
             {
-                DEV::recordSetModeFast(common);
+                DEVDocuExpImpHelper::recordSetModeFast(common);
             }
         }
         else
@@ -192,7 +192,7 @@ public class DEVDocuExpImpHelper
                                          boolean _forupdate  = false,
                                          boolean _mustExist  = false)
     {
-        Common        common = DEV::recordInit(_tableId, _forupdate);
+        Common        common = DEVDocuExpImpHelper::recordInit(_tableId, _forupdate);
 
         select common
             where common.RecId == _recId;
@@ -216,8 +216,8 @@ public class DEVDocuExpImpHelper
                                          boolean   _mustExist  = false,
                                          boolean   _modeFast   = false)
     {
-        Common                  record    = DEV::recordInit(_tableId, _forupdate, _modeFast);
-        DictTable               dictTable = DEV::checkNotIsNull(new DictTable(_tableId), strFmt("Table with id %1 not found", _tableId));
+        Common                  record    = DEVDocuExpImpHelper::recordInit(_tableId, _forupdate, _modeFast);
+        DictTable               dictTable = DEVDocuExpImpHelper::checkNotIsNull(new DictTable(_tableId), strFmt("Table with id %1 not found", _tableId));
         Query                   query     = new Query();
         QueryBuildDataSource    qbds      = query.addDataSource(_tableId);
         int                     fieldCnt  = conLen(_keyFields);
@@ -275,8 +275,8 @@ public class DEVDocuExpImpHelper
                                                 boolean   _mustExist  = false,
                                                 boolean   _modeFast   = false)
     {
-        DictTable               dictTable  = DEV::checkNotIsNull(new DictTable(_tableId), strFmt("Table with id %1 not found", _tableId));
-        DictIndex               dictIndex  = DEV::checkNotIsNull(new DictIndex(_tableId, dictTable.primaryIndex()), "Primary key not found");
+        DictTable               dictTable  = DEVDocuExpImpHelper::checkNotIsNull(new DictTable(_tableId), strFmt("Table with id %1 not found", _tableId));
+        DictIndex               dictIndex  = DEVDocuExpImpHelper::checkNotIsNull(new DictIndex(_tableId, dictTable.primaryIndex()), "Primary key not found");
         int                     fieldCnt   = dictIndex.numberOfFields();
         int                     fieldIdx;
         container               keyFields;
@@ -286,7 +286,7 @@ public class DEVDocuExpImpHelper
             keyFields += dictIndex.field(fieldIdx);
         }
 
-        return DEV::recordFindByKey(_tableId, keyFields, _keyValues, _forupdate, _mustExist, _modeFast);
+        return DEVDocuExpImpHelper::recordFindByKey(_tableId, keyFields, _keyValues, _forupdate, _mustExist, _modeFast);
     }
 
 ]]></Source>
