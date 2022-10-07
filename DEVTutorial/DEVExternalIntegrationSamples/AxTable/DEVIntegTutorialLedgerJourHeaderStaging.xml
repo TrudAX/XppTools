@@ -58,6 +58,8 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends common
 	</SubscriberAccessLevel>
 	<TitleField1>CompanyId</TitleField1>
 	<TitleField2>LedgerJournalId</TitleField2>
+	<AllowChangeTracking>No</AllowChangeTracking>
+	<CacheLookup>NotInTTS</CacheLookup>
 	<CreatedBy>Yes</CreatedBy>
 	<CreatedDateTime>Yes</CreatedDateTime>
 	<ModifiedBy>Yes</ModifiedBy>
@@ -111,6 +113,12 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends common
 				<AxTableFieldGroupField>
 					<DataField>LedgerJournalId</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PolicyNumber</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClaimId</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -140,6 +148,18 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends common
 			<Name>MessageId</Name>
 			<ExtendedDataType>DEVIntegMessageRefRecId</ExtendedDataType>
 			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PolicyNumber</Name>
+			<ExtendedDataType>Num</ExtendedDataType>
+			<Label>Policy number</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClaimId</Name>
+			<ExtendedDataType>Num</ExtendedDataType>
+			<Label>Claim Id</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

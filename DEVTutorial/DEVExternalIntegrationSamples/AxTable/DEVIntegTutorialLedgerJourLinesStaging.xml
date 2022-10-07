@@ -84,6 +84,9 @@ public class DEVIntegTutorialLedgerJourLinesStaging extends common
 					<DataField>BusinessUnit</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
+					<DataField>BusinessUnitExternal</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>Department</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
@@ -91,6 +94,18 @@ public class DEVIntegTutorialLedgerJourLinesStaging extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>Amount</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExternalSystem</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Voucher</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LedgerJournalTransRecId</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -144,6 +159,41 @@ public class DEVIntegTutorialLedgerJourLinesStaging extends common
 			i:type="AxTableFieldInt">
 			<Name>LineNumber</Name>
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<Label>Line number</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>MessageId</Name>
+			<ExtendedDataType>DEVIntegMessageRefRecId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ExternalSystem</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<HelpText>External system name</HelpText>
+			<Label>External system</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>LedgerJournalTransRecId</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<Label>Jour line ref</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Voucher</Name>
+			<ExtendedDataType>Voucher</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>BusinessUnitExternal</Name>
+			<ExtendedDataType>DimensionValue</ExtendedDataType>
+			<Label>Business unit external</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
@@ -157,6 +207,15 @@ public class DEVIntegTutorialLedgerJourLinesStaging extends common
 				</AxTableIndexField>
 				<AxTableIndexField>
 					<DataField>LineNumber</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>MessageIdIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MessageId</DataField>
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>
@@ -193,6 +252,39 @@ public class DEVIntegTutorialLedgerJourLinesStaging extends common
 					i:type="AxTableRelationConstraintField">
 					<Name>HeaderRefRecId</Name>
 					<Field>HeaderRefRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegMessageTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DEVIntegMessageTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageId</Name>
+					<SourceEDT>DEVIntegMessageRefRecId</SourceEDT>
+					<Field>MessageId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>LedgerJournalTrans</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>LedgerJournalTrans</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>LedgerJournalTransRecId</Name>
+					<Field>LedgerJournalTransRecId</Field>
 					<RelatedField>RecId</RelatedField>
 				</AxTableRelationConstraint>
 			</Constraints>

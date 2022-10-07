@@ -24,6 +24,14 @@
 			<Parent>Inquiries</Parent>
 			<MenuElement xmlns=""
 				i:type="AxMenuElementMenuItem">
+				<Name>DEVIntegTutorialLedgerJourLinesStaging</Name>
+				<MenuItemName>DEVIntegTutorialLedgerJourLinesStaging</MenuItemName>
+			</MenuElement>
+		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>Inquiries</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
 				<Name>DEVIntegTutorialSalesTableStaging</Name>
 				<MenuItemName>DEVIntegTutorialSalesTableStaging</MenuItemName>
 			</MenuElement>
@@ -42,6 +50,15 @@
 				<Name>PerfTesting</Name>
 				<Label>Performance testing</Label>
 				<Elements />
+			</MenuElement>
+		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>Setup</Parent>
+			<PositionType>Begin</PositionType>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>DEVIntegTutorialLedgerMappingBU</Name>
+				<MenuItemName>DEVIntegTutorialLedgerMappingBU</MenuItemName>
 			</MenuElement>
 		</AxMenuExtensionElement>
 	</Elements>

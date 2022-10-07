@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialLedgerHeaderLinesContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class DEVIntegTutorialLedgerHeaderLinesContract
+{
+    str   mainAccount;
+    str   businessUnit;
+    str   department;
+    str   costCenter;
+    real  amount;
+    
+    
+        
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmMainAccount</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(MainAccount))]
+    public str parmMainAccount(str _mainAccount = mainAccount)
+    {
+        mainAccount = _mainAccount;
+        return mainAccount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBusinessUnit</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(BusinessUnit))]
+    public str parmBusinessUnit(str _businessUnit = businessUnit)
+    {
+        businessUnit = _businessUnit;
+        return businessUnit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDepartment</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(Department))]
+    public str parmDepartment(str _department = department)
+    {
+        department = _department;
+        return department;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCostCenter</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(CostCenter))]
+    public str parmCostCenter(str _costCenter = costCenter)
+    {
+        costCenter = _costCenter;
+        return costCenter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAmount</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(Amount))]
+    public real parmAmount(real _amount = amount)
+    {
+        amount = _amount;
+        return amount;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

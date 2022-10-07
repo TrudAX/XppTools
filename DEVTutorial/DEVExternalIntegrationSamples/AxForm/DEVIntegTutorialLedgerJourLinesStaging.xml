@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
-	<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
+	<Name>DEVIntegTutorialLedgerJourLinesStaging</Name>
 	<SourceCode>
 		<Methods xmlns="">
 			<Method>
 				<Name>classDeclaration</Name>
 				<Source><![CDATA[
 [Form]
-public class DEVIntegTutorialLedgerJourHeaderStaging extends FormRun
+public class DEVIntegTutorialLedgerJourLinesStaging extends FormRun
 {
 }
 ]]></Source>
@@ -24,6 +24,7 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends FormRun
 						<Source><![CDATA[
         public void clicked()
         {
+     
             if (DEVIntegTutorialLedgerJourHeaderStaging.CompanyId && DEVIntegTutorialLedgerJourHeaderStaging.LedgerJournalId)
             {
                 changecompany(DEVIntegTutorialLedgerJourHeaderStaging.CompanyId)
@@ -35,6 +36,7 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends FormRun
                     mf.run(args);
                 }
             }
+           
         }
 
 ]]></Source>
@@ -45,53 +47,6 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends FormRun
 		<Members xmlns="" />
 	</SourceCode>
 	<DataSources>
-		<AxFormDataSource xmlns="">
-			<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
-			<Table>DEVIntegTutorialLedgerJourHeaderStaging</Table>
-			<Fields>
-				<AxFormDataSourceField>
-					<DataField>ClaimId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>CompanyId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>CreatedBy</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>CreatedDateTime</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>LedgerJournalId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>MessageId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>ModifiedBy</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>ModifiedDateTime</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>Partition</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>PolicyNumber</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>RecId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>TableId</DataField>
-				</AxFormDataSourceField>
-			</Fields>
-			<ReferencedDataSources />
-			<AllowCreate>No</AllowCreate>
-			<AllowDelete>No</AllowDelete>
-			<DataSourceLinks />
-			<DerivedDataSources />
-		</AxFormDataSource>
 		<AxFormDataSource xmlns="">
 			<Name>DEVIntegTutorialLedgerJourLinesStaging</Name>
 			<Table>DEVIntegTutorialLedgerJourLinesStaging</Table>
@@ -155,10 +110,58 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends FormRun
 				</AxFormDataSourceField>
 			</Fields>
 			<ReferencedDataSources />
-			<JoinSource>DEVIntegTutorialLedgerJourHeaderStaging</JoinSource>
 			<AllowCreate>No</AllowCreate>
 			<AllowDelete>No</AllowDelete>
-			<StartPosition>Last</StartPosition>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>DEVIntegTutorialLedgerJourHeaderStaging</Name>
+			<Table>DEVIntegTutorialLedgerJourHeaderStaging</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>ClaimId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CompanyId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FieldString1</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LedgerJournalId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MessageId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PolicyNumber</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>DEVIntegTutorialLedgerJourLinesStaging</JoinSource>
+			<LinkType>InnerJoin</LinkType>
 			<DataSourceLinks />
 			<DerivedDataSources />
 		</AxFormDataSource>
@@ -252,10 +255,12 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends FormRun
 		</AxFormDataSource>
 	</DataSources>
 	<Design>
-		<Caption xmlns="">Ledger journal staging</Caption>
-		<Pattern xmlns="">TaskParentChild</Pattern>
+		<Caption xmlns="">Ledger journal staging lines</Caption>
+		<DataSource xmlns="">DEVIntegTutorialLedgerJourLinesStaging</DataSource>
+		<Pattern xmlns="">Task</Pattern>
 		<PatternVersion xmlns="">1.2</PatternVersion>
 		<SetCompany xmlns="">No</SetCompany>
+		<TitleDataSource xmlns="">DEVIntegTutorialLedgerJourLinesStaging</TitleDataSource>
 		<Controls xmlns="">
 			<AxFormControl xmlns=""
 				i:type="AxFormActionPaneControl">
@@ -382,56 +387,6 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends FormRun
 										<DataSource>DEVIntegMessageTable</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""
-										i:type="AxFormReferenceGroupControl">
-										<Name>DEVIntegTutorialLedgerJourHeaderStaging_MessageId</Name>
-										<Type>ReferenceGroup</Type>
-										<FormControlExtension
-											i:nil="true" />
-										<Controls />
-										<DataSource>DEVIntegTutorialLedgerJourHeaderStaging</DataSource>
-										<ReferenceField>MessageId</ReferenceField>
-									</AxFormControl>
-								</Controls>
-								<DataSource>DEVIntegTutorialLedgerJourHeaderStaging</DataSource>
-							</AxFormControl>
-						</Controls>
-						<Caption>Header</Caption>
-					</AxFormControl>
-				</Controls>
-			</AxFormControl>
-			<AxFormControl xmlns=""
-				i:type="AxFormGroupControl">
-				<Name>SplitterGroup</Name>
-				<Type>Group</Type>
-				<FormControlExtension
-					i:nil="true" />
-				<Controls />
-				<Style>SplitterHorizontalContainer</Style>
-			</AxFormControl>
-			<AxFormControl xmlns=""
-				i:type="AxFormTabControl">
-				<Name>ChildTabControl</Name>
-				<Type>Tab</Type>
-				<FormControlExtension
-					i:nil="true" />
-				<Controls>
-					<AxFormControl xmlns=""
-						i:type="AxFormTabPageControl">
-						<Name>ChildOverviewTabPageControl</Name>
-						<Pattern>ToolbarList</Pattern>
-						<PatternVersion>1.2</PatternVersion>
-						<Type>TabPage</Type>
-						<FormControlExtension
-							i:nil="true" />
-						<Controls>
-							<AxFormControl xmlns=""
-								i:type="AxFormGridControl">
-								<Name>LinesGridControl</Name>
-								<Type>Grid</Type>
-								<FormControlExtension
-									i:nil="true" />
-								<Controls>
-									<AxFormControl xmlns=""
 										i:type="AxFormGroupControl">
 										<Name>Data1</Name>
 										<Type>Group</Type>
@@ -545,7 +500,7 @@ public class DEVIntegTutorialLedgerJourHeaderStaging extends FormRun
 								<DataSource>DEVIntegTutorialLedgerJourLinesStaging</DataSource>
 							</AxFormControl>
 						</Controls>
-						<Caption>Lines</Caption>
+						<Caption>Header</Caption>
 					</AxFormControl>
 				</Controls>
 			</AxFormControl>

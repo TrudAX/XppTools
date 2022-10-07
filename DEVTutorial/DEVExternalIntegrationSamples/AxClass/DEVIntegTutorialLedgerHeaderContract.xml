@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialLedgerHeaderContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class DEVIntegTutorialLedgerHeaderContract
+{
+    str  companyId;
+    str  policyNumber;
+    str  claimId;
+
+    List  lines;
+       
+        
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmCompanyId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(CompanyId))]
+    public str parmCompanyId(str _companyId = companyId)
+    {
+        companyId = _companyId;
+        return companyId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPolicyNumber</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(PolicyNumber))]
+    public str parmPolicyNumber(str _policyNumber = policyNumber)
+    {
+        policyNumber = _policyNumber;
+        return policyNumber;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmClaimId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(ClaimId))]
+    public str parmClaimId(str _claimId = claimId)
+    {
+        claimId = _claimId;
+        return claimId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLines</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute('lines'),
+        DataCollectionAttribute(Types::Class, classStr(DEVIntegTutorialLedgerHeaderLinesContract))]
+    public List parmLines(List _lines = lines)
+    {
+        lines = _lines;
+    
+        return lines;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
