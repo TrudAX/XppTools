@@ -210,6 +210,20 @@ public class DEVIntegMessageTable extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>checkDeveloperActionAccess</Name>
+				<Source><![CDATA[
+    public static void checkDeveloperActionAccess()
+    {
+        if (! DEV::isUserInRole(roleStr(DEVIntegDeveloperRole)))
+        {
+            throw error(strFmt("User %1 should be included to the Developer role",
+                    curUserId(), roleStr(DEVIntegDeveloperRole)));
+        }
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>File messages</Label>
@@ -306,19 +320,13 @@ public class DEVIntegMessageTable extends common
 					<DataField>ProcessingEndDateTime</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>RecordsProcessed</DataField>
+					<DataField>ProcessingAttempts</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>RecordsSkipped</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>RecordsWithErrors</DataField>
+					<DataField>IsManualUpload</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>isSessionActive</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>ProcessingAttempts</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -373,6 +381,21 @@ public class DEVIntegMessageTable extends common
 			<Fields>
 				<AxTableFieldGroupField>
 					<DataField>ServBusLabel</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Statistics</Name>
+			<Label>Statistics</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>RecordsProcessed</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RecordsSkipped</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RecordsWithErrors</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -475,6 +498,15 @@ public class DEVIntegMessageTable extends common
 			i:type="AxTableFieldString">
 			<Name>ServBusLabel</Name>
 			<ExtendedDataType>DEVIntegServBusLabel</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsManualUpload</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Manual created message</HelpText>
+			<Label>Manual</Label>
+			<EnumType>NoYes</EnumType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

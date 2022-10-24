@@ -110,6 +110,7 @@ class DEVIntegManualTextImport extends RunBaseBatch
             messageCreator = DEVIntegMessageCreator::construct();
             messageCreator.initFromStringData(strFmt("ManualImport_%1%2", 
                 date2str(DEV::systemdateget(), 321, 2, 0, 2, 0,4 ), time2StrHMLeadingZero(DEV::timeNow())), 'local', messsageData);
+            messageCreator.parmIsManualImport(true);
             messageTable = messageCreator.createMessage(messageTypeTable);
 
             //process message

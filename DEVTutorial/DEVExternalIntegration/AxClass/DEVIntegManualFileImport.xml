@@ -212,6 +212,7 @@ class DEVIntegManualFileImport extends RunBaseBatch
             //create message
             messageCreator = DEVIntegMessageCreator::construct();
             messageCreator.initFromStreamLocalFile(fileName, folderName, memoryStreamFile);
+            messageCreator.parmIsManualImport(true);
             messageTable = messageCreator.createMessage(messageTypeTable);
 
             //process message

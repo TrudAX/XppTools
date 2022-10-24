@@ -22,6 +22,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
     DEVIntegExportBulkStatus    exportBulkStatus;
     boolean                     isExportStatusOverrided;
     NotesLine                   documentDescription;
+    TransDateTime               exportStartDateTime;
     
     
     #define.CurrentVersion(1)
@@ -156,12 +157,12 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
             isExportStatusOverrided = false;
             numberOfLines           = 0;
             documentDescription     = "";
-
+            exportStartDateTime =  DateTimeUtil::utcNow();
             exportBulkLog.clear();
             exportBulkLog.CompanyId = curExt();
             exportBulkLog.MessageTypeIdOutbound   = messageTypeIdOutbound;
             exportBulkLog.ExportStatus            = DEVIntegExportBulkStatus::InProgress;
-            exportBulkLog.StartDateTime           = DateTimeUtil::utcNow();
+            exportBulkLog.StartDateTime           = exportStartDateTime;
             exportBulkLog.insert();
 
             infoCnt = infologLine();
@@ -491,6 +492,34 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
             info(strFmt("File %1 created in %2 folder", fileName, messageTypeTableOutbound.OutputFolder));
         }
         documentDescription = fileName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendMessageToServiceBus</Name>
+				<Source><![CDATA[
+    public void sendMessageToServiceBus(str  _messageData, str _messageLabel = '')
+    {
+        
+        if (isTestRun)
+        {
+            System.IO.MemoryStream stream = new System.IO.MemoryStream();
+            var writer = new System.IO.StreamWriter(stream);
+            writer.Write(_messageData);
+            writer.Flush();
+            stream.Position = 0;
+
+            File::SendFileToUser(stream, 'SBMessage.txt');
+        }
+        else
+        {
+            DEVIntegMessagesLoadAzureServiceBus     loadAzureServiceBusCache;
+            loadAzureServiceBusCache = DEVIntegMessagesLoadAzureServiceBus::constructFromOutboundMessage(messageTypeTableOutbound);
+
+            loadAzureServiceBusCache.sendMessage(_messageData, _messageLabel);
+        }
+        
     }
 
 ]]></Source>

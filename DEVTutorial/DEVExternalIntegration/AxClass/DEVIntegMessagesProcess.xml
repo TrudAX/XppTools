@@ -95,6 +95,8 @@ public class DEVIntegMessagesProcess extends RunBaseBatch  implements BatchRetry
         qBR.value(strFmt('%1,%2,%3', DEVIntegMessageStatus::Ready, DEVIntegMessageStatus::Processing, DEVIntegMessageStatus::Error));
         qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTable, ProcessingAttempts));
         qBR.value('..2');
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTable, IsManualUpload));
+        qBR.value(SysQuery::value(NoYes::No));
         //qBR.status(RangeStatus::Locked);
         
         queryRun = new QueryRun(query);
