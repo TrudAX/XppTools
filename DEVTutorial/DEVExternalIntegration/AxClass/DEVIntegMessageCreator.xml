@@ -11,6 +11,8 @@ class DEVIntegMessageCreator
 
     DEVIntegServBusLabel     servBusLabel;
 
+    boolean             isManualImport;
+
 }
 ]]></Declaration>
 		<Methods>
@@ -29,6 +31,7 @@ class DEVIntegMessageCreator
         messageTable.Status        = DEVIntegMessageStatus::Ready;
         messageTable.Path          = fileRef.FolderName;
         messageTable.ServBusLabel  = servBusLabel;
+        messageTable.IsManualUpload = isManualImport;
 
         DEV::validateWriteRecordCheck(messageTable);
         messageTable.insert();
@@ -52,6 +55,17 @@ class DEVIntegMessageCreator
         servBusLabel = _servBusLabel;
     
         return servBusLabel;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsManualImport</Name>
+				<Source><![CDATA[
+    public boolean parmIsManualImport(boolean _isManualImport = isManualImport)
+    {
+        isManualImport = _isManualImport;
+        return isManualImport;
     }
 
 ]]></Source>

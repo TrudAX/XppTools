@@ -39,7 +39,7 @@ public class DEVIntegMessageTypeInbound extends FormRun
         SourceGroupServiceBus.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
         SourceGroupFileShare.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
         SourceGroupSFTP.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP);
-        
+
         DEVIntegManualTextImport.visible(! isFileBasedConnection);
         DEVIntegManualFileImport.visible(isFileBasedConnection);
 
@@ -301,6 +301,7 @@ public class DEVIntegMessageTypeInbound extends FormRun
 								<DataSource>DEVIntegMessageTypeInbound</DataSource>
 								<MenuItemName>DEVIntegManualFileImport</MenuItemName>
 								<MenuItemType>Action</MenuItemType>
+								<Text>Manual import</Text>
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormMenuFunctionButtonControl">
@@ -315,6 +316,7 @@ public class DEVIntegMessageTypeInbound extends FormRun
 								<MenuItemType>Action</MenuItemType>
 								<MultiSelect>No</MultiSelect>
 								<NeedsRecord>Yes</NeedsRecord>
+								<Text>Manual load</Text>
 							</AxFormControl>
 						</Controls>
 					</AxFormControl>

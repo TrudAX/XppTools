@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExportBulkIncrementalType</Name>
+	<Help>Export run type</Help>
+	<Label>Export type</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>All</Name>
+			<Label>All</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Incremental</Name>
+			<Label>Incremental</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

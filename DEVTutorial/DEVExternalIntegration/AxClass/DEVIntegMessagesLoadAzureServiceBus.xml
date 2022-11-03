@@ -33,7 +33,7 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
 
         BrokeredMessage  brokeredMessage;
 		
-        brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(10));
+        brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(1000));
         
         while (brokeredMessage != null)
         {

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityRole xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegDeveloperRole</Name>
+	<Description>Integration developer may delete messages and documents</Description>
+	<Label>Integration developer</Label>
+	<DirectAccessPermissions />
+	<Duties />
+	<Privileges />
+	<SubRoles />
+</AxSecurityRole>
