@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegWorkspaceDateFilter</Name>
+	<Help>Date filter</Help>
+	<Label>Filter</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>LastHour</Name>
+			<Label>@Retail:RetailCDXJobsScheduleLastHour</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>LastDay</Name>
+			<Label>@Retail:RetailCDXJobsScheduleLastDay</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>LastWeek</Name>
+			<Label>@Retail:RetailCDXJobsScheduleLastWeek</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Custom</Name>
+			<Label>Custom</Label>
+			<Value>3</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

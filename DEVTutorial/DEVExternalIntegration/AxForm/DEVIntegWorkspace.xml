@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVIntegWorkspace</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVIntegWorkspace extends FormRun
+{
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="" />
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">External integration</Caption>
+		<Pattern xmlns="">WorkspaceOperational</Pattern>
+		<PatternVersion xmlns="">1.1</PatternVersion>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
+		<Style xmlns="">Workspace</Style>
+		<ViewEditMode xmlns="">View</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>PanoramaBody</Name>
+				<ExtendedStyle>tab_simpleFastTab</ExtendedStyle>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>SummarySection</Name>
+						<ExtendedStyle>workspace_tileLayout</ExtendedStyle>
+						<Pattern>SectionTiles</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegWorkspaceMessageErrorTile</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension>
+									<Name>TileButtonControl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>tile</Name>
+											<Type>String</Type>
+											<Value>DEVIntegWorkspaceMessageErrorTile</Value>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>tileDisplay</Name>
+											<Type>Enum</Type>
+											<TypeName>TileDisplay</TypeName>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+								<Text>Number of import errors</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegWorkspaceMessageNotProcessedTile</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension>
+									<Name>TileButtonControl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>tile</Name>
+											<Type>String</Type>
+											<Value>DEVIntegWorkspaceMessageNotProcessedTile</Value>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>tileDisplay</Name>
+											<Type>Enum</Type>
+											<TypeName>TileDisplay</TypeName>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+								<Text>Number of not processed imports</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegWorkspaceExportMessageErrorTile</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension>
+									<Name>TileButtonControl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>tile</Name>
+											<Type>String</Type>
+											<Value>DEVIntegWorkspaceExportMessageErrorTile</Value>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>tileDisplay</Name>
+											<Type>Enum</Type>
+											<TypeName>TileDisplay</TypeName>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+								<Text>Export errors(last 24h)</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegWorkspaceAllDayMessageTile</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension>
+									<Name>TileButtonControl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>tile</Name>
+											<Type>String</Type>
+											<Value>DEVIntegWorkspaceAllDayMessageTile</Value>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>tileDisplay</Name>
+											<Type>Enum</Type>
+											<TypeName>TileDisplay</TypeName>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+								<Text>Total inbound(last24h)</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegWorkspaceAllDayExportMessageTile</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension>
+									<Name>TileButtonControl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>tile</Name>
+											<Type>String</Type>
+											<Value>DEVIntegWorkspaceAllDayExportMessageTile</Value>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>tileDisplay</Name>
+											<Type>Enum</Type>
+											<TypeName>TileDisplay</TypeName>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+								<Text>Total outbound(last24h)</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegWorkspaceAllDayExportIncMessageTile</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension>
+									<Name>TileButtonControl</Name>
+									<ExtensionComponents />
+									<ExtensionProperties>
+										<AxFormControlExtensionProperty>
+											<Name>tile</Name>
+											<Type>String</Type>
+											<Value>DEVIntegWorkspaceAllDayExportIncMessageTile</Value>
+										</AxFormControlExtensionProperty>
+										<AxFormControlExtensionProperty>
+											<Name>tileDisplay</Name>
+											<Type>Enum</Type>
+											<TypeName>TileDisplay</TypeName>
+										</AxFormControlExtensionProperty>
+									</ExtensionProperties>
+								</FormControlExtension>
+								<Text>Total outbound events(last24h)</Text>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+						<Caption>@SYS15560</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>MessageDetailsTabPage</Name>
+						<ExtendedStyle>workspace_tileLayout</ExtendedStyle>
+						<Pattern>SectionTabbedList</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormTabControl">
+								<Name>TabbedList</Name>
+								<Height>500</Height>
+								<HeightMode>Manual</HeightMode>
+								<Type>Tab</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>ImportSessionTabPage</Name>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormContainerControl">
+												<Name>ImportSessionList</Name>
+												<HeightMode>SizeToAvailable</HeightMode>
+												<Type>Container</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension>
+													<Name>FormPartControl</Name>
+													<ExtensionComponents>
+														<AxFormControlExtensionComponent xmlns=""
+															i:type="AxFormControlExtensionComponentComposite">
+															<Name>dataLinks</Name>
+															<ExtensionComponents />
+														</AxFormControlExtensionComponent>
+													</ExtensionComponents>
+													<ExtensionProperties>
+														<AxFormControlExtensionProperty>
+															<Name>targetName</Name>
+															<Type>String</Type>
+															<Value>DEVIntegWorkspaceImportSessionsFormPart</Value>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>parmRunMode</Name>
+															<Type>Enum</Type>
+															<TypeName>FormPartControlRunMode</TypeName>
+															<Value>Local</Value>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>autoRefreshInterval</Name>
+															<Type>Int32</Type>
+															<Value>300</Value>
+														</AxFormControlExtensionProperty>
+													</ExtensionProperties>
+												</FormControlExtension>
+												<Controls />
+											</AxFormControl>
+										</Controls>
+										<Caption>Inbound</Caption>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>ExportFullSessionTabPage</Name>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormContainerControl">
+												<Name>ExportSessionList</Name>
+												<HeightMode>SizeToAvailable</HeightMode>
+												<Type>Container</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension>
+													<Name>FormPartControl</Name>
+													<ExtensionComponents>
+														<AxFormControlExtensionComponent xmlns=""
+															i:type="AxFormControlExtensionComponentComposite">
+															<Name>dataLinks</Name>
+															<ExtensionComponents />
+														</AxFormControlExtensionComponent>
+													</ExtensionComponents>
+													<ExtensionProperties>
+														<AxFormControlExtensionProperty>
+															<Name>targetName</Name>
+															<Type>String</Type>
+															<Value>DEVIntegWorkspaceExportFullSessionsFormPart</Value>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>parmRunMode</Name>
+															<Type>Enum</Type>
+															<TypeName>FormPartControlRunMode</TypeName>
+															<Value>Local</Value>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>autoRefreshInterval</Name>
+															<Type>Int32</Type>
+															<Value>300</Value>
+														</AxFormControlExtensionProperty>
+													</ExtensionProperties>
+												</FormControlExtension>
+												<Controls />
+											</AxFormControl>
+										</Controls>
+										<Caption>Outbound</Caption>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>ExportIncSessionTabPage</Name>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormContainerControl">
+												<Name>ExportSessionIncList</Name>
+												<HeightMode>SizeToAvailable</HeightMode>
+												<Type>Container</Type>
+												<WidthMode>SizeToAvailable</WidthMode>
+												<FormControlExtension>
+													<Name>FormPartControl</Name>
+													<ExtensionComponents>
+														<AxFormControlExtensionComponent xmlns=""
+															i:type="AxFormControlExtensionComponentComposite">
+															<Name>dataLinks</Name>
+															<ExtensionComponents />
+														</AxFormControlExtensionComponent>
+													</ExtensionComponents>
+													<ExtensionProperties>
+														<AxFormControlExtensionProperty>
+															<Name>targetName</Name>
+															<Type>String</Type>
+															<Value>DEVIntegWorkspaceExportIncSessionsFormPart</Value>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>parmRunMode</Name>
+															<Type>Enum</Type>
+															<TypeName>FormPartControlRunMode</TypeName>
+															<Value>Local</Value>
+														</AxFormControlExtensionProperty>
+														<AxFormControlExtensionProperty>
+															<Name>autoRefreshInterval</Name>
+															<Type>Int32</Type>
+															<Value>300</Value>
+														</AxFormControlExtensionProperty>
+													</ExtensionProperties>
+												</FormControlExtension>
+												<Controls />
+											</AxFormControl>
+										</Controls>
+										<Caption>Outbound(Events)</Caption>
+									</AxFormControl>
+								</Controls>
+								<ArrangeMethod>Vertical</ArrangeMethod>
+								<Style>VerticalTabs</Style>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+						<Caption>Details</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>LinksTabPage</Name>
+						<Pattern>SectionRelatedLinks</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ParametersRelatedLinksGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>DEVIntegConnectionType</Name>
+										<Type>MenuFunctionButton</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<ButtonDisplay>TextOnly</ButtonDisplay>
+										<MenuItemName>DEVIntegConnectionType</MenuItemName>
+										<Style>Link</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>DEVIntegMessageTypeInbound</Name>
+										<Type>MenuFunctionButton</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<ButtonDisplay>TextOnly</ButtonDisplay>
+										<MenuItemName>DEVIntegMessageTypeInbound</MenuItemName>
+										<Style>Link</Style>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormMenuFunctionButtonControl">
+										<Name>DEVIntegMessageTypeTableOutbound</Name>
+										<Type>MenuFunctionButton</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<ButtonDisplay>TextOnly</ButtonDisplay>
+										<MenuItemName>DEVIntegMessageTypeTableOutbound</MenuItemName>
+										<Style>Link</Style>
+									</AxFormControl>
+								</Controls>
+								<Caption>@SYS28007</Caption>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>@SYS72248</Caption>
+						<FastTabExpanded>Yes</FastTabExpanded>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

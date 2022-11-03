@@ -217,9 +217,23 @@ public class DEVIntegMessageTable extends common
     {
         if (! DEV::isUserInRole(roleStr(DEVIntegDeveloperRole)))
         {
-            throw error(strFmt("User %1 should be included to the Developer role",
+            throw error(strFmt("User %1 should be included to the Developer role(%2)",
                     curUserId(), roleStr(DEVIntegDeveloperRole)));
         }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        if (this.ProcessingStartDateTime && this.ProcessingEndDateTime)
+        {
+            this.Duration = int642int(DateTimeUtil::getDifference(this.ProcessingEndDateTime, this.ProcessingStartDateTime));
+        }
+        super();
     }
 
 ]]></Source>
@@ -321,6 +335,9 @@ public class DEVIntegMessageTable extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>ProcessingAttempts</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Duration</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>IsManualUpload</DataField>
@@ -507,6 +524,13 @@ public class DEVIntegMessageTable extends common
 			<HelpText>Manual created message</HelpText>
 			<Label>Manual</Label>
 			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Duration</Name>
+			<ExtendedDataType>Seconds</ExtendedDataType>
+			<HelpText>Processing duration</HelpText>
+			<Label>Duration(sec)</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

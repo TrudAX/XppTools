@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVInterWorkspaceExportDataTmp</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVInterWorkspaceExportDataTmp extends common
+{
+}
+
+]]></Declaration>
+		<Methods />
+	</SourceCode>
+	<Label>Integration workspace report data</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>Name</TitleField1>
+	<TitleField2>NumberOfExports</TitleField2>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<TableType>InMemory</TableType>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>@SYS34991</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeIdOutbound</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>NumberOfExports</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LastExport</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Lines</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Warnings</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Errors</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Duration</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>OverviewInc</Name>
+			<Label>Incremental</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeIdOutbound</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>NumberOfExports</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LastExport</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Lines</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LinesToExport</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FirstMarketForExport</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<HelpText>Export name</HelpText>
+			<Label>Name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>NumberOfExports</Name>
+			<ExtendedDataType>Integer</ExtendedDataType>
+			<HelpText>Number of exports for the dates interval</HelpText>
+			<Label>Exports</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Warnings</Name>
+			<ExtendedDataType>Integer</ExtendedDataType>
+			<HelpText>Warnings per date</HelpText>
+			<Label>Warnings</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Lines</Name>
+			<ExtendedDataType>Integer</ExtendedDataType>
+			<HelpText>Lines exported </HelpText>
+			<Label>Lines</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>Duration</Name>
+			<ExtendedDataType>RealBase</ExtendedDataType>
+			<HelpText>Total execution duration(minutes)</HelpText>
+			<Label>Duration(m)</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MessageTypeIdOutbound</Name>
+			<ExtendedDataType>DEVIntegMessageTypeIdOutbound</ExtendedDataType>
+			<Label>Message Id</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>LastExport</Name>
+			<ExtendedDataType>TransDateTime</ExtendedDataType>
+			<HelpText>Last export time</HelpText>
+			<Label>Last export</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Errors</Name>
+			<ExtendedDataType>Integer</ExtendedDataType>
+			<HelpText>Errors per date</HelpText>
+			<Label>Errors</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>FirstMarketForExport</Name>
+			<ExtendedDataType>TransDateTime</ExtendedDataType>
+			<HelpText>First To send date</HelpText>
+			<Label>To send date</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LinesToExport</Name>
+			<ExtendedDataType>Integer</ExtendedDataType>
+			<HelpText>Lines to export</HelpText>
+			<Label>To export</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegMessageTypeTableOutbound</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>DEVIntegMessageTypeTableOutbound</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageTypeIdOutbound</Name>
+					<SourceEDT>DEVIntegMessageTypeIdOutbound</SourceEDT>
+					<Field>MessageTypeIdOutbound</Field>
+					<RelatedField>MessageTypeIdOutbound</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

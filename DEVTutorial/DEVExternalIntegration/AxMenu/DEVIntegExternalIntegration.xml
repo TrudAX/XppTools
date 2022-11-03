@@ -4,6 +4,11 @@
 	<Label>External Integration</Label>
 	<Elements>
 		<AxMenuElement xmlns=""
+			i:type="AxMenuElementMenuItem">
+			<Name>DEVIntegWorkspace</Name>
+			<MenuItemName>DEVIntegWorkspace</MenuItemName>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
 			i:type="AxMenuElementSubMenu">
 			<Name>Common</Name>
 			<Label>Common</Label>

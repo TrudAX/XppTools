@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegWorkspaceFilterTmp</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegWorkspaceFilterTmp extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>updateDatesFromFilter</Name>
+				<Source><![CDATA[
+    public void updateDatesFromFilter()
+    {
+        switch (this.DateFilter)
+        {
+            case DEVIntegWorkspaceDateFilter::LastHour :
+                this.FromDateTime = DateTimeUtil::addHours(DateTimeUtil::utcNow(), -1);
+                this.ToDateTime   = DateTimeUtil::utcNow();
+                break;
+            case DEVIntegWorkspaceDateFilter::LastDay :
+                this.FromDateTime = DateTimeUtil::addDays(DateTimeUtil::utcNow(), -1);
+                this.ToDateTime   = DateTimeUtil::utcNow();
+                break;
+            case DEVIntegWorkspaceDateFilter::LastWeek :
+                this.FromDateTime = DateTimeUtil::addDays(DateTimeUtil::utcNow(), -7);
+                this.ToDateTime   = DateTimeUtil::utcNow();
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Filter parameters</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>DateFilter</TitleField1>
+	<TitleField2>FromDateTime</TitleField2>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<TableType>InMemory</TableType>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DateFilter</Name>
+			<EnumType>DEVIntegWorkspaceDateFilter</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>FromDateTime</Name>
+			<ExtendedDataType>FromDateTime</ExtendedDataType>
+			<Label>From</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>ToDateTime</Name>
+			<ExtendedDataType>ToDateTime</ExtendedDataType>
+			<Label>To</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVIntegWorkspaceImportSessionsFormPart</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVIntegWorkspaceImportSessionsFormPart extends FormRun
+{
+
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcData</Name>
+				<Source><![CDATA[
+    public void calcData()
+    {
+        DEVIntegMessageTable  messageTable;
+
+        delete_from WorkspaceImportDataTmp;
+            
+        WorkspaceFilterTmp.updateDatesFromFilter();
+        WorkspaceFilterTmp.update();
+
+        while select count(RecId), maxof(CreatedDateTime), sum(RecordsProcessed), sum(Duration) from messageTable
+            group by MessageTypeId
+            where messageTable.CreatedDateTime >= WorkspaceFilterTmp.FromDateTime &&
+                 ( messageTable.CreatedDateTime <= WorkspaceFilterTmp.ToDateTime ||  WorkspaceFilterTmp.DateFilter !=  DEVIntegWorkspaceDateFilter::Custom)
+        {
+            WorkspaceImportDataTmp.MessageTypeId    = messageTable.MessageTypeId;
+            WorkspaceImportDataTmp.Name             = messageTable.messageTypeTable().Description;
+            WorkspaceImportDataTmp.NumberOfImports  = int642int(messageTable.RecId);
+            WorkspaceImportDataTmp.LastImport       = messageTable.CreatedDateTime;
+            WorkspaceImportDataTmp.Lines            = messageTable.RecordsProcessed;
+            WorkspaceImportDataTmp.Duration         = messageTable.Duration / 60;
+            WorkspaceImportDataTmp.insert();
+        }
+        WorkspaceImportDataTmp_DS.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+        if (! WorkspaceFilterTmp.RecId)
+        {
+            WorkspaceFilterTmp.insert();
+        }
+
+        this.calcData();
+        
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>WorkspaceFilterTmp</Name>
+				<Methods />
+				<Fields>
+					<Field>
+						<DataField>DateFilter</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+
+                element.calcData();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>RefreshButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.calcData();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>WorkspaceImportDataTmp</Name>
+			<Table>DEVInterWorkspaceImportDataTmp</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Duration</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LastImport</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Lines</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MessageTypeId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>NumberOfImports</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>WorkspaceFilterTmp</Name>
+			<Table>DEVIntegWorkspaceFilterTmp</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>DateFilter</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FromDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ToDateTime</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Pattern xmlns="">FormPartSectionList</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
+		<Style xmlns="">FormPart</Style>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>FilterGroup</Name>
+				<ExtendedStyle>hubPartGrid_header</ExtendedStyle>
+				<Pattern>FiltersAndToolbarInline</Pattern>
+				<PatternVersion>1.0</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>CDXFilterGroup</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormComboBoxControl">
+								<Name>WorkspaceFilterTmp_DateFilter</Name>
+								<Type>ComboBox</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>DateFilter</DataField>
+								<DataSource>WorkspaceFilterTmp</DataSource>
+								<Items />
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormDateTimeControl">
+								<Name>WorkspaceFilterTmp_FromDateTime</Name>
+								<Type>DateTime</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>FromDateTime</DataField>
+								<DataSource>WorkspaceFilterTmp</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormDateTimeControl">
+								<Name>WorkspaceFilterTmp_ToDateTime</Name>
+								<Type>DateTime</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>ToDateTime</DataField>
+								<DataSource>WorkspaceFilterTmp</DataSource>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+						<FrameType>None</FrameType>
+						<ViewEditMode>Edit</ViewEditMode>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormActionPaneControl">
+						<Name>SessionActionGroup</Name>
+						<Type>ActionPane</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonGroupControl">
+								<Name>FormButtonGroupControl</Name>
+								<Type>ButtonGroup</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonControl">
+										<Name>RefreshButton</Name>
+										<Type>Button</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Text>Refresh</Text>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Style>Strip</Style>
+					</AxFormControl>
+				</Controls>
+				<ArrangeMethod>HorizontalLeft</ArrangeMethod>
+				<Breakable>No</Breakable>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGridControl">
+				<Name>Grid</Name>
+				<Type>Grid</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormGroupControl">
+						<Name>Overview</Name>
+						<Type>Group</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>Overview_MessageTypeId</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>MessageTypeId</DataField>
+								<DataSource>WorkspaceImportDataTmp</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>Overview_Name</Name>
+								<Type>String</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>Name</DataField>
+								<DataSource>WorkspaceImportDataTmp</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormIntegerControl">
+								<Name>Overview_NumberOfImports</Name>
+								<Type>Integer</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>NumberOfImports</DataField>
+								<DataSource>WorkspaceImportDataTmp</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormDateTimeControl">
+								<Name>Overview_LastImport</Name>
+								<Type>DateTime</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>LastImport</DataField>
+								<DataSource>WorkspaceImportDataTmp</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormIntegerControl">
+								<Name>Overview_Lines</Name>
+								<Type>Integer</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>Lines</DataField>
+								<DataSource>WorkspaceImportDataTmp</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormRealControl">
+								<Name>Overview_Duration</Name>
+								<Type>Real</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>Duration</DataField>
+								<DataSource>WorkspaceImportDataTmp</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataGroup>Overview</DataGroup>
+						<DataSource>WorkspaceImportDataTmp</DataSource>
+					</AxFormControl>
+				</Controls>
+				<DataSource>WorkspaceImportDataTmp</DataSource>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>
