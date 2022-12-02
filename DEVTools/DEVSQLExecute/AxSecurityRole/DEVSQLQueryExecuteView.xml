@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityRole xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLQueryExecuteView</Name>
+	<Description>Access to SQL Query Execute form(SELECT only)</Description>
+	<Label>DEVSQLQueryExecuteView</Label>
+	<DirectAccessPermissions />
+	<Duties />
+	<Privileges>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVSQLQueryExecuteMaintain</Name>
+		</AxSecurityPrivilegeReference>
+	</Privileges>
+	<SubRoles />
+</AxSecurityRole>

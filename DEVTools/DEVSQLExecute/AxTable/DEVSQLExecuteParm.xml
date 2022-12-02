@@ -26,6 +26,28 @@ public class DEVSQLExecuteParm extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>getFilename</Name>
+				<Source><![CDATA[
+    public Filename getFilename()
+    {
+        Filename res = this.Filename;
+        ;
+
+        switch(this.OutputType)
+        {
+            case DEVSQLOutputType::HTML:
+                res += '.html';
+                break;
+            case DEVSQLOutputType::Excel:
+                res += '.xlsx';
+                break;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>SQL Execute parameters</Label>
@@ -46,9 +68,6 @@ public class DEVSQLExecuteParm extends common
 			<Fields>
 				<AxTableFieldGroupField>
 					<DataField>MaxRows</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>IsFileOutput</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -84,10 +103,13 @@ public class DEVSQLExecuteParm extends common
 					<DataField>MaxRows</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>IsFileOutput</DataField>
+					<DataField>OutputType</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>Filename</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FormatParameters</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -125,14 +147,6 @@ public class DEVSQLExecuteParm extends common
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldEnum">
-			<Name>IsFileOutput</Name>
-			<ExtendedDataType>NoYesId</ExtendedDataType>
-			<HelpText>Output result in file</HelpText>
-			<Label>File output</Label>
-			<EnumType>NoYes</EnumType>
-		</AxTableField>
-		<AxTableField xmlns=""
-			i:type="AxTableFieldEnum">
 			<Name>QueryExecuteMode</Name>
 			<EnumType>DEVSQLQueryExecuteMode</EnumType>
 		</AxTableField>
@@ -153,6 +167,18 @@ public class DEVSQLExecuteParm extends common
 			<Name>SQLResults</Name>
 			<ExtendedDataType>Notes</ExtendedDataType>
 			<Label>Filed for storing SQL results</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OutputType</Name>
+			<EnumType>DEVSQLOutputType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FormatParameters</Name>
+			<ExtendedDataType>NotesLine</ExtendedDataType>
+			<HelpText>List of tables used to format the output(separated by ,)</HelpText>
+			<Label>Format</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

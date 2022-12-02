@@ -19,7 +19,8 @@ public class DEVSQLQueryExecute extends FormRun
     {
         super();
 
-        if (! this.DEVisUserInRole(roleStr(DEVSQLQueryExecute)))
+        if (! this.DEVisUserInRole(roleStr(DEVSQLQueryExecute)) && 
+            ! this.DEVisUserInRole(roleStr(DEVSQLQueryExecuteView)))
         {
             throw error(strFmt("User %1 should be included to %2 role", 
                     curUserId(), roleStr(DEVSQLQueryExecute)));
@@ -45,7 +46,7 @@ public class DEVSQLQueryExecute extends FormRun
         ExecuteParm.SQLText = 'select * from CustGroup';
         ExecuteParm.MaxRows = 100;
         ExecuteParm.QueryExecuteMode = DEVSQLQueryExecuteMode::Select;
-        ExecuteParm.Filename = 'SQLResult.html';
+        ExecuteParm.Filename = 'SQLResult';
         ExecuteParm.UserId = curUserId();
         ExecuteParm.write();
 
@@ -70,6 +71,8 @@ public class DEVSQLQueryExecute extends FormRun
         helpText += strFmt('WHERE UserId = \'%1\'', curUserId());
         helpText += '\n\n';
         helpText += 'Use qs.plan_handle to get "plan ID" value\n';
+
+        helpText += '\n--Use Format field to specify tables(separated by ,) to format the Excel output(Enum, DateTime conversion) for all fields in this table\n';
 
         helpText += '\n--Database size\n';
         helpText += 'select o.name, max(s.row_count) AS \'Rows\',\n';
@@ -143,6 +146,13 @@ public class DEVSQLQueryExecute extends FormRun
 						<Source><![CDATA[
         public void clicked()
         {
+            if (ExecuteParm.QueryExecuteMode == DEVSQLQueryExecuteMode::Update && 
+              ! element.DEVisUserInRole(roleStr(DEVSQLQueryExecute)) )
+            {
+                throw error(strFmt("User %1 should be included to %2 role",
+                    curUserId(), roleStr(DEVSQLQueryExecute)));
+            }
+
             DEVSQLQueryExecute  queryExecute = DEVSQLQueryExecute::construct(ExecuteParm);
             HtmlViewerResult.parmHtml(queryExecute.execSQL());
 
@@ -187,6 +197,7 @@ public class DEVSQLQueryExecute extends FormRun
             {
                 ExecuteParm.QueryExecuteMode = QueryExecuteLog.QueryExecuteMode;
                 ExecuteParm.SQLText = QueryExecuteLog.SQLText;
+                ExecuteParm.FormatParameters = QueryExecuteLog.FormatParameters;
                 ExecuteParm.update();
                 SQLTabPageControl.activatePage();
             }
@@ -208,10 +219,13 @@ public class DEVSQLQueryExecute extends FormRun
 					<DataField>Filename</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
-					<DataField>IsFileOutput</DataField>
+					<DataField>FormatParameters</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>MaxRows</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>OutputType</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>Partition</DataField>
@@ -221,6 +235,9 @@ public class DEVSQLQueryExecute extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SQLResults</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>SQLText</DataField>
@@ -249,16 +266,22 @@ public class DEVSQLQueryExecute extends FormRun
 					<DataField>CreatedDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
-					<DataField>DataAreaId</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
 					<DataField>Duration</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>EndDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>ExecCount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FormatParameters</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>QueryExecuteMode</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>RecId</DataField>
@@ -357,13 +380,14 @@ public class DEVSQLQueryExecute extends FormRun
 														<DataSource>ExecuteParm</DataSource>
 													</AxFormControl>
 													<AxFormControl xmlns=""
-														i:type="AxFormCheckBoxControl">
-														<Name>Parameters_IsFileOutput</Name>
-														<Type>CheckBox</Type>
+														i:type="AxFormComboBoxControl">
+														<Name>Parameters_OutputType</Name>
+														<Type>ComboBox</Type>
 														<FormControlExtension
 															i:nil="true" />
-														<DataField>IsFileOutput</DataField>
+														<DataField>OutputType</DataField>
 														<DataSource>ExecuteParm</DataSource>
+														<Items />
 													</AxFormControl>
 													<AxFormControl xmlns=""
 														i:type="AxFormStringControl">
@@ -372,6 +396,15 @@ public class DEVSQLQueryExecute extends FormRun
 														<FormControlExtension
 															i:nil="true" />
 														<DataField>Filename</DataField>
+														<DataSource>ExecuteParm</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>Parameters_FormatParameters</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>FormatParameters</DataField>
 														<DataSource>ExecuteParm</DataSource>
 													</AxFormControl>
 												</Controls>
@@ -539,6 +572,16 @@ public class DEVSQLQueryExecute extends FormRun
 											i:nil="true" />
 										<Controls>
 											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>GridGroup_QueryExecuteMode</Name>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>QueryExecuteMode</DataField>
+												<DataSource>QueryExecuteLog</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
 												i:type="AxFormStringControl">
 												<Name>GridGroup_SQLText</Name>
 												<Type>String</Type>
@@ -572,6 +615,15 @@ public class DEVSQLQueryExecute extends FormRun
 												<FormControlExtension
 													i:nil="true" />
 												<DataField>Duration</DataField>
+												<DataSource>QueryExecuteLog</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormIntegerControl">
+												<Name>GridGroup_ExecCount</Name>
+												<Type>Integer</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ExecCount</DataField>
 												<DataSource>QueryExecuteLog</DataSource>
 											</AxFormControl>
 										</Controls>

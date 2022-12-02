@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLOutputType</Name>
+	<Help>Results output mode</Help>
+	<Label>Output</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Screen</Name>
+			<Label>Screen</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>HTML</Name>
+			<Label>HTML</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Excel</Name>
+			<Label>Excel</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

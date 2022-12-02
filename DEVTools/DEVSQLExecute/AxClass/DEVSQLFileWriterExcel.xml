@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLFileWriterExcel</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using OfficeOpenXml.Table;
+
+class DEVSQLFileWriterExcel
+{
+    public const str ExcelFileMimeType = 'application/vnd.ms-excel';
+
+    container       data;
+    ExcelPackage    package;
+    ExcelWorksheet  excelWorksheet;
+
+    int                 columnsColum;
+    int                 rowsCount;
+
+    container           boldRows;
+
+    int                 startRow;
+    int                 startColumn;
+
+    System.String       dateTimeFormatStr;
+
+    str                 workSheetNameStr = 'ExcelExport';
+
+}
+
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmWorkSheetNameStr</Name>
+				<Source><![CDATA[
+    public str parmWorkSheetNameStr(str _value = workSheetNameStr)
+    {
+        workSheetNameStr = _value;
+        return workSheetNameStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStartRow</Name>
+				<Source><![CDATA[
+    int getStartRow()
+    {
+        return startRow;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStartColumn</Name>
+				<Source><![CDATA[
+    int getStartColumn()
+    {
+        return startColumn;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getRowsCount</Name>
+				<Source><![CDATA[
+    int getRowsCount()
+    {
+        return rowsCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getColumnsColum</Name>
+				<Source><![CDATA[
+    int getColumnsColum()
+    {
+        return columnsColum;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>markRowAsBold</Name>
+				<Source><![CDATA[
+    void markRowAsBold(int _rowNum = rowsCount)
+    {
+        ;
+        boldRows += _rowNum;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatRows</Name>
+				<Source><![CDATA[
+    private void formatRows()
+    {
+        int  i;
+        int  row;
+        OfficeOpenXml.ExcelRange                rngCell;
+        ;
+        
+        for(i = 1; i <= conLen(boldRows); i++)
+        {
+            row = conPeek(boldRows, i);
+            row += startRow - 1;
+            str  rowStr = strFmt('%1:%1', row);
+            rngCell = excelWorksheet.Cells.get_Item(rowStr);
+            var fontB = rngCell.Style.Font;
+            fontB.Bold = true;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addContainerLine</Name>
+				<Source><![CDATA[
+    public void addContainerLine(container _dataLine)
+    {
+        data += [_dataLine];
+
+        rowsCount++;
+        columnsColum = max(columnsColum, conLen(_dataLine));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>clearBuffer</Name>
+				<Source><![CDATA[
+    void clearBuffer()
+    {
+        data            = conNull();
+        rowsCount       = 0;
+        columnsColum    = 0;
+        boldRows        = conNull();
+
+        startRow       = 0;
+        startColumn    = 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>excelSetCellComment</Name>
+				<Source><![CDATA[
+    void excelSetCellComment(int _row, int _col, str _comment)
+    {
+        OfficeOpenXml.ExcelRange   rngCell;
+
+        rngCell = excelWorksheet.Cells.get_Item(_row, _col);
+
+        rngCell.AddComment(_comment, 'Excel');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>excelSetRangeFormat</Name>
+				<Source><![CDATA[
+        void excelSetRangeFormat(OfficeOpenXml.ExcelRange   _rngCell, Types  _types)
+    {
+        var             colStyle = _rngCell.Style.Numberformat;
+        System.String   formatStr;
+
+        if (! dateTimeFormatStr)
+        {
+            dateTimeFormatStr = System.Globalization.DateTimeFormatInfo::CurrentInfo.ShortDatePattern + ' ' +
+                                        'h:mm';
+        }
+
+        switch (_types)
+        {
+            case Types::RString, Types::String, Types::VarString :
+                formatStr = '@';
+                break;
+
+            case Types::Date :
+                formatStr = 'm/d/yyyy';
+                break;
+            case Types::Enum :
+                formatStr = '@';
+                break;
+            
+            case Types::Integer :
+            case Types::Int64   :
+                formatStr = '0';
+                break;
+
+            case Types::Real :
+                formatStr = '0.00';
+                break;
+
+            case Types::UtcDateTime :
+                formatStr = dateTimeFormatStr;
+                break;
+           
+            default :
+                throw error(strFmt('Incorrect type %1', _types));
+        }
+        if (formatStr)
+        {
+            colStyle.Format = formatStr;
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>excelSetColumnFormat</Name>
+				<Source><![CDATA[
+    void excelSetColumnFormat(int _column, Types  _types)
+    {
+        //OfficeOpenXml.ExcelColumn   col = excelWorksheet.Column(_column);
+        OfficeOpenXml.ExcelRange    rngCell;
+        System.String               rangestr;
+        ;
+        rangestr = System.String::Format('{0}:{0}', OfficeOpenXml.ExcelCellAddress::GetColumnLetter(_column));
+        rngCell = excelWorksheet.Cells.get_Item(rangestr);
+        this.excelSetRangeFormat(rngCell, _types);
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>excelMarkAsBorderAll</Name>
+				<Source><![CDATA[
+    void excelMarkAsBorderAll(int _startRow = startRow,
+                                  int _endRow = startRow + rowsCount - 1,
+                                  int _width = columnsColum,
+                                  int _offset = startColumn - 1)
+    {
+        OfficeOpenXml.ExcelRange                rngCell;
+        OfficeOpenXml.Style.ExcelBorderStyle    borderStyle = OfficeOpenXml.Style.ExcelBorderStyle::Thin;
+
+        if (columnsColum)
+        {
+            rngCell = excelWorksheet.Cells.get_Item(_startRow, _offset + 1, _endRow,   _offset + _width);
+            var tmp = rngCell.Style.Border.Top;
+            tmp.Style = borderStyle;
+            tmp = rngCell.Style.Border.Left;
+            tmp.Style = borderStyle;
+            tmp = rngCell.Style.Border.Right;
+            tmp.Style = borderStyle;
+            tmp = rngCell.Style.Border.Bottom;
+            tmp.Style = borderStyle;
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createExcelDocument</Name>
+				<Source><![CDATA[
+    void createExcelDocument(FileName _template = '') //_template not implemented yet
+    {
+        
+        ;
+        package         = new ExcelPackage();
+        excelWorksheet  = package.Workbook.Worksheets.Add(workSheetNameStr);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doExcelOutput</Name>
+				<Source><![CDATA[
+    public void doExcelOutput(str _startFromBookmark = 'A1')
+    {
+        OfficeOpenXml.ExcelRange    startCell = excelWorksheet.Cells.get_Item(_startFromBookmark);
+        int                         i, j;
+        container                   dataLine;
+
+        void fillCellData(anytype _value)
+        {
+            int dataRow = i + startRow - 1;
+            int dataCol = j + startColumn - 1;
+            OfficeOpenXml.ExcelRange    currCell;
+            ;
+            currCell = excelWorksheet.Cells.get_Item(dataRow, dataCol);
+
+            currCell.Value = CLRInterop::getObjectForAnyType(_value);
+            
+            switch(typeOf(_value))
+            {
+                case Types::Date:
+                case Types::UtcDateTime:
+                    this.excelSetRangeFormat(currCell, typeOf(_value));
+                    break;
+            }
+            
+        }
+
+        startRow       = startCell.Start.Row;
+        startColumn    = startCell.Start.Column;
+
+        for(i = 1; i <= conLen(data); i++)
+        {
+            dataLine = conPeek(data, i);
+            for(j = 1; j <= conLen(dataLine); j++)
+            {
+                fillCellData(conPeek(dataLine, j));
+                
+            }
+        }
+        this.formatRows();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCSVStream</Name>
+				<Source><![CDATA[
+    public System.IO.MemoryStream getCSVStream(str _inFieldDelimiter = ',')
+    {
+        #File
+
+        TextStreamIo    ioData;
+        int             i;
+        container       dataLine;
+        
+        ioData = TextStreamIo::constructForWrite(0);//65001);
+        ioData.inFieldDelimiter(_inFieldDelimiter);
+        ioData.outFieldDelimiter(_inFieldDelimiter);
+        ioData.inRecordDelimiter(#delimiterCRLF);
+
+        for(i = 1; i <= conLen(data); i++)
+        {
+            dataLine = conPeek(data, i);
+            ioData.writeExp(dataLine);
+        }
+     
+        return ioData.getStream();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatColumWidth</Name>
+				<Source><![CDATA[
+    private void formatColumWidth()
+    {
+        OfficeOpenXml.ExcelRange                rngCell;
+
+        rngCell = excelWorksheet.Cells;
+        rngCell.AutoFitColumns();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>finishOutputGetStream</Name>
+				<Source><![CDATA[
+    public System.IO.MemoryStream finishOutputGetStream()
+    {
+        this.formatColumWidth();
+        //DocuFileSaveResult saveResult = DocuFileSave::promptForSaveLocation("@ApplicationPlatform:OfficeDefaultWorkbookFileName", "xlsx", null, "Testing excel export");
+        System.IO.MemoryStream memoryStream = new System.IO.MemoryStream();
+        package.SaveAs(memoryStream);
+
+        return memoryStream;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>finishOutput</Name>
+				<Source><![CDATA[
+    public void finishOutput()
+    {
+        System.IO.MemoryStream memoryStream = this.finishOutputGetStream();
+        File::SendFileToUser(memoryStream, strFmt('%1.xlsx', workSheetNameStr));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateImportTemplate</Name>
+				<Source><![CDATA[
+    public void generateImportTemplate(container _headersNames, container _typeCommentInfo)
+    {
+        int     i;
+        Types   t;
+        str     comment;
+        ;
+        this.addContainerLine(_headersNames);
+        this.markRowAsBold();
+
+        this.addContainerLine(conNull());
+
+        this.createExcelDocument();
+
+        this.doExcelOutput('A1');
+        this.excelMarkAsBorderAll();
+
+        for(i = 1; i <= conLen(_typeCommentInfo); i++)
+        {
+            [t, comment] = conPeek(_typeCommentInfo, i);
+            this.excelSetColumnFormat(i, t);
+            if (comment)
+            {
+
+                this.excelSetCellComment(this.getStartRow(), i,
+                            comment);
+            }
+        }
+
+        this.finishOutput();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

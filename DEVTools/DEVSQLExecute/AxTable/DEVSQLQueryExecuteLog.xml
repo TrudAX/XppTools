@@ -133,6 +133,13 @@ public class DEVSQLQueryExecuteLog extends common
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<Label>ExecCount</Label>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FormatParameters</Name>
+			<ExtendedDataType>NotesLine</ExtendedDataType>
+			<HelpText>Format parameters</HelpText>
+			<Label>Format</Label>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>
