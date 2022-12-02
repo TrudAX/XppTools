@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVToolsFindUsedInventDim</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVToolsFindUsedInventDim extends RunBaseBatch implements BatchRetryable
+{
+    NoYes           cleanUpDummyField;
+
+    InventDimId  inventDimId;
+    DialogField  dlgInventDimId;
+
+    #DEFINE.CurrentVersion(1)
+    #LOCALMACRO.CurrentList
+        inventDimId
+    #Endmacro
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>deleteInventDimCleanUp</Name>
+				<Source><![CDATA[
+    protected void deleteInventDimCleanUp(TableId _tableId, FieldId _fieldId, InventDimId _inventDimId )
+    {
+        DictTable dictTable_InventDimCleanUp = new DictTable(tableNum(InventDimCleanUp));
+        DictTable dictTable_Table = new DictTable(_tableId);
+        Common    mainDimTable = dictTable_Table.makeRecord();
+
+        select firstonly mainDimTable
+            where mainDimTable.(_fieldId) == _inventDimId;
+        if (mainDimTable.RecId)
+        {
+            Info(strFmt("Value %1 found in the %2.%3", _inventDimId, dictTable_Table.name(), fieldId2Name(_tableId, _fieldId)));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteUsedIdsFromCleanUpTable</Name>
+				<Source><![CDATA[
+    protected void deleteUsedIdsFromCleanUpTable(List _fieldList)
+    {
+
+        // Traverse through all tables
+        ListEnumerator listEnumerator = _fieldList.getEnumerator();
+        while (listEnumerator.moveNext())
+        {
+            container tableAndField = listEnumerator.current();
+            TableId tableId = conPeek(tableAndField, 1);
+            FieldId fieldId = conPeek(tableAndField, 2);
+
+            this.deleteInventDimCleanUp(tableId, fieldId, inventDimId);
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgInventDimId  = dialog.addFieldValue(extendedtypestr(InventDimId), inventDimId);
+        dlgInventDimId.mandatory_RU(true);
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findUsedInventDimIds</Name>
+				<Source><![CDATA[
+    protected List findUsedInventDimIds()
+    {
+        return this.InventDimIdFieldReferenceProvider().findInventDimIdFields();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InventDimIdFieldReferenceProvider</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the <c>InventDimIdFieldReferenceProvider</c> instance that is used to iterate the tables and fields.
+    /// </summary>
+    /// <returns>The <c>InventDimIdFieldReferenceProvider</c> instance that is used to iterate the tables and fields.</returns>
+    protected InventDimIdFieldReferenceProvider InventDimIdFieldReferenceProvider()
+    {
+        return InventDimIdFieldReferenceProvider::newExcludeSysDeletedObjects();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        inventDimId   = dlgInventDimId.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    container pack()
+    {
+        return [#CurrentVersion,#CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    /// <summary>
+    ///    Contains the code that does the actual job of the class.
+    /// </summary>
+    void run()
+    {
+
+
+        // Remove all used inventory dimensions from InventDimCleanUp
+        List fieldList = this.findUsedInventDimIds();
+        this.deleteUsedIdsFromCleanUpTable(fieldList);
+
+
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runsImpersonated</Name>
+				<Source><![CDATA[
+    public boolean runsImpersonated()
+    {
+        // Job needs to run in server side impersonated session
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    boolean unpack(container _packedClass)
+    {
+        Integer     version      = RunBase::getVersion(_packedClass);
+
+        switch (version)
+        {
+            case #CurrentVersion :
+                [version,#CurrentList] = _packedClass;
+                break;
+            default :
+                return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVToolsFindUsedInventDim construct()
+    {
+        return new DEVToolsFindUsedInventDim();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Find used InventDim";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVToolsFindUsedInventDim inventUnusedDimCleanUp = DEVToolsFindUsedInventDim::newStandard();
+
+        if (!inventUnusedDimCleanUp.prompt())
+        {
+            return;
+        }
+
+        inventUnusedDimCleanUp.runOperation();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>newStandard</Name>
+				<Source><![CDATA[
+    static DEVToolsFindUsedInventDim newStandard()
+    {
+        DEVToolsFindUsedInventDim inventUnusedDimCleanUp = DEVToolsFindUsedInventDim::construct();
+
+        inventUnusedDimCleanUp.getLast();   // Get last dialog values
+        inventUnusedDimCleanUp.init();
+
+        return inventUnusedDimCleanUp;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Specifies if the batch task is retryable for transient exceptions or not.
+    /// </summary>
+    /// <returns>
+    /// If true is returned, the batch task is retryable, otherwise it is not.
+    /// </returns>
+    [Hookable(false)]
+    final boolean isRetryable() 
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
