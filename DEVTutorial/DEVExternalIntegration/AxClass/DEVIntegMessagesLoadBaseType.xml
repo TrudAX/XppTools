@@ -49,6 +49,7 @@ class DEVIntegMessagesLoadBaseType
             if (readMessageCount >= messageTypeTable.ReadLimitMessages)
             {
                 res = true;
+                warning(strFmt("Message limit is set to %1", readMessageCount));
             }
         }
         if (messageTypeTable.ReadLimitSeconds)
@@ -69,6 +70,7 @@ class DEVIntegMessagesLoadBaseType
             if (readSecondsTotal >= messageTypeTable.ReadLimitSeconds)
             {
                 res = true;
+                warning(strFmt("Message process limit is set to %1 seconds", readSecondsTotal));
             }
         }
         return res;

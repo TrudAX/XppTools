@@ -293,6 +293,17 @@ public class DEVIntegMessageTypeInbound extends FormRun
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegMessagesLoad</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataSource>DEVIntegMessageTypeInbound</DataSource>
+								<MenuItemName>DEVIntegMessagesLoad</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+								<NeedsRecord>Yes</NeedsRecord>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
 								<Name>DEVIntegManualFileImport</Name>
 								<AutoDeclaration>Yes</AutoDeclaration>
 								<Type>MenuFunctionButton</Type>

@@ -33,7 +33,7 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
 
         BrokeredMessage  brokeredMessage;
 		
-        brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(1000));
+        brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(60000));
         
         while (brokeredMessage != null)
         {
@@ -65,7 +65,7 @@ class DEVIntegMessagesLoadAzureServiceBus extends DEVIntegMessagesLoadBaseType
                 break;
             }
 
-            brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(10));
+            brokeredMessage = serviceBusClient.Receive(System.TimeSpan::FromMilliseconds(60000));
         }
         serviceBusClient.Close();
 

@@ -12,6 +12,8 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryab
     NoYesId      runProcessAfterLoad;
     DialogField  dlgRunProcessAfterLoad;
 
+    DEVIntegMessageTypeInbound      integMessageTypeInboundExt;
+
 
 
     #define.CurrentVersion(1)
@@ -29,6 +31,10 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryab
     {
         DialogRunbase       dialog = super();
         ;
+        if (integMessageTypeInboundExt.RecId)
+        {
+            messageTypeId = integMessageTypeInboundExt.MessageTypeId;
+        }
         dlgMessageTypeId        = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeIdInbound), messageTypeId);
         dlgRunProcessAfterLoad  = dialog.addFieldValue(extendedtypestr(NoYesId), runProcessAfterLoad, "Run processing", "Execute files processing after load");
        
@@ -45,6 +51,17 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryab
         messageTypeId        = dlgMessageTypeId.value();
         runProcessAfterLoad  = dlgRunProcessAfterLoad.value();
         return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIntegMessageTypeInboundExt</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeInbound parmIntegMessageTypeInboundExt(DEVIntegMessageTypeInbound _integMessageTypeInboundExt = integMessageTypeInboundExt)
+    {
+        integMessageTypeInboundExt = _integMessageTypeInboundExt;
+        return integMessageTypeInboundExt;
     }
 
 ]]></Source>
@@ -313,8 +330,17 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryab
 				<Source><![CDATA[
     public static void main(Args _args)
     {
-        DEVIntegMessagesLoad    runObject = DEVIntegMessagesLoad::construct();
-        ;
+        DEVIntegMessagesLoad            runObject = DEVIntegMessagesLoad::construct();
+        DEVIntegMessageTypeInbound      integMessageTypeInboundExt;
+    
+        if (_args
+            && _args.record()
+            && _args.record().TableId == tablenum(DEVIntegMessageTypeInbound))
+        {
+            integMessageTypeInboundExt = _args.record();
+            runObject.parmMessageTypeId(integMessageTypeInboundExt.MessageTypeId);  
+            runObject.parmIntegMessageTypeInboundExt(integMessageTypeInboundExt);
+        }
     
         if (runObject.prompt())
         {

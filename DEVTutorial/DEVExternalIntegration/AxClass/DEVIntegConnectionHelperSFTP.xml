@@ -245,7 +245,7 @@ class DEVIntegConnectionHelperSFTP
     DEVIntegTmpFiles fillFiles(FolderName  _folderName = folderLocation, int _maxFileCount = 0)
     {
         fileList = null;
-        
+       
         _folderName = this.directoryName(_folderName);
 
         var fileItems  = clientNet.ListDirectory(_folderName, null);
