@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityDuty xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegIntegrationViewBase</Name>
+	<Label>External integration view(base)</Label>
+	<Privileges>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegConnectionTypeView</Name>
+		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegMessageTableView</Name>
+		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegWorkspaceMaintain</Name>
+		</AxSecurityPrivilegeReference>
+	</Privileges>
+</AxSecurityDuty>

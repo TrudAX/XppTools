@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxQuery xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxQuerySimple">
+	<Name>DEVIntegWorkspaceAllDayExportIncMessageQuery</Name>
+	<SourceCode>
+		<Methods>
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Query]
+public class DEVIntegWorkspaceAllDayExportIncMessageQuery extends QueryRun
+{
+}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Literals>ForceLiterals</Literals>
+	<DataSources>
+		<AxQuerySimpleRootDataSource>
+			<Name>DEVIntegMessageDataOutbound</Name>
+			<DynamicFields>Yes</DynamicFields>
+			<Table>DEVIntegMessageDataOutbound</Table>
+			<DataSources />
+			<DerivedDataSources />
+			<Fields />
+			<Ranges>
+				<AxQuerySimpleDataSourceRange>
+					<Name>CreatedDateTime</Name>
+					<Field>CreatedDateTime</Field>
+					<Value>(GreaterThanDate(-1))</Value>
+				</AxQuerySimpleDataSourceRange>
+			</Ranges>
+			<GroupBy />
+			<Having />
+			<OrderBy />
+		</AxQuerySimpleRootDataSource>
+	</DataSources>
+</AxQuery>

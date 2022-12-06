@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxQuery xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxQuerySimple">
+	<Name>DEVIntegWorkspaceExportMessageErrorQuery</Name>
+	<SourceCode>
+		<Methods>
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Query]
+public class DEVIntegWorkspaceExportMessageErrorQuery extends QueryRun
+{
+}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Literals>ForceLiterals</Literals>
+	<DataSources>
+		<AxQuerySimpleRootDataSource>
+			<Name>DEVIntegExportBulkLog</Name>
+			<DynamicFields>Yes</DynamicFields>
+			<Table>DEVIntegExportBulkLog</Table>
+			<DataSources />
+			<DerivedDataSources />
+			<Fields />
+			<Ranges>
+				<AxQuerySimpleDataSourceRange>
+					<Name>ExportStatus</Name>
+					<Field>ExportStatus</Field>
+					<Value>3</Value>
+				</AxQuerySimpleDataSourceRange>
+				<AxQuerySimpleDataSourceRange>
+					<Name>StartDateTime</Name>
+					<Field>StartDateTime</Field>
+					<Value>(GreaterThanDate(-1))</Value>
+				</AxQuerySimpleDataSourceRange>
+			</Ranges>
+			<GroupBy />
+			<Having />
+			<OrderBy />
+		</AxQuerySimpleRootDataSource>
+	</DataSources>
+</AxQuery>
