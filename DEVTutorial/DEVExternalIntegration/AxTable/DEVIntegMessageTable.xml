@@ -129,6 +129,23 @@ public class DEVIntegMessageTable extends common
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>getLogTable</Name>
+				<Source><![CDATA[
+    public DEVIntegErrorLog getLogTable()
+    {
+        DEVIntegErrorLog      errorLog;
+
+        select firstonly errorLog
+            order by CreatedDateTime desc
+            where errorLog.MessageRefRecId == this.RecId &&
+            errorLog.MessageTableId  == this.TableId;
+
+        return errorLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>setSession</Name>
 				<Source><![CDATA[
     void setSession()

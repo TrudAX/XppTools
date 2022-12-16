@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegServiceProcess</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegServiceProcess
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createMessage</Name>
+				<Source><![CDATA[
+    //https://www.jsonescaper.com/unescape/paste/
+    //https://learn.microsoft.com/en-us/dynamics365/fin-ops-core/dev-itpro/data-entities/third-party-service-test#query-odata-by-using-postman
+    //http://daxvisionerp.com/call-ax-data-entity-from-postman/
+    public DEVIntegServiceProcessResponse createMessage(DEVIntegServiceProcessRequest _request, str _messageData)
+    {
+        DEVIntegServiceProcessResponse  response = new DEVIntegServiceProcessResponse();
+        DEVIntegMessageTypeInbound      messageTypeInbound;
+
+        DEVIntegMessageTable            messageTable;
+        DEVIntegMessageCreator          messageCreator;
+        DEVIntegMessageProcessor        messageProcessor;
+        Name                            messageLabel;
+        boolean                         isErrorCaught;
+
+        int infoCnt = infologLine();
+
+        try
+        {
+            str  jsonStringData;
+            
+            jsonStringData = System.Net.WebUtility::HtmlDecode(_messageData);
+            if (! jsonStringData)
+            {
+                throw error(strFmt("Message %1 has empty data ", _request.parmMessageLabel()));
+            }
+
+            messageTypeInbound = DEVIntegMessageTypeInbound::find(_request.parmMessageTypeId());
+            if (! messageTypeInbound.RecId)
+            {
+                throw error(strFmt("Can't find incoming message setup for type %1", _request.parmMessageTypeId()));
+            }
+
+            if (! messageTypeInbound.Enabled)
+            {
+                throw error(strFmt("Message type %1 is not enabled", messageTypeInbound.MessageTypeId));
+            }
+
+            setPrefix(strFmt("Message type %1", messageTypeInbound.messageTypeId));
+
+            //create message
+            messageLabel = _request.parmMessageLabel();
+            if (! messageLabel)
+            {
+                messageLabel = strFmt("ServiceImport_%1%2",
+                    date2str(DEV::systemdateget(), 321, 2, 0, 2, 0,4 ), time2StrHMLeadingZero(DEV::timeNow()));
+            }
+
+            messageCreator = DEVIntegMessageCreator::construct();
+            messageCreator.initFromStringData(messageLabel, 'local', jsonStringData);
+            //messageCreator.parmIsManualImport(true);
+            messageTable = messageCreator.createMessage(messageTypeInbound);
+            response.parmMessageTableRecId(messageTable.RecId);
+
+            if (_request.parmIsProcess())
+            {
+                //process message
+                messageProcessor = DEVIntegMessageProcessor::construct(messageTypeInbound);
+                messageProcessor.processMessage(messageTable);
+
+                DEVIntegMessageTable messageTableUpd = DEVIntegMessageTable::findRecId(messageTable.RecId, true);
+                if (messageTableUpd.Status != DEVIntegMessageStatus::Processed)
+                {
+                    throw error(strFmt("Message %1 is not processed. Status = %2", messageTableUpd.RecId, messageTableUpd.Status));
+                }
+            }
+
+            //response.parmErrorMessage(strFmt("isProcess: %1, messageId: %2, Data: %3", 
+            //    _request.parmIsProcess(), _request.parmMessageTypeId(), jsonStringData));
+            response.parmIsSuccess(true);
+        }
+        catch (Exception::CLRError)
+        {
+            System.Exception interopException = CLRInterop::getLastException();
+
+            isErrorCaught = true;
+            response.parmErrorMessage(interopException.ToString());
+        }
+        catch (Exception::Error)
+        {
+            isErrorCaught = true;
+            if (messageTable.RecId)
+            {
+                if (messageTable.getLogTable().LogText)
+                {
+                    response.parmErrorMessage(messageTable.getLogTable().LogText);
+                }
+            }
+        }
+
+        if (isErrorCaught)
+        {
+            response.parmIsSuccess(false);
+
+            container taskInfolog;
+            str       logTxt;
+            if (infologLine() > infoCnt)
+            {
+                taskInfolog = infolog.copy(infoCnt + 1, infologLine());
+
+                if (taskInfolog != conNull())
+                {
+                    logTxt        = info::infoCon2Str(taskInfolog);
+
+                    response.parmErrorMessage((response.parmErrorMessage() ? '\n' : '')  + logTxt);
+                }
+            }
+        }
+
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>testMessage</Name>
+				<Source><![CDATA[
+    public DEVIntegServiceProcessResponse testMessage(DEVIntegServiceProcessRequest _request, str _messageData)
+    {
+        DEVIntegServiceProcessResponse response = new DEVIntegServiceProcessResponse();
+
+        System.String  jsonStringData;
+            
+        jsonStringData = System.Net.WebUtility::HtmlDecode(_messageData);
+
+
+        response.parmErrorMessage(strFmt("isProcess: %1, messageId: %2, Data: %3",
+            _request.parmIsProcess(), _request.parmMessageTypeId(), jsonStringData));
+        response.parmIsSuccess(true);
+
+        if (_request.parmIsProcess() == true)
+        {
+            throw error(strFmt("Test error for message %1", _request.parmMessageTypeId()));
+        }
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

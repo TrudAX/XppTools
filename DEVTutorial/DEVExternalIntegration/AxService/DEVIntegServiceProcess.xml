@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxService xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegServiceProcess</Name>
+	<Class>DEVIntegServiceProcess</Class>
+	<ExternalName>DEVIntegServiceProcess</ExternalName>
+	<ServiceOperations>
+		<AxServiceOperation>
+			<Name>createMessage</Name>
+			<Method>createMessage</Method>
+			<SubscriberAccessLevel>
+				<Read>Allow</Read>
+			</SubscriberAccessLevel>
+		</AxServiceOperation>
+	</ServiceOperations>
+</AxService>

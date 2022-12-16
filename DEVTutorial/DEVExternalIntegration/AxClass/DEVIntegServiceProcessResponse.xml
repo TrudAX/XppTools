@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegServiceProcessResponse</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+    DataContractAttribute
+]
+public class DEVIntegServiceProcessResponse
+{
+    boolean   isSuccess;
+    str       errorMessage;
+    RefRecId  messageTableRecId;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmIsSuccess</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(IsSuccess))]
+    public boolean parmIsSuccess(boolean _isSuccess = isSuccess)
+    {
+        isSuccess = _isSuccess;
+        return isSuccess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmErrorMessage</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(ErrorMessage))]
+    public str parmErrorMessage(str _errorMessage = errorMessage)
+    {
+        errorMessage = _errorMessage;
+        return errorMessage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTableRecId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(MessageTableRecId))]
+    public RefRecId parmMessageTableRecId(RefRecId _messageTableRecId = messageTableRecId)
+    {
+        messageTableRecId = _messageTableRecId;
+        return messageTableRecId;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
