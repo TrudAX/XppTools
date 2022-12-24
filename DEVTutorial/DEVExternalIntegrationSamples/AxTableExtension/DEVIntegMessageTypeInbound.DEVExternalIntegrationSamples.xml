@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageTypeInbound.DEVExternalIntegrationSamples</Name>
+	<FieldGroupExtensions>
+		<AxTableFieldGroupExtension>
+			<Name>LedgerImportParms</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>IsGroupByDescription</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroupExtension>
+	</FieldGroupExtensions>
+	<FieldGroups />
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsGroupByDescription</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Group By Description during processin</HelpText>
+			<Label>Group By Description</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<PropertyModifications />
+	<RelationExtensions />
+	<RelationModifications />
+	<Relations />
+</AxTableExtension>
