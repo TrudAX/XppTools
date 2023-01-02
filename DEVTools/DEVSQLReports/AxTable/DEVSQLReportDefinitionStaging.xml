@@ -1,71 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-	<Name>DEVSQLReportDefinition</Name>
+	<Name>DEVSQLReportDefinitionStaging</Name>
 	<SourceCode>
-		<Declaration><![CDATA[
-public class DEVSQLReportDefinition extends common
-{
-}
-]]></Declaration>
-		<Methods>
-			<Method>
-				<Name>find</Name>
-				<Source><![CDATA[
-    public static DEVSQLReportDefinition find(DEVSQLReportDefinitionId  _reportDefinitionId, 
-        boolean  _forUpdate = false)
-    {
-        DEVSQLReportDefinition  reportDefinition;
-        ;
-        if (_reportDefinitionId)
-        {
-            reportDefinition.selectForUpdate(_forUpdate);
-            
-            select firstonly  reportDefinition
-                where reportDefinition.ReportDefinitionId  == _reportDefinitionId;
-        }
-        
-        return reportDefinition;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>initValue</Name>
-				<Source><![CDATA[
-    public void initValue()
-    {
-        super();
-
-        this.IsDisplayLastUsedDialogParms = true;
-        this.IsSaveReportInLog = true;
-    }
-
-]]></Source>
-			</Method>
-		</Methods>
+		<Methods />
 	</SourceCode>
+	<DeveloperDocumentation>@DMF:StagingDeveloperDocumentation</DeveloperDocumentation>
 	<Label>SQL Report definition</Label>
-	<TableGroup>Group</TableGroup>
+	<TableGroup>Staging</TableGroup>
 	<TitleField1>ReportDefinitionId</TitleField1>
-	<CacheLookup>Found</CacheLookup>
-	<ClusteredIndex>ReportDefinitionIdIdx</ClusteredIndex>
-	<CreatedBy>Yes</CreatedBy>
-	<CreatedDateTime>Yes</CreatedDateTime>
-	<ModifiedBy>Yes</ModifiedBy>
-	<ModifiedDateTime>Yes</ModifiedDateTime>
-	<PrimaryIndex>ReportDefinitionIdIdx</PrimaryIndex>
-	<ReplacementKey>ReportDefinitionIdIdx</ReplacementKey>
+	<PrimaryIndex>StagingIdx</PrimaryIndex>
+	<ReplacementKey>StagingIdx</ReplacementKey>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
 	<DeleteActions />
 	<FieldGroups>
 		<AxTableFieldGroup>
 			<Name>AutoReport</Name>
 			<IsSystemGenerated>Yes</IsSystemGenerated>
-			<Fields>
-				<AxTableFieldGroupField>
-					<DataField>ReportDefinitionId</DataField>
-				</AxTableFieldGroupField>
-			</Fields>
+			<Fields />
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
 			<Name>AutoLookup</Name>
@@ -89,53 +40,21 @@ public class DEVSQLReportDefinition extends common
 			<Fields />
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
-			<Name>Overview</Name>
-			<Label>Overview</Label>
+			<Name>ExtensionList</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@DMF:StagingExtensionGroup</Label>
 			<Fields>
 				<AxTableFieldGroupField>
-					<DataField>ReportDefinitionId</DataField>
+					<DataField>DefinitionGroup</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>Description</DataField>
-				</AxTableFieldGroupField>
-			</Fields>
-		</AxTableFieldGroup>
-		<AxTableFieldGroup>
-			<Name>DetailsHeaderGroup</Name>
-			<Label>Details header</Label>
-			<Fields>
-				<AxTableFieldGroupField>
-					<DataField>ReportDefinitionId</DataField>
+					<DataField>IsSelected</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>Description</DataField>
+					<DataField>TransferStatus</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>MaxRows</DataField>
-				</AxTableFieldGroupField>
-			</Fields>
-		</AxTableFieldGroup>
-		<AxTableFieldGroup>
-			<Name>SQLData</Name>
-			<Label>SQL</Label>
-			<Fields>
-				<AxTableFieldGroupField>
-					<DataField>SQLText</DataField>
-				</AxTableFieldGroupField>
-			</Fields>
-		</AxTableFieldGroup>
-		<AxTableFieldGroup>
-			<Name>AdvancedGroup</Name>
-			<Label>Advanced</Label>
-			<Fields>
-				<AxTableFieldGroupField>
-					<DataField>FormatParameters</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>IsSaveReportInLog</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>IsDisplayLastUsedDialogParms</DataField>
+					<DataField>ExecutionId</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -143,27 +62,61 @@ public class DEVSQLReportDefinition extends common
 	<Fields>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
+			<Name>DefinitionGroup</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DMFDefinitionGroupName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+			<StringSize>60</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ExecutionId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DMFExecutionId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+			<StringSize>90</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsSelected</Name>
+			<ExtendedDataType>DMFIsSelected</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>TransferStatus</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>DMFTransferStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
 			<Name>ReportDefinitionId</Name>
 			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>DEVSQLReportDefinitionId</ExtendedDataType>
-			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>Description</Name>
 			<ExtendedDataType>Description</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>SQLText</Name>
 			<ExtendedDataType>DEVSQLText</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt">
 			<Name>MaxRows</Name>
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<HelpText>Maximum allowed rows</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
 			<Label>Max rows</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
@@ -171,6 +124,7 @@ public class DEVSQLReportDefinition extends common
 			<Name>FormatParameters</Name>
 			<ExtendedDataType>NotesLine</ExtendedDataType>
 			<HelpText>List of tables used to format the output(separated by ,)</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
 			<Label>Format</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
@@ -178,6 +132,7 @@ public class DEVSQLReportDefinition extends common
 			<Name>IsSaveReportInLog</Name>
 			<ExtendedDataType>NoYesId</ExtendedDataType>
 			<HelpText>Save report file in log</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
 			<Label>Save in log</Label>
 			<EnumType>NoYes</EnumType>
 		</AxTableField>
@@ -186,6 +141,7 @@ public class DEVSQLReportDefinition extends common
 			<Name>IsDisplayLastUsedDialogParms</Name>
 			<ExtendedDataType>NoYesId</ExtendedDataType>
 			<HelpText>Display last used parms in dialog</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
 			<Label>Display last used parms</Label>
 			<EnumType>NoYes</EnumType>
 		</AxTableField>
@@ -193,9 +149,16 @@ public class DEVSQLReportDefinition extends common
 	<FullTextIndexes />
 	<Indexes>
 		<AxTableIndex>
-			<Name>ReportDefinitionIdIdx</Name>
+			<Name>StagingIdx</Name>
 			<AlternateKey>Yes</AlternateKey>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
 			<Fields>
+				<AxTableIndexField>
+					<DataField>DefinitionGroup</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ExecutionId</DataField>
+				</AxTableIndexField>
 				<AxTableIndexField>
 					<DataField>ReportDefinitionId</DataField>
 				</AxTableIndexField>
@@ -203,6 +166,26 @@ public class DEVSQLReportDefinition extends common
 		</AxTableIndex>
 	</Indexes>
 	<Mappings />
-	<Relations />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DataEntity</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<EntityRelationshipRole>@DMF:StagingToDataEntityRelationshipRole</EntityRelationshipRole>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>DEVSQLReportDefinitionEntity</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Link</RelationshipType>
+			<Validate>No</Validate>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ReportDefinitionId</Name>
+					<Field>ReportDefinitionId</Field>
+					<RelatedField>ReportDefinitionId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
 	<StateMachines />
 </AxTable>

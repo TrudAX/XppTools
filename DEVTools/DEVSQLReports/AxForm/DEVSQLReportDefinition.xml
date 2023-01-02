@@ -12,6 +12,22 @@ public class DEVSQLReportDefinition extends FormRun
 }
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        str  helpText;
+        super();
+
+        helpText = 'In SQL use @ to define parameteres.\n';
+        helpText += 'e.g SELECT * FROM CustInvoiceJour where OrderAccount = @CustAccount and DataAreaId = @CompanyId\n';
+        helpText += 'and define 2 parameters CustAccount and CompanyId \n';
+        HelpStaticTextControl.text(helpText);
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 		<DataSources xmlns="" />
 		<DataControls xmlns="" />
@@ -29,10 +45,19 @@ public class DEVSQLReportDefinition extends FormRun
 					<DataField>CreatedDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
-					<DataField>DataAreaId</DataField>
+					<DataField>Description</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
-					<DataField>Description</DataField>
+					<DataField>FormatParameters</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsDisplayLastUsedDialogParms</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsSaveReportInLog</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MaxRows</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ModifiedBy</DataField>
@@ -72,7 +97,10 @@ public class DEVSQLReportDefinition extends FormRun
 					<DataField>CreatedDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
-					<DataField>Help text</DataField>
+					<DataField>EDTName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>HelpText</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>Label</DataField>
@@ -234,6 +262,15 @@ public class DEVSQLReportDefinition extends FormRun
 						<DataField>Description</DataField>
 						<DataSource>DEVSQLReportDefinition</DataSource>
 					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormIntegerControl">
+						<Name>DetailsHeaderGroup_MaxRows</Name>
+						<Type>Integer</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>MaxRows</DataField>
+						<DataSource>DEVSQLReportDefinition</DataSource>
+					</AxFormControl>
 				</Controls>
 				<ColumnsMode>Fill</ColumnsMode>
 				<DataGroup>DetailsHeaderGroup</DataGroup>
@@ -388,6 +425,15 @@ public class DEVSQLReportDefinition extends FormRun
 											</AxFormControl>
 											<AxFormControl xmlns=""
 												i:type="AxFormStringControl">
+												<Name>Overview1_EDTName</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>EDTName</DataField>
+												<DataSource>DEVSQLReportDefinitionParms</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
 												<Name>Overview1_Label</Name>
 												<Type>String</Type>
 												<FormControlExtension
@@ -414,6 +460,80 @@ public class DEVSQLReportDefinition extends FormRun
 						</Controls>
 						<Caption>Parameters</Caption>
 						<DataSource>DEVSQLReportDefinitionParms</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>AdvancedFormTabPageControl</Name>
+						<Pattern>FieldsFieldGroups</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>AdvancedGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>AdvancedGroup_FormatParameters</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FormatParameters</DataField>
+										<DataSource>DEVSQLReportDefinition</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>AdvancedGroup_IsSaveReportInLog</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>IsSaveReportInLog</DataField>
+										<DataSource>DEVSQLReportDefinition</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>AdvancedGroup_IsDisplayLastUsedDialogParms</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>IsDisplayLastUsedDialogParms</DataField>
+										<DataSource>DEVSQLReportDefinition</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>AdvancedGroup</DataGroup>
+								<DataSource>DEVSQLReportDefinition</DataSource>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>Advanced</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>HelpTabPageControl</Name>
+						<Pattern>FillText</Pattern>
+						<PatternVersion>UX7 1.0</PatternVersion>
+						<Type>TabPage</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStaticTextControl">
+								<Name>HelpStaticTextControl</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>StaticText</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+							</AxFormControl>
+						</Controls>
+						<Caption>Help</Caption>
 					</AxFormControl>
 				</Controls>
 				<Style>FastTabs</Style>

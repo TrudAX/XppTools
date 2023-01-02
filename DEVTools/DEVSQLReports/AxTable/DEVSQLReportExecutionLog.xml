@@ -15,10 +15,10 @@ public class DEVSQLReportExecutionLog extends common
     public void initFromSQLReport(DEVSQLReports  _SQLReports)
     {
         DEVSQLReportDefinition     reportDefinition; 
+        DEVSQLReportFormat         reportFormat;
         ;
-        select firstonly reportDefinition
-                where reportDefinition.ReportDefinitionId  == _SQLReports.ReportDefinitionId;
-
+        reportDefinition = DEVSQLReportDefinition::find(_SQLReports.ReportDefinitionId);
+        reportFormat =  DEVSQLReportFormat::find(_SQLReports.ReportFormatId);
         //DEVSQLReports
         //= DEVSQLReportDefinition::find(_SQLReports.ReportDefinitionId);
 
@@ -27,6 +27,13 @@ public class DEVSQLReportExecutionLog extends common
         this.ReportDefinitionId    = _SQLReports.ReportDefinitionId;
         this.SQLText               = reportDefinition.SQLText;
         this.Filename              = _SQLReports.Filename;
+        if (reportFormat.FileOutputType == DEVSQLFileOutputType::Excel)
+        {
+            if (subStr(this.Filename, strLen(this.Filename) - 5, 5) != '.xlsx')
+            {
+                this.Filename += '.xlsx';
+            }
+        }
     }
 
 ]]></Source>
@@ -240,6 +247,11 @@ public class DEVSQLReportExecutionLog extends common
 			<Name>Rows</Name>
 			<ExtendedDataType>Row</ExtendedDataType>
 			<Label>Total rows</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>ParametersCon</Name>
+			<Label>Parameters</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

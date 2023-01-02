@@ -7,7 +7,7 @@
 	<EnumValues>
 		<AxEnumValue>
 			<Name>Text</Name>
-			<Label>Text</Label>
+			<Label>Text / CSV</Label>
 		</AxEnumValue>
 		<AxEnumValue>
 			<Name>Excel</Name>

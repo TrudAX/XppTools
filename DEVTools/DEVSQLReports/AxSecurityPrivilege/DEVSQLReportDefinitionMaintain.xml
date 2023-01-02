@@ -2,7 +2,56 @@
 <AxSecurityPrivilege xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
 	<Name>DEVSQLReportDefinitionMaintain</Name>
 	<Label>SQL Report definition maintain</Label>
-	<DataEntityPermissions />
+	<DataEntityPermissions>
+		<AxSecurityDataEntityPermission>
+			<Grant>
+				<Correct>Allow</Correct>
+				<Create>Allow</Create>
+				<Delete>Allow</Delete>
+				<Read>Allow</Read>
+				<Update>Allow</Update>
+			</Grant>
+			<Name>DEVSQLReportDefinitionEntity</Name>
+			<Fields />
+			<Methods />
+		</AxSecurityDataEntityPermission>
+		<AxSecurityDataEntityPermission>
+			<Grant>
+				<Correct>Allow</Correct>
+				<Create>Allow</Create>
+				<Delete>Allow</Delete>
+				<Read>Allow</Read>
+				<Update>Allow</Update>
+			</Grant>
+			<Name>DEVSQLReportDefinitionParmsEntity</Name>
+			<Fields />
+			<Methods />
+		</AxSecurityDataEntityPermission>
+		<AxSecurityDataEntityPermission>
+			<Grant>
+				<Correct>Allow</Correct>
+				<Create>Allow</Create>
+				<Delete>Allow</Delete>
+				<Read>Allow</Read>
+				<Update>Allow</Update>
+			</Grant>
+			<Name>DEVSQLReportFormatEntity</Name>
+			<Fields />
+			<Methods />
+		</AxSecurityDataEntityPermission>
+		<AxSecurityDataEntityPermission>
+			<Grant>
+				<Correct>Allow</Correct>
+				<Create>Allow</Create>
+				<Delete>Allow</Delete>
+				<Read>Allow</Read>
+				<Update>Allow</Update>
+			</Grant>
+			<Name>DEVSQLReportsEntity</Name>
+			<Fields />
+			<Methods />
+		</AxSecurityDataEntityPermission>
+	</DataEntityPermissions>
 	<DirectAccessPermissions />
 	<EntryPoints>
 		<AxSecurityEntryPointReference>

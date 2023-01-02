@@ -5,19 +5,24 @@
 		<Declaration><![CDATA[
 public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
 {
-    DEVSQLReportId  reportId;
+    DEVSQLReportId                  reportId;
+    DEVSQLReportDefinitionId        reportDefinitionId;
     
     DialogField      dlgReportId;
-    
-    QueryRun       queryRun;
     
     DEVSQLReports   callerReports;
 
     NoYesId      isDisableUnpackQuery;
-    
+
+    Map          dialogControlsMap;
+    int          dialogControlsNum;
+
+    container   savedParmsCon;
+
     #define.CurrentVersion(1)
     #localmacro.CurrentList
-        reportId
+        reportId,
+        savedParmsCon
     #endmacro
     
 }
@@ -29,8 +34,61 @@ public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
     public Object dialog()
     {
         DialogRunbase       dialog = super();
+        DEVSQLReportDefinitionParms     reportDefinitionParms;
+        DEVSQLReportExecutionLog        reportExecutionLog;
+        DEVSQLReportDefinition          reportDefinition;
+        Name                            edtName;
+   
         ;
         dlgReportId  = dialog.addFieldValue(extendedtypestr(DEVSQLReportId), reportId);
+        dlgReportId.allowEdit(false);
+
+        reportDefinitionId = DEVSQLReports::find(reportId).ReportDefinitionId;
+        reportDefinition = DEVSQLReportDefinition::find(reportDefinitionId);
+
+        select firstonly reportExecutionLog
+            order by CreatedDateTime desc
+            where reportExecutionLog.CreatedBy == curUserId() && 
+                  reportExecutionLog.ReportId  == reportId;
+        
+        dialogControlsMap = new Map(Types::Integer, Types::Class);
+        dialogControlsNum = 0;
+
+        while select reportDefinitionParms
+            order by Position
+            where reportDefinitionParms.ReportDefinitionId == reportDefinitionId
+        {
+            dialogControlsNum++;
+            if (! reportDefinitionParms.EDTName || ! extendedTypeName2Id(reportDefinitionParms.EDTName))
+            {
+                edtName = reportDefinitionParms.defaultEDTName();
+            }
+            else
+            {
+                edtName = reportDefinitionParms.EDTName;
+            }
+
+            str                         savedName;
+            DEVSQLDefinitionParmType    savedType;
+            anytype                     savedValue;        
+            if (reportDefinition.IsDisplayLastUsedDialogParms)
+            {
+                if (conLen(reportExecutionLog.ParametersCon) >= dialogControlsNum)
+                {
+                    [savedName, savedType, savedValue] = conPeek(reportExecutionLog.ParametersCon, dialogControlsNum);
+                }
+            }
+            if (! savedName || ! savedValue || savedType != reportDefinitionParms.Type)
+            {
+                savedValue =  reportDefinitionParms.defaultParmValue();
+            }
+
+            DialogField  df;
+            df = dialog.addFieldValue(edtName, savedValue, reportDefinitionParms.Label, reportDefinitionParms.HelpText);
+
+            
+            dialogControlsMap.insert(reportDefinitionParms.Position, df);
+        }
         
         return dialog;
     }
@@ -42,9 +100,22 @@ public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
 				<Source><![CDATA[
     public boolean getFromDialog()
     {
+        DEVSQLReportDefinitionParms     reportDefinitionParms;
         ;
         reportId   = dlgReportId.value();
         
+        savedParmsCon = conNull();
+
+        while select reportDefinitionParms
+            order by Position
+            where reportDefinitionParms.ReportDefinitionId == reportDefinitionId
+        {
+            DialogField  df;
+            df = dialogControlsMap.lookup(reportDefinitionParms.Position);
+
+            savedParmsCon += [[reportDefinitionParms.Name, reportDefinitionParms.Type, df.value()]];
+        }
+
         return super();
     }
 
@@ -79,25 +150,7 @@ public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
 				<Source><![CDATA[
     public void initParmDefault()
     {
-        this.initQuery();
-    }
 
-]]></Source>
-			</Method>
-			<Method>
-				<Name>initQuery</Name>
-				<Source><![CDATA[
-    public void initQuery()
-    {
-        Query                   query = new Query();
-        QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEVSQLReports));
-        QueryBuildRange         qBR;
-        ;
-        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVSQLReports, IsEnabled));
-        qBR.status(RangeStatus::Locked);
-        qBR.value(SysQuery::value(NoYes::Yes));
-        
-        queryRun = new QueryRun(query);
     }
 
 ]]></Source>
@@ -107,7 +160,7 @@ public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
 				<Source><![CDATA[
     public container pack()
     {
-        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+        return [#CurrentVersion, #CurrentList];
     }
 
 ]]></Source>
@@ -129,7 +182,6 @@ public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
     public boolean unpack(container _packedClass)
     {
         Version    version = RunBase::getVersion(_packedClass);
-        container  queryCon;
 
         if (isDisableUnpackQuery)
         {
@@ -139,15 +191,7 @@ public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
         switch (version)
         {
             case #CurrentVersion:
-                [version, #CurrentList, queryCon] = _packedClass;
-                if (SysQuery::isPackedOk(queryCon))
-                {
-                    queryRun = new QueryRun(queryCon);
-                }
-                else
-                {
-                    this.initQuery();
-                }
+                [version, #CurrentList] = _packedClass;
                 break;
             default:
                 return false;
@@ -158,38 +202,17 @@ public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>queryRun</Name>
-				<Source><![CDATA[
-    public QueryRun queryRun()
-    {
-        return queryRun;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
 				<Name>run</Name>
 				<Source><![CDATA[
     public void run()
     {
-        int                     processedCounter;
-        QueryBuildDataSource    qBDS;
         DEVSQLReports    DEVSQLReports;
-        
-        qBDS = queryRun.query().dataSourceTable(tableNum(DEVSQLReports));
-        SysQuery::findOrCreateRange(qBDS, fieldnum(DEVSQLReports, ReportId)).value(queryValue(reportId));
-        
-        while (queryRun.next())
-        {
-            DEVSQLReports = queryRun.get(tablenum(DEVSQLReports));
+        DEVSQLReportsProcessor  reportsProcessor;
 
-            DEVSQLReportsProcessor  reportsProcessor = new DEVSQLReportsProcessor();
-            
-            reportsProcessor.processReport(DEVSQLReports);
-
-            processedCounter++;
-        }
-        //info(strfmt(" %1 record(s) processed", processedCounter));
+        DEVSQLReports = DEVSQLReports::find(reportId);
+        
+        reportsProcessor = new DEVSQLReportsProcessor();
+        reportsProcessor.processReport(DEVSQLReports, savedParmsCon);
     }
 
 ]]></Source>
@@ -260,7 +283,6 @@ public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
     public static void main(Args _args)
     {
         DEVSQLReportsProcess    runObject = DEVSQLReportsProcess::construct();
-        QueryBuildDataSource  qbds;
         ;
         if (_args.dataset() != tablenum(DEVSQLReports))
         {
@@ -269,15 +291,7 @@ public class DEVSQLReportsProcess extends RunBaseBatch implements BatchRetryable
         runObject.parmCallerDEVSQLReports(_args.record());
 
         runObject.parmIsDisableUnpackQuery(true);
-        /*
-        if (_args && _args.record().TableId == tablenum(DEVSQLReports))
-        {
-            qbds = runObject.queryRun().query().dataSourceTable(tablenum(DEVSQLReports));
-            qbds.clearRanges();
-            qbds.addRange(fieldnum(DEVSQLReports, RecId)).value(queryValue(runObject.parmCallerDEVSQLReports().RecId));
-            //runObject.parmIsDisableUnpackQuery(true);
-        }
-        */
+
         if (runObject.prompt())
         {
             runObject.runOperation();

@@ -21,6 +21,9 @@ class DEVSQLReportsProcessor
     str                     reportDelimeter;
     int                     currentRow;
 
+    container               savedParmsCon;
+    DEVSQLFileWriterExcel   fileWriterExcelGlobal;
+
 }
 ]]></Declaration>
 		<Methods>
@@ -38,14 +41,13 @@ class DEVSQLReportsProcessor
 			<Method>
 				<Name>processReport</Name>
 				<Source><![CDATA[
-    public void processReport(DEVSQLReports _SQLReports)
+    public void processReport(DEVSQLReports _SQLReports, container _parameters)
     {
+        savedParmsCon = _parameters;
+
         this.parmSQLReports(_SQLReports);
         
-
         this.createProcessLogRecord();
-
-      
 
         int         infoCnt ;
         infoCnt = infologLine();
@@ -100,6 +102,7 @@ class DEVSQLReportsProcessor
         reportExecutionLog.initFromSQLReport(DEVSQLReports::find(SQLReports.ReportId));
         reportExecutionLog.StartDateTime = DateTimeUtil::getSystemDateTime();
         reportExecutionLog.Status        = DEVSQLReportExecutionStatus::InProgress;
+        reportExecutionLog.ParametersCon = savedParmsCon;
         reportExecutionLog.insert();
     }
 
@@ -119,7 +122,23 @@ class DEVSQLReportsProcessor
         permission = new SqlStatementExecutePermission(_strQuery);
         permission.assert();
 
+        
         Map paramMap = SqlParams::create();
+        
+        int     i;
+        for(i = 1; i<= conLen(savedParmsCon); i++)
+        {
+            str                         savedName;
+            DEVSQLDefinitionParmType    savedType;
+            anytype                     savedValue;
+
+            [savedName, savedType, savedValue] = conPeek(savedParmsCon, i);
+
+            if (savedName)
+            {
+                paramMap.add(savedName, savedValue);
+            }
+        }
         resultSet = statement.executeQueryWithParameters(_strQuery, paramMap);
 
         return resultSet;
@@ -132,29 +151,44 @@ class DEVSQLReportsProcessor
 				<Source><![CDATA[
     public void sendOutputStream()
     {
-        #File
-
-        ioData = TextStreamIo::constructForWrite(0);//65001);
-        ioData.inFieldDelimiter(reportFormat.Delimiter);
-        ioData.outFieldDelimiter(reportFormat.Delimiter);
-        ioData.inRecordDelimiter(#delimiterCRLF);
-
-        ioData.writeRaw(resRow);
-
         System.IO.MemoryStream memoryStream;
-        memoryStream = ioData.getStream();
 
-        ttsbegin;
-        DEVSQLReportExecutionLog reportExecutionLogUpd = DEVSQLReportExecutionLog::findRecId(reportExecutionLog.RecId, true);
-        if (reportExecutionLogUpd.RecId)
+        if (reportFormat.FileOutputType == DEVSQLFileOutputType::Text)
         {
-            reportExecutionLogUpd.FileData = this.getFileDataFromStream(memoryStream);
-            reportExecutionLogUpd.update();
+            #File
+
+            ioData = TextStreamIo::constructForWrite(0);//65001);
+            ioData.inFieldDelimiter(reportFormat.Delimiter);
+            ioData.outFieldDelimiter(reportFormat.Delimiter);
+            ioData.inRecordDelimiter(#delimiterCRLF);
+
+            ioData.writeRaw(resRow);
+
+            memoryStream = ioData.getStream();
         }
-        ttscommit;
-        if (reportExecutionLogUpd.FileData != conNull())
+        if (reportFormat.FileOutputType == DEVSQLFileOutputType::Excel)
         {
-            File::SendFileToUser(reportExecutionLogUpd.getFileStream(), reportExecutionLog.Filename);
+            memoryStream = fileWriterExcelGlobal.finishOutputGetStream();
+        }
+        if (reportDefinition.IsSaveReportInLog)
+        {
+            ttsbegin;
+            DEVSQLReportExecutionLog reportExecutionLogUpd = DEVSQLReportExecutionLog::findRecId(reportExecutionLog.RecId, true);
+            if (reportExecutionLogUpd.RecId)
+            {
+                System.IO.MemoryStream memoryStream2 = new System.IO.MemoryStream();
+                memoryStream.Position = 0;
+                memoryStream.CopyTo(memoryStream2);
+                reportExecutionLogUpd.FileData = this.getFileDataFromStream(memoryStream2);
+                reportExecutionLogUpd.update();
+            }
+            ttscommit;
+        }
+        //if (reportExecutionLogUpd.FileData != conNull())
+        if (memoryStream.Length > 0)
+        {
+            //memoryStream.Position = 0;
+            File::SendFileToUser(memoryStream, reportExecutionLog.Filename);
         }
         else
         {
@@ -195,7 +229,7 @@ class DEVSQLReportsProcessor
         reportFormat     = DEVSQLReportFormat::find(reportExecutionLog.ReportFormatId);
         reportDefinition = DEVSQLReportDefinition::find(reportExecutionLog.ReportDefinitionId);
 
-        str fileExt = conPeek(fileNameSplit(reportExecutionLog.Filename), 3);
+        //str fileExt = conPeek(fileNameSplit(reportExecutionLog.Filename), 3);
 
         reportDelimeter = reportFormat.Delimiter;
         if (reportDelimeter == 'Tab')
@@ -203,7 +237,191 @@ class DEVSQLReportsProcessor
             reportDelimeter = '\t';
         }
 
-        this.doExecuteQueryResult();
+        if (reportFormat.FileOutputType == DEVSQLFileOutputType::Text)
+        {
+            this.doExecuteQueryResult();
+        }
+        if (reportFormat.FileOutputType == DEVSQLFileOutputType::Excel)
+        {
+            fileWriterExcelGlobal = this.doExecuteQueryResultExcel();
+        }
+
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doExecuteQueryResultExcel</Name>
+				<Source><![CDATA[
+    public DEVSQLFileWriterExcel doExecuteQueryResultExcel()
+    {
+        int         i, j;
+        container   expectedSubResult;
+        ResultSet   resultSet;
+        ResultSetMetaData  resultSetMetaData;
+        boolean     isFirstRow = true;
+        int         maxColumnCount;
+        Map         columnTypesMap = new Map(Types::Integer, Types::Integer);
+        Map         enumTypesMap = new Map(Types::String, Types::String);
+        Set         enumColumnSet = new Set(Types::Integer);
+        Set         dateTimeColumnSet = new Set(Types::Integer);
+        Set         dateColumnSet = new Set(Types::Integer);
+        container   tableNamesCon;
+        int curTab;
+        DEVSQLFileWriterExcel  fileWriterExcel;
+        ;
+        if (reportDefinition.FormatParameters)
+        {
+            tableNamesCon = str2con_RU(strReplace(reportDefinition.FormatParameters, ' ', ''), ',');
+        }
+
+        fileWriterExcel = new DEVSQLFileWriterExcel();
+        fileWriterExcel.parmWorkSheetNameStr(reportExecutionLog.Filename);
+
+        currentRow = 0;
+
+        resultSet = this.getResultSet(reportExecutionLog.SQLText);
+        resultSetMetaData = resultSet.getMetaData();
+
+        while(resultSet.next())
+        {
+            currentRow++;
+            if (reportDefinition.MaxRows && currentRow > reportDefinition.MaxRows)
+            {
+                warning(strFmt("Exceeding the allowed number of lines %1", reportDefinition.MaxRows));
+                break;
+            }
+            //print row headers
+            if (isFirstRow)
+            {
+                expectedSubResult = connull();
+                for ( i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+                {
+                    str  columnName = resultSetMetaData.getColumnName(i);
+                    expectedSubResult += columnName;
+
+                    DictTable   dictTable;
+                    DictField   dictField;
+                    DictEnum    dictEnum;
+                    for(curTab = 1; curTab <= conLen(tableNamesCon); curTab++)
+                    {
+                        dictTable = new DictTable(tableName2Id(conPeek(tableNamesCon, curTab)));
+                        if (dictTable)
+                        {
+                            FieldId  fieldId = dictTable.fieldName2Id(columnName);
+                            if (fieldId)
+                            {
+                                dictField = dictTable.fieldObject(fieldId);
+                                if (dictField.baseType() == Types::Enum && dictField.enumId())
+                                {
+                                    enumColumnSet.add(i);
+                                    dictEnum = new DictEnum(dictField.enumId());
+                                    for (j = 0; j < dictEnum.values(); j++)
+                                    {
+                                        enumTypesMap.insert(strFmt('%1:%2',i, dictEnum.index2Value(j)),  dictEnum.index2Label(j));
+                                    }
+                                    info(strFmt("Enum transformation %1.%2 is applied to %3(%4) field",
+                                        dictTable.name(), dictField.name(), columnName, i));
+                                }
+                                if (dictField.baseType() == Types::UtcDateTime)
+                                {
+                                    dateTimeColumnSet.add(i);
+                                    info(strFmt("DateTime transformation %1.%2 is applied to %3(%4) field",
+                                        dictTable.name(), dictField.name(), columnName, i));
+                                }
+                                if (dictField.baseType() == Types::Date)
+                                {
+                                    dateColumnSet.add(i);
+                                    //info(strFmt("DateTime transformation %1.%2 is applied to %3(%4) field",
+                                    //    dictTable.name(), dictField.name(), columnName, i));
+                                }
+                            }
+                        }
+                    }
+
+                    columnTypesMap.insert(i, resultSetMetaData.getColumnType(i));
+                }
+                //this.addResultRow(expectedSubResult, true);
+                
+                fileWriterExcel.addContainerLine(expectedSubResult);
+                fileWriterExcel.markRowAsBold();
+                
+                isFirstRow = false;
+
+                maxColumnCount = resultSetMetaData.getColumnCount();
+            }
+            expectedSubResult = connull();
+            str     sTmp;
+            for ( i = 1; i <= maxColumnCount; i++)
+            {
+                //int colType = resultSetMetaData.getColumnType(i);
+                Types t = columnTypesMap.lookup(i);
+                switch (t)
+                {
+                    case Types::Real:
+                        real realTmp = resultSet.getReal(i);
+                        expectedSubResult += realTmp;
+                        break;
+                    case Types::Integer:
+                        int intTmp = resultSet.getInt(i);
+                        if (enumColumnSet.in(i))
+                        {
+                            if (enumTypesMap.exists(strFmt('%1:%2',i, intTmp)))
+                            {
+                                sTmp = enumTypesMap.lookup(strFmt('%1:%2',i, intTmp));
+                            }
+                            else
+                            {
+                                sTmp = strFmt('%1', intTmp);
+                            }
+                            expectedSubResult += sTmp;
+                        }
+                        else
+                        {
+                            expectedSubResult += intTmp;
+                        }
+
+                        break;
+                    case Types::Date:
+                        if (dateTimeColumnSet.in(i))
+                        {
+                            TransDateTime  tdt = resultSet.getDateTime(i);
+                            if (tdt != utcDateTimeNull())
+                            {
+                                tdt = DateTimeUtil::applyTimeZoneOffset(tdt, DateTimeUtil::getUserPreferredTimeZone());
+                            }
+                            expectedSubResult += tdt;
+                        }
+                        else
+                        {
+                            if (dateColumnSet.in(i))
+                            {
+                                TransDate td = resultSet.getDate(i);
+                                expectedSubResult += td;
+                            }
+                            else
+                            {
+                                sTmp = resultSet.getString(i);
+                                expectedSubResult += sTmp;
+                            }
+                        }
+                        break;
+                    default:
+                        sTmp = resultSet.getString(i);
+                        expectedSubResult += sTmp;
+                }
+                
+            }
+            fileWriterExcel.addContainerLine(expectedSubResult);
+
+        }
+        fileWriterExcel.createExcelDocument();
+
+        fileWriterExcel.doExcelOutput('A1');
+        fileWriterExcel.excelMarkAsBorderAll();
+
+        return fileWriterExcel;
     }
 
 ]]></Source>
@@ -221,38 +439,16 @@ class DEVSQLReportsProcessor
 
         for (i = 1; i <= conLen(_row); i++)
         {
-            this.addRowCell(conPeek(_row, i));
+            str  cellData = conPeek(_row, i);
+            curCellPosition++;
+            if (curCellPosition > 1)
+            {
+                textBuffer.appendText(reportDelimeter);
+            }
+            textBuffer.appendText(cellData);
         }
-        this.addNewRow();
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>addNewRow</Name>
-				<Source><![CDATA[
-    void  addNewRow()
-    {
-        //resRow += '\n';
         textBuffer.appendText('\n');
         curCellPosition = 0;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>addRowCell</Name>
-				<Source><![CDATA[
-    void  addRowCell(str  _cellData)
-    {
-        curCellPosition++;
-        if (curCellPosition > 1)
-        {
-            textBuffer.appendText(reportDelimeter);
-            //resRow += reportFormat.Delimiter;
-        }
-        textBuffer.appendText(_cellData);
-        //resRow += strFmt('%1', _cellData);
     }
 
 ]]></Source>
@@ -307,25 +503,23 @@ class DEVSQLReportsProcessor
             }
             else
             {
-                this.addNewRow();
+                textBuffer.appendText('\n');
+                curCellPosition = 0;
             }
             str     sTmp;
             for ( i = 1; i <= maxColumnCount; i++)
             {
                 sTmp = resultSet.getString(i);
 
-                this.addRowCell(sTmp);
+                curCellPosition++;
+                if (curCellPosition > 1)
+                {
+                    textBuffer.appendText(reportDelimeter);
+                }
+                textBuffer.appendText(sTmp);
+
             }
 
-            /*
-                for ( i = 1; i <= maxColumnCount; i++)
-                {
-                    //int colType = resultSetMetaData.getColumnType(i);
-                    //Types t = colType;
-                    str     sTmp = resultSet.getString(i);
-
-                }
-                */
         }
         resRow = textBuffer.getText();
     }

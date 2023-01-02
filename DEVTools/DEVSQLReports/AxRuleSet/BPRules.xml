@@ -207,9 +207,6 @@
 			<Moniker>BPCheckSQLQueryInInit</Moniker>
 		</Rule>
 		<Rule>
-			<Moniker>BPCheckSQLCode</Moniker>
-		</Rule>
-		<Rule>
 			<Moniker>BPCheckInvalidInitFormMethodWarning</Moniker>
 		</Rule>
 		<Rule>
@@ -453,12 +450,6 @@
 			<Moniker>BPErrorEdtFormHelpIsLookup</Moniker>
 		</Rule>
 		<Rule>
-			<Moniker>BPErrorLabelAndHelpAreEqual</Moniker>
-		</Rule>
-		<Rule>
-			<Moniker>BPErrorHelpIsText</Moniker>
-		</Rule>
-		<Rule>
 			<Moniker>BPErrorEnumSameLabelAndHelp</Moniker>
 		</Rule>
 		<Rule>
@@ -514,9 +505,6 @@
 		</Rule>
 		<Rule>
 			<Moniker>BPErrorNormalImagePropertyInvalid</Moniker>
-		</Rule>
-		<Rule>
-			<Moniker>BPWarningFormDesignOrControlsWithCustomPattern</Moniker>
 		</Rule>
 		<Rule>
 			<Moniker>BPErrorSegmentedEntryControlControllerNotDefined</Moniker>
@@ -616,9 +604,6 @@
 		</Rule>
 		<Rule>
 			<Moniker>BPErrorTableDelPrefixConflict</Moniker>
-		</Rule>
-		<Rule>
-			<Moniker>BPErrorDeveloperDocumentationNotDefined</Moniker>
 		</Rule>
 		<Rule>
 			<Moniker>BPErrorTableNaturalKeyWithRecordID</Moniker>

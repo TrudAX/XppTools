@@ -93,7 +93,7 @@ class DEVSQLQueryExecute
 
         this.logBegin();
 
-        str fileExt = conPeek(fileNameSplit(executeParm.Filename), 3);
+        //str fileExt = conPeek(fileNameSplit(executeParm.Filename), 3);
         //if (fileExt != '.html')
         //{
         //    isRawOutput = true;
@@ -263,10 +263,14 @@ class DEVSQLQueryExecute
         Set         enumColumnSet = new Set(Types::Integer);
         Set         dateTimeColumnSet = new Set(Types::Integer);
         Set         dateColumnSet = new Set(Types::Integer);
-        container   tableNamesCon = str2con_RU(strReplace(executeParm.FormatParameters, ' ', ''), ',');
+        container   tableNamesCon;
         int curTab;
         ;
 
+        if (executeParm.FormatParameters)
+        {
+            tableNamesCon = str2con_RU(strReplace(executeParm.FormatParameters, ' ', ''), ',');
+        }
         resultSet = this.getResultSet(executeParm.SQLText);
         resultSetMetaData = resultSet.getMetaData();
 
@@ -303,7 +307,7 @@ class DEVSQLQueryExecute
                                 {
                                     enumColumnSet.add(i);
                                     dictEnum = new DictEnum(dictField.enumId());
-                                    for (j = 1; j <= dictEnum.values(); j++)
+                                    for (j = 0; j < dictEnum.values(); j++)  //CustInvoiceJour.SalesType starts from 0
                                     {
                                         enumTypesMap.insert(strFmt('%1:%2',i, dictEnum.index2Value(j)),  dictEnum.index2Label(j));
                                     }
