@@ -172,7 +172,7 @@ A sample code to Create a new design for Sales Invoice report in D365FO (https:/
 
 ## DEVExternalIntegration submodel
 
-Contains integration solution XppInteg. It consists from [core module](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegration) and [samples](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegrationSamples)
+Contains "External integration" framework. It includes [core module](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegration) and [samples](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegrationSamples)
 
 ### -File-based integration in Dynamics 365 FinOps using X++
 
