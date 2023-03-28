@@ -23,7 +23,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
     boolean                     isExportStatusOverrided;
     NotesLine                   documentDescription;
     TransDateTime               exportStartDateTime;
-    
+    int                         numberOfSkippedLines;
     
     #define.CurrentVersion(1)
     #localmacro.CurrentList
@@ -34,6 +34,16 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 }
 ]]></Declaration>
 		<Methods>
+			<Method>
+				<Name>incSkipCount</Name>
+				<Source><![CDATA[
+    public void incSkipCount() //for monitor expensive validations
+    {
+        numberOfSkippedLines++;
+    }
+
+]]></Source>
+			</Method>
 			<Method>
 				<Name>parmCallerMessageTypeTableOutbound</Name>
 				<Source><![CDATA[
@@ -201,6 +211,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
             
             exportBulkLogUpd.RecordsProcessed      = numberOfLines;
             exportBulkLogUpd.DocumentDescription   = documentDescription;
+            exportBulkLogUpd.RecordsSkipped        = numberOfSkippedLines;
             exportBulkLogUpd.update();
 
             DEVIntegErrorLog::insertErrorByMessage(exportBulkLogUpd, infoCnt, exception);
@@ -472,7 +483,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
         memoryStream = ioDataStream.getStream();
 
         Filename fileName;
-        fileName =  messageTypeTableOutbound.getFileName();
+        fileName =  messageTypeTableOutbound.getFileName(exportStartDateTime);
         
         if (isTestRun)
         {
@@ -484,14 +495,66 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
             {
                 case DEVIntegConnectionTypeResource::AzureFileShare:
                     this.writeFileAzureStorage(fileName, memoryStream);
+                    info(strFmt("File %1 created in %2 folder", fileName, messageTypeTableOutbound.OutputFolder));
                     break;
                 case DEVIntegConnectionTypeResource::SFTP:
                     this.writeFileSFTP(fileName, memoryStream);
+                    info(strFmt("File %1 created in %2 folder", fileName, messageTypeTableOutbound.OutputFolder));
                     break;
             }
-            info(strFmt("File %1 created in %2 folder", fileName, messageTypeTableOutbound.OutputFolder));
+            
+        }
+        if (messageTypeTableOutbound.IsSendEmail)
+        {
+            memoryStream.Position = 0;
+            this.sendFileByEmail(memoryStream, fileName);
         }
         documentDescription = fileName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFileByEmail</Name>
+				<Source><![CDATA[
+    public void sendFileByEmail(System.IO.MemoryStream _memoryStream, str _fileName)
+    {
+        if (messageTypeTableOutbound.IsSendEmail && messageTypeTableOutbound.EmailTemplateId && messageTypeTableOutbound.EmailRecipient)
+        {
+            SysEmailTable         sysEmailTable = SysEmailTable::find(messageTypeTableOutbound.EmailTemplateId);
+            SysEmailMessageTable  sysEmailMessageTable = SysEmailMessageTable::find(sysEmailTable.EmailId, sysEmailTable.DefaultLanguage);
+
+            str messageBody = sysEmailMessageTable.Mail;
+            str subject = sysEmailMessageTable.Subject;
+            Map placeholderMap = new Map(Types::String, Types::String);
+
+            placeholderMap.insert("DateTime", strFmt("%1", exportStartDateTime));
+
+            messageBody = SysEmailMessage::stringExpand(messageBody, placeholderMap);
+            subject     = SysEmailMessage::stringExpand(subject, placeholderMap);
+  
+            var mailer = SysMailerFactory::getNonInteractiveMailer();
+
+            SysMailerMessageBuilder messageBuilder = new SysMailerMessageBuilder();
+            messageBuilder.setFrom(sysEmailTable.SenderAddr, sysEmailTable.SenderName)
+                          .addTo(messageTypeTableOutbound.EmailRecipient)
+                          .addCc(messageTypeTableOutbound.EmailCC)
+                          .setSubject(subject)
+                          .setBody(messageBody);
+
+            messageBuilder.addAttachment(_memoryStream, _fileName);
+            
+            boolean result = SysMailerFactory::sendNonInteractive(messageBuilder.getMessage());
+
+            if (result)
+            {
+                info(strFmt("Email was send to %1", messageTypeTableOutbound.EmailRecipient));
+            }
+            else
+            {
+                warning(strFmt("Failed to send e-mail to %1", messageTypeTableOutbound.EmailRecipient));
+            }
+        }
     }
 
 ]]></Source>

@@ -82,6 +82,9 @@ public class DEVIntegExportBulkLog extends FormRun
 					<DataField>RecordsProcessed</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>RecordsSkipped</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>StartDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -288,6 +291,15 @@ public class DEVIntegExportBulkLog extends FormRun
 								<FormControlExtension
 									i:nil="true" />
 								<DataField>DocumentDescription</DataField>
+								<DataSource>DEVIntegExportBulkLog</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormIntegerControl">
+								<Name>Overview_RecordsSkipped</Name>
+								<Type>Integer</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>RecordsSkipped</DataField>
 								<DataSource>DEVIntegExportBulkLog</DataSource>
 							</AxFormControl>
 						</Controls>

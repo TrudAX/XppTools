@@ -93,9 +93,9 @@ public class DEVIntegServiceProcess
             isErrorCaught = true;
             if (messageTable.RecId)
             {
-                if (messageTable.getLogTable().LogText)
+                if (messageTable.getErrorLog().LogText)
                 {
-                    response.parmErrorMessage(messageTable.getLogTable().LogText);
+                    response.parmErrorMessage(messageTable.getErrorLog().LogText);
                 }
             }
         }

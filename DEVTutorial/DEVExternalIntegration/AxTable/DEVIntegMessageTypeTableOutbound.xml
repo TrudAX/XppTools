@@ -169,7 +169,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<Method>
 				<Name>getFileName</Name>
 				<Source><![CDATA[
-    public Filename getFileName()
+    public Filename getFileName(TransDateTime  _exportDateTime)
     {
         Filename        res;
 
@@ -184,8 +184,16 @@ public class DEVIntegMessageTypeTableOutbound extends common
                 str sAX;
                 if (this.FileNameParameterD)
                 {
-                    System.DateTime dateNow = System.DateTime::Now;
+                    System.DateTime dateNow;
 
+                    if (_exportDateTime)
+                    {
+                        dateNow = Global::utcDateTime2SystemDateTime(_exportDateTime);
+                    }
+                    else
+                    {
+                        dateNow = System.DateTime::Now;
+                    }
                     System.String sDate;
                     sDate = dateNow.ToString(this.FileNameParameterD, System.Globalization.DateTimeFormatInfo::InvariantInfo);
 
@@ -286,15 +294,12 @@ public class DEVIntegMessageTypeTableOutbound extends common
 
         queryRun = this.packedQueryRun();
 
-        Query q = new Query();
-      
         if (queryRun)
         {
             for(i = 1; i <= queryRun.query().dataSourceCount(); i++)
             {
                 qBDS = queryRun.query().dataSourceNo(i);
-                
-               
+                               
                 res += strFmt('%1(%2):\n', tableId2PName(qBDS.table()), tableId2Name(qBDS.table()));
                 res += DEV::datasourceRangesAsText(qBDS);
                 res += '\n';
@@ -328,7 +333,6 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				<Source><![CDATA[
     public void querySetDefault()
     {
-        boolean                 res;
         DEVIntegExportBulkBase  exportClass = this.getBulkExportClass();
         Query                   query;
         QueryRun                queryRun;
@@ -355,7 +359,6 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				<Source><![CDATA[
     public void queryChangeValue()
     {
-        boolean                 res;
         DEVIntegExportBulkBase  exportClass = this.getBulkExportClass();
         Query                   query;
         SysQueryRun             queryRun;
@@ -614,6 +617,24 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Email</Name>
+			<Label>E-mail</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>IsSendEmail</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EmailTemplateId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EmailRecipient</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>EmailCC</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -729,6 +750,33 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<HelpText>Packed query value</HelpText>
 			<Label>Packed query</Label>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsSendEmail</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Send the result of the export as e-mail attachment</HelpText>
+			<Label>Send e-mail</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EmailRecipient</Name>
+			<ExtendedDataType>Email</ExtendedDataType>
+			<HelpText>Email recipient</HelpText>
+			<Label>Recipient</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EmailCC</Name>
+			<ExtendedDataType>Email</ExtendedDataType>
+			<HelpText>Email CC</HelpText>
+			<Label>CC</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EmailTemplateId</Name>
+			<ExtendedDataType>SysEmailId</ExtendedDataType>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>
@@ -773,6 +821,24 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				</AxTableRelationConstraint>
 			</Constraints>
 			<Index>ConnectionTypeIdIdx</Index>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>SysEmailTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>SysEmailTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>EmailTemplateId</Name>
+					<SourceEDT>SysEmailId</SourceEDT>
+					<Field>EmailTemplateId</Field>
+					<RelatedField>EmailId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
 		</AxTableRelation>
 	</Relations>
 	<StateMachines />

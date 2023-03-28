@@ -33,5 +33,10 @@
 			<Label>Processed</Label>
 			<Value>5</Value>
 		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Warning</Name>
+			<Label>Warning</Label>
+			<Value>6</Value>
+		</AxEnumValue>
 	</EnumValues>
 </AxEnum>

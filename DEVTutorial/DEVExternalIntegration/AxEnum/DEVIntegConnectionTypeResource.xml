@@ -19,5 +19,10 @@
 			<Label>SFTP</Label>
 			<Value>2</Value>
 		</AxEnumValue>
+		<AxEnumValue>
+			<Name>None</Name>
+			<Label>None</Label>
+			<Value>3</Value>
+		</AxEnumValue>
 	</EnumValues>
 </AxEnum>

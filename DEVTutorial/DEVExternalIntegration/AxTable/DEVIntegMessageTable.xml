@@ -81,6 +81,23 @@ public class DEVIntegMessageTable extends common
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>getErrorLog</Name>
+				<Source><![CDATA[
+    DEVIntegErrorLog  getErrorLog()
+    {
+        DEVIntegErrorLog  errorLog;
+
+        select firstonly errorLog
+        order by CreatedDateTime desc
+            where errorLog.MessageRefRecId == this.RecId &&
+                  errorLog.MessageTableId  == this.TableId;
+        
+        return errorLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>findRecId</Name>
 				<Source><![CDATA[
     public static DEVIntegMessageTable findRecId(RefRecId _recId,  boolean _forUpdate = false)
@@ -124,23 +141,6 @@ public class DEVIntegMessageTable extends common
     display DEVIntegIsMessageHasLog hasLog()
     {
         return DEVIntegErrorLog::existForMessageTable(this.RecId, this.TableId);
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>getLogTable</Name>
-				<Source><![CDATA[
-    public DEVIntegErrorLog getLogTable()
-    {
-        DEVIntegErrorLog      errorLog;
-
-        select firstonly errorLog
-            order by CreatedDateTime desc
-            where errorLog.MessageRefRecId == this.RecId &&
-            errorLog.MessageTableId  == this.TableId;
-
-        return errorLog;
     }
 
 ]]></Source>
@@ -218,7 +218,28 @@ public class DEVIntegMessageTable extends common
         boolean res;
         if (this.Status == DEVIntegMessageStatus::Processing ||
             this.Status == DEVIntegMessageStatus::Ready      ||
+            this.Status == DEVIntegMessageStatus::Warning    ||
             this.Status == DEVIntegMessageStatus::Error)
+        {
+            res = true;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isProcessEnabled</Name>
+				<Source><![CDATA[
+    public boolean isProcessEnabled()
+    {
+        boolean res;
+
+        if (this.Status      == DEVIntegMessageStatus::Ready ||
+            this.Status      == DEVIntegMessageStatus::Cancelled ||
+            this.Status      == DEVIntegMessageStatus::Processing ||
+            this.Status      == DEVIntegMessageStatus::Warning ||
+            this.Status      == DEVIntegMessageStatus::Error )
         {
             res = true;
         }

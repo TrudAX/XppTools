@@ -69,8 +69,9 @@ public class DEVIntegMessageProcessor
             
         if (messageTableUpd.RecVersion == _messageTable.RecVersion )
         {
-            if (messageTableUpd.Status      == DEVIntegMessageStatus::Ready ||
-                messageTableUpd.Status      == DEVIntegMessageStatus::Error  || 
+            if (messageTableUpd.Status      == DEVIntegMessageStatus::Ready    ||
+                messageTableUpd.Status      == DEVIntegMessageStatus::Error    || 
+                messageTableUpd.Status      == DEVIntegMessageStatus::Warning  ||
                 messageTableUpd.Status      == DEVIntegMessageStatus::Cancelled  ||
                (messageTableUpd.Status      == DEVIntegMessageStatus::Processing && (
                  messageTableUpd.isBlockedByCurrentSession() || ! messageTableUpd.isSessionActive())) )
@@ -188,7 +189,14 @@ public class DEVIntegMessageProcessor
             {
                 error(processResults.parmProcessPrefix());
             }
-            curMessageStatus = DEVIntegMessageStatus::Error;
+            if (processResults.isMessageStatusSet())
+            {
+                curMessageStatus = processResults.messageStatusExternal();
+            }
+            else
+            {
+                curMessageStatus = DEVIntegMessageStatus::Error;
+            }
         }
         
 
@@ -210,6 +218,17 @@ public class DEVIntegMessageProcessor
             DEVIntegErrorLog::insertErrorByMessage(messageTableUpd, infoCnt, exception);
         }
         ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processSingleMessage</Name>
+				<Source><![CDATA[
+    static void processSingleMessage(DEVIntegMessageTable   _messageTable)
+    {
+        DEVIntegMessageProcessor messageProcessor = DEVIntegMessageProcessor::construct(_messageTable.messageTypeTable());
+        messageProcessor.processMessage(_messageTable);
     }
 
 ]]></Source>

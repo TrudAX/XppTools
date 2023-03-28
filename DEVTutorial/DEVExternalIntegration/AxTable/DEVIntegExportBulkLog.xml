@@ -119,6 +119,9 @@ public class DEVIntegExportBulkLog extends common
 				<AxTableFieldGroupField>
 					<DataField>DocumentDescription</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RecordsSkipped</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -199,6 +202,13 @@ public class DEVIntegExportBulkLog extends common
 			<Name>Duration</Name>
 			<ExtendedDataType>Seconds</ExtendedDataType>
 			<Label>Duration(seconds)</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>RecordsSkipped</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Number of skipped lines</HelpText>
+			<Label>Skipped</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

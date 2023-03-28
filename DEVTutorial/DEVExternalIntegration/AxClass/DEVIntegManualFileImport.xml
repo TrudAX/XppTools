@@ -13,6 +13,8 @@ class DEVIntegManualFileImport extends RunBaseBatch
     private const str OkButtonName    = 'OkButton';
     FileUploadTemporaryStorageResult    fileUploadResult;
 
+    DEVIntegMessageTable            messageTable;
+
     #define.CurrentVersion(1)
     #localmacro.CurrentList
         messageTypeId
@@ -22,6 +24,16 @@ class DEVIntegManualFileImport extends RunBaseBatch
 }
 ]]></Declaration>
 		<Methods>
+			<Method>
+				<Name>getMessageTable</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTable  getMessageTable()
+    {
+        return messageTable;
+    }
+
+]]></Source>
+			</Method>
 			<Method>
 				<Name>dialog</Name>
 				<Source><![CDATA[
@@ -184,7 +196,7 @@ class DEVIntegManualFileImport extends RunBaseBatch
     public void run()
     {
         DEVIntegMessageTypeInbound        messageTypeTable;
-        DEVIntegMessageTable            messageTable;
+
         DEVIntegMessageCreator          messageCreator;
         DEVIntegMessageProcessor        messageProcessor;
         System.IO.MemoryStream          memoryStreamFile;

@@ -45,10 +45,7 @@ public class DEVIntegMessageTable extends FormRun
                 processMessageBase.setViewStagingButton(DEVIntegViewStagingDataCommon, DEVIntegMessageTable);
             }
 
-            ProcessMessageButton.enabled(DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Ready ||
-                                         DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Cancelled ||
-                                         DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Processing ||
-                                         DEVIntegMessageTable.Status      == DEVIntegMessageStatus::Error);
+            ProcessMessageButton.enabled(DEVIntegMessageTable.isProcessEnabled());
     
             ViewDMFResultButton.visible(DEVIntegMessageTable.DocumentDescription &&
                         DEVIntegMessageTable.messageTypeTable().ClassName == classId2Name(classNum(DEVIntegProcessDMF)));

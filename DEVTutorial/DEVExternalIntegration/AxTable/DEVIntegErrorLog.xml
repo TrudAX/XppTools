@@ -65,6 +65,19 @@ public class DEVIntegErrorLog extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>showLog</Name>
+				<Source><![CDATA[
+    public void showLog()
+    {
+        if (this.RecId)
+        {
+            infolog.import(this.InfologData);
+        }
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>Integration errors</Label>

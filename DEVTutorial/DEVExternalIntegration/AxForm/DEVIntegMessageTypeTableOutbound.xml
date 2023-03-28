@@ -54,7 +54,8 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
         SQLParametersGroup.visible(DEVIntegMessageTypeTableOutbound.ClassName == classStr(DEVIntegExportBulkSQL));
         FileParametersGroup.visible(connectionType.RecId && 
             (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
-             connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP));
+             connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP ||
+             connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::None));
 
         DEVIntegExportBulkBaseButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport);
         ExportAllButton.visible(! DEVIntegMessageTypeTableOutbound.IsFullExport);
@@ -316,6 +317,15 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 					<DataField>Description</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>EmailCC</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EmailRecipient</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EmailTemplateId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>FileColumnDelimiter</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -329,6 +339,9 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>IsFullExport</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsSendEmail</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>MessageTypeIdOutbound</DataField>
@@ -929,7 +942,57 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 								</Controls>
+								<Breakable>No</Breakable>
 								<DataGroup>Advanced</DataGroup>
+								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Email</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>Email_IsSendEmail</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>IsSendEmail</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>Email_EmailTemplateId</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>EmailTemplateId</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Email_EmailRecipient</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>EmailRecipient</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Email_EmailCC</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>EmailCC</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>Email</DataGroup>
 								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 							</AxFormControl>
 						</Controls>
