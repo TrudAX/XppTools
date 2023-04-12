@@ -475,6 +475,23 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>sendFileToStorageNotEmpty</Name>
+				<Source><![CDATA[
+    public void sendFileToStorageNotEmpty()
+    {
+        if (numberOfLines > 0)
+        {
+            this.sendFileToStorage();
+        }
+        else
+        {
+            info("File is empty");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>sendFileToStorage</Name>
 				<Source><![CDATA[
     public void sendFileToStorage()

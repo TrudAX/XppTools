@@ -92,6 +92,22 @@ class DEVIntegMessagesLoadAzureFileShare extends DEVIntegMessagesLoadBaseType
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>sendFile</Name>
+				<Source><![CDATA[
+    public void sendFile(FileName  _fileName, System.IO.MemoryStream  _fileDataStream)
+    {
+        ;
+        if (! azureStorageConnector)
+        {
+            azureStorageConnector = DEVIntegAzureStorageConnectionHelper::constructOutbound(messageTypeTableOutbound);
+            azureStorageConnector.connect();
+        }
+        azureStorageConnector.createFileInDirectory(_fileName, messageTypeTableOutbound.OutputFolder, _fileDataStream);
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 </AxClass>

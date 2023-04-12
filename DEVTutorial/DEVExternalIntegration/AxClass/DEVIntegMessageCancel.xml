@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageCancel</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegMessageCancel
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createCancelDialogFromForm</Name>
+				<Source><![CDATA[
+    static void createCancelDialogFromForm(DEVIntegMessageTable  DEVIntegMessageTable)
+    {
+        DEVIntegMessageTable        integMessageTableLocal, integMessageTableUpd;
+        Dialog                      dialog = new Dialog("Hold reason");
+        DialogField                 df =  dialog.addField(extendedTypeStr(DEVIntegOnHoldDescription), "Hold reason", "Specify a on-hold reason");
+        DEVIntegOnHoldDescription   holdReason;
+        FormDataSource              DEVIntegMessageTable_ds;
+        ;
+        DEVIntegMessageTable_ds = DEVIntegMessageTable.dataSource();
+        if (DEVIntegMessageTable_ds && dialog.run())
+        {
+            holdReason = df.value();
+            for(integMessageTableLocal = DEVIntegMessageTable_ds.getFirst(true) ? DEVIntegMessageTable_ds.getFirst(true) : DEVIntegMessageTable_ds.cursor();
+            integMessageTableLocal.RecId;
+            integMessageTableLocal = DEVIntegMessageTable_ds.getNext())
+            {
+                ttsbegin;
+                integMessageTableUpd = DEVIntegMessageTable::findRecId(integMessageTableLocal.RecId, true);
+                if (integMessageTableUpd.RecId && integMessageTableUpd.isHoldAvailiable())
+                {
+                    integMessageTableUpd.HoldDescription = holdReason;
+                    integMessageTableUpd.Status          = DEVIntegMessageStatus::Cancelled;
+                    integMessageTableUpd.update();
+                }
+
+                ttscommit;
+            }
+            DEVIntegMessageTable_ds.research(true);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

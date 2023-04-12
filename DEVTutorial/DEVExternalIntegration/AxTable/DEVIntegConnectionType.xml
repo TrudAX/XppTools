@@ -158,6 +158,22 @@ public class DEVIntegConnectionType extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>isFileBasedType</Name>
+				<Source><![CDATA[
+    public boolean isFileBasedType()
+    {
+        boolean res;
+        if (this.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
+            this.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP)
+        {
+            res = true;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>Connection Types</Label>

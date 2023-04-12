@@ -7,6 +7,8 @@ class DEVIntegExportMessageBase
 {
     DEVIntegMessageTypeTableOutbound messageTypeTableOutbound;
 
+    DEVIntegExportRecordList         integExportRecordList;
+
 }
 ]]></Declaration>
 		<Methods>
@@ -106,8 +108,24 @@ class DEVIntegExportMessageBase
             exportDocumentLog.setToSend();
             exportDocumentLog.update();
         }
-    
+        if (integExportRecordList)
+        {
+            integExportRecordList.addExportLog(exportDocumentLog.RecId);
+        }
         ttsCommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIntegExportRecordList</Name>
+				<Source><![CDATA[
+    public DEVIntegExportRecordList parmIntegExportRecordList(DEVIntegExportRecordList _integExportRecordList = integExportRecordList)
+    {
+        ;
+        integExportRecordList = _integExportRecordList;
+
+        return integExportRecordList;
     }
 
 ]]></Source>
@@ -138,6 +156,36 @@ class DEVIntegExportMessageBase
     public void exportServiceBusMessage(DEVIntegExportDocumentLog    _exportDocumentLog, DEVIntegMessagesLoadAzureServiceBus     loadAzureServiceBusCache)
     {
         throw error(Error::missingOverload(funcName()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportFileMessage</Name>
+				<Source><![CDATA[
+    public void exportFileMessage(DEVIntegExportDocumentLog    _exportDocumentLog, DEVIntegMessagesLoadBaseType     _loadFileStorageCache)
+    {
+        throw error(Error::missingOverload(funcName()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendMessageFileStorageCache</Name>
+				<Source><![CDATA[
+    public void sendMessageFileStorageCache(DEVIntegExportDocumentLog        _exportDocumentLog,
+                                            DEVIntegMessagesLoadBaseType     _loadFileStorageCache,
+                                            FileName  _fileName, System.IO.MemoryStream  _fileDataStream)
+    {
+        _loadFileStorageCache.sendFile(_fileName,  _fileDataStream);
+        if (messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full && _exportDocumentLog.RecId)
+        {
+            DEVIntegMessageDataOutbound  messageDataOutbound;
+
+            messageDataOutbound.ExportLogRefRecId = _exportDocumentLog.RecId;
+            messageDataOutbound.FileDataStr       = _fileName;
+            messageDataOutbound.insert();
+        }
     }
 
 ]]></Source>

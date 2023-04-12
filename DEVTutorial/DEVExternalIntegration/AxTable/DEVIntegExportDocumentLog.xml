@@ -166,6 +166,36 @@ public class DEVIntegExportDocumentLog extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>generateFileName</Name>
+				<Source><![CDATA[
+    public str generateFileName(container _parmsStr, str _defaultName)
+    {
+        str                              fileName;
+        DEVIntegMessageTypeTableOutbound messageTypeTableOutbound = this.messageTypeTableOutbound();
+        int                              i;
+
+        if (messageTypeTableOutbound.FileName)
+        {
+            fileName = messageTypeTableOutbound.getFileName(utcDateTimeNull());
+            str parmVal;
+            for(i = 1; i <= conLen(_parmsStr); i++)
+            {
+                parmVal = conPeek(_parmsStr, i);
+
+                fileName = strReplace(fileName, '%' + int2Str(i), parmVal);
+            }
+        }
+        else
+        {
+            fileName =  _defaultName;
+        }
+
+        return fileName;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>Document Log</Label>

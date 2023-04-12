@@ -126,12 +126,8 @@ public class DEVIntegMessageTable extends FormRun
         {
             Filename fileName = DEVIntegMessageTable.Name;
             if (fileName)
-            {
-                if (DEVIntegMessageTable.messageTypeTable().connectionTypeResource() == DEVIntegConnectionTypeResource::AzureServiceBus)
-                {
-                    fileName = strFmt('%1.txt', fileName);
-                }
-                File::SendFileToUser(DEVIntegMessageTable.getFileStream(), fileName);
+            {                
+                File::SendFileToUser(DEVIntegMessageTable.getFileStream(), DEVIntegMessageTable.getFileNameForDownload());
             }
         }
 
@@ -207,31 +203,7 @@ public class DEVIntegMessageTable extends FormRun
 						<Source><![CDATA[
         public void clicked()
         {
-            DEVIntegMessageTable        integMessageTableLocal, integMessageTableUpd;
-            Dialog                      dialog = new Dialog("Hold reason");
-            DialogField                 df =  dialog.addField(extendedTypeStr(DEVIntegOnHoldDescription), "Hold reason", "Specify a on-hold reason");
-            DEVIntegOnHoldDescription   holdReason;
-            ;
-            if (dialog.run())
-            {
-                holdReason = df.value();
-                for(integMessageTableLocal = DEVIntegMessageTable_ds.getFirst(true) ? DEVIntegMessageTable_ds.getFirst(true) : DEVIntegMessageTable_ds.cursor();
-                integMessageTableLocal.RecId;
-                integMessageTableLocal = DEVIntegMessageTable_ds.getNext())
-                {
-                    ttsbegin;
-                    integMessageTableUpd = DEVIntegMessageTable::findRecId(integMessageTableLocal.RecId, true);
-                    if (integMessageTableUpd.RecId && integMessageTableUpd.isHoldAvailiable())
-                    {
-                        integMessageTableUpd.HoldDescription = holdReason;
-                        integMessageTableUpd.Status          = DEVIntegMessageStatus::Cancelled;
-                        integMessageTableUpd.update();
-                    }
-
-                    ttscommit;
-                }
-                DEVIntegMessageTable_ds.research(true);
-            }
+            DEVIntegMessageCancel::createCancelDialogFromForm(DEVIntegMessageTable);
         }
 
 ]]></Source>

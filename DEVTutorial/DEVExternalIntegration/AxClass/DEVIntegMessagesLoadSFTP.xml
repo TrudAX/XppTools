@@ -7,7 +7,6 @@ class DEVIntegMessagesLoadSFTP extends DEVIntegMessagesLoadBaseType
 {
     DEVIntegConnectionHelperSFTP            connectionHelper;
 
-
 }
 ]]></Declaration>
 		<Methods>
@@ -89,6 +88,22 @@ class DEVIntegMessagesLoadSFTP extends DEVIntegMessagesLoadBaseType
     {
         DEVIntegConnectionHelperSFTP     azureStorageConnectionHelper =  DEVIntegConnectionHelperSFTP::construct(messageTypeTable);
         azureStorageConnectionHelper.testConnection();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFile</Name>
+				<Source><![CDATA[
+    public void sendFile(FileName  _fileName, System.IO.MemoryStream  _fileDataStream)
+    {
+        ;
+        if (! connectionHelper)
+        {
+            connectionHelper = DEVIntegConnectionHelperSFTP::constructOutbound(messageTypeTableOutbound);
+            connectionHelper.connect();
+        }
+        connectionHelper.createFileInDirectory(_fileName, messageTypeTableOutbound.OutputFolder, _fileDataStream);
     }
 
 ]]></Source>

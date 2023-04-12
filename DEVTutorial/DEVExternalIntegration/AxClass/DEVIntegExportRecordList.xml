@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExportRecordList</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/*
+How to use 
+1.  Add marked reconds inside transaction 
+public static void insertFreightConsignmentTable(VendTable                 _vendTable,
+                                                 DEVIntegExportRecordList  _integExportRecordList)
+{
+    ExportClass  exportMessage = ExportClass::construct();
+    exportMessage.parmIntegExportRecordList(_integExportRecordList);
+    exportMessage.insertFromVendTable(_vendTable);
+
+}
+
+2. After the main transaction, add the following code
+if (integExportRecordList &&
+DEVIntegrationConfigurations::find().IsFileCreateFileDuringPosting)
+{
+DEV_IntegExportDocumentsLog::exportRecordList(integExportRecordList);
+}
+*/
+
+public class DEVIntegExportRecordList
+{
+    container exportLogRecIdCon;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>addExportLog</Name>
+				<Source><![CDATA[
+    public void addExportLog(RecId  _recId)
+    {
+        if (_recId)
+        {
+            exportLogRecIdCon += _recId;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmExportLogRecIdCon</Name>
+				<Source><![CDATA[
+    public container parmExportLogRecIdCon(container _exportLogRecIdCon = exportLogRecIdCon)
+    {
+        ;
+        exportLogRecIdCon = _exportLogRecIdCon;
+
+        return exportLogRecIdCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExportLogRecIdCon</Name>
+				<Source><![CDATA[
+    public container getExportLogRecIdCon()
+    {
+        return exportLogRecIdCon;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructFromRecord</Name>
+				<Source><![CDATA[
+    public static DEVIntegExportRecordList constructFromRecord(Common _selectedRecord, DEVIntegExportClassName _className)
+    {
+        DEVIntegExportRecordList  exportRecordList = new DEVIntegExportRecordList();
+
+        DEVIntegExportDocumentLog  exportDocumentLog = DEVIntegExportDocumentLog::findFromCommon(_selectedRecord, _className);
+        if (exportDocumentLog.RecId)
+        {
+            exportRecordList.addExportLog(exportDocumentLog.RecId);
+        }
+
+        return exportRecordList;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

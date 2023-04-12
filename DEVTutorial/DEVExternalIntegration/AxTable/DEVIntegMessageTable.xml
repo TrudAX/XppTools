@@ -52,6 +52,30 @@ public class DEVIntegMessageTable extends common
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>getFileNameForDownload</Name>
+				<Source><![CDATA[
+    public str getFileNameForDownload()
+    {
+        Filename fileName = this.Name;
+        if (fileName)
+        {
+            if (this.messageTypeTable().connectionTypeResource() == DEVIntegConnectionTypeResource::AzureServiceBus)
+            {
+                fileName = strFmt('%1.txt', fileName);
+            }
+            fileName = strReplace(fileName, '[', '');
+            fileName = strReplace(fileName, ']', '');
+            if (subStr(fileName, strLen(fileName), 1) == '.')
+            {
+                fileName = fileName + 'txt';
+            }
+        }
+        return fileName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>getDataString</Name>
 				<Source><![CDATA[
     [SysClientCacheDataMethodAttribute(true)]
@@ -648,6 +672,21 @@ public class DEVIntegMessageTable extends common
 					<SourceEDT>DEVIntegMessageTypeIdInbound</SourceEDT>
 					<Field>MessageTypeId</Field>
 					<RelatedField>MessageTypeId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>DEVIntegMessageTable</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<RelatedTable>DEVIntegMessageTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Link</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>RecId</Name>
+					<Field>RecId</Field>
+					<RelatedField>RecId</RelatedField>
 				</AxTableRelationConstraint>
 			</Constraints>
 		</AxTableRelation>

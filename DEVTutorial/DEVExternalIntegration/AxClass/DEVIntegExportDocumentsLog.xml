@@ -15,6 +15,9 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
     DEVIntegMessagesLoadAzureServiceBus     loadAzureServiceBusCache;
     str                                     loadAzureServiceBusCacheKey;
 
+    DEVIntegMessagesLoadBaseType     loadMessagesFileTypeCache;
+    str                              loadMessagesFileTypeCacheKey;
+
     #define.CurrentVersion(1)
     #localmacro.CurrentList
         dummy
@@ -169,6 +172,20 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
                     loadAzureServiceBusCacheKey = loadAzureServiceBusCacheKeyLocal;
                 }
                 exportMessageBase.exportServiceBusMessage(_exportDocumentLog, loadAzureServiceBusCache);
+            } 
+            else
+            {
+                if (_messageTypeTableOutbound.connectionType().isFileBasedType())
+                {
+                    loadAzureServiceBusCacheKeyLocal = strFmt('%1,%2', _messageTypeTableOutbound.ConnectionTypeId, _messageTypeTableOutbound.OutputFolder);
+
+                    if (! loadMessagesFileTypeCache || loadAzureServiceBusCacheKeyLocal != loadMessagesFileTypeCacheKey)
+                    {
+                        loadMessagesFileTypeCache = DEVIntegMessagesLoadBaseType::constructFromMessageTypeOutbound(_messageTypeTableOutbound);
+                        loadMessagesFileTypeCacheKey = loadAzureServiceBusCacheKeyLocal;
+                    }
+                    exportMessageBase.exportFileMessage(_exportDocumentLog, loadMessagesFileTypeCache);
+                }
             }
     
             refRecIf = _exportDocumentLog.recVersion;
@@ -377,6 +394,48 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
     
         info(strfmt("%1 record(s) processed", processedCounter));
     
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportRecordList</Name>
+				<Source><![CDATA[
+    static void exportRecordList(DEVIntegExportRecordList   _integExportRecordList)
+    {
+        DEVIntegExportDocumentLog     exportDocumentLog;
+        DEVIntegExportDocumentsLog    integExportDocumentLog = DEVIntegExportDocumentsLog::construct();
+        int                           processedCounter;
+        container                     selectedRecords;
+        int                           i;
+        RefRecId                      refRecId;
+        ;
+        if (_integExportRecordList)
+        {
+            try
+            {
+                selectedRecords = _integExportRecordList.getExportLogRecIdCon();
+                for (i = 1; i <= conlen(selectedRecords); i++)
+                {
+                    refRecId = conpeek(selectedRecords, i);
+                    exportDocumentLog = DEVIntegExportDocumentLog::findRecId(refRecId);
+                    if (exportDocumentLog.RecId &&
+                        exportDocumentLog.ExportStatus == DEVIntegExportStatus::ToSend)
+                    {
+                        integExportDocumentLog.processExportDocumentLog(exportDocumentLog, exportDocumentLog.messageTypeTableOutbound());
+                        processedCounter++;
+                    }
+                }
+            }
+            catch(Exception::Error)
+            {
+                error(strFmt("Export documents failed %1", refRecId));
+            }
+            catch(Exception::CLRError)
+            {
+                error(AifUtil::getClrErrorMessage());
+            }
+        }
     }
 
 ]]></Source>

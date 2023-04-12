@@ -6,6 +6,7 @@
 class DEVIntegMessagesLoadBaseType
 {
     DEVIntegMessageTypeInbound						messageTypeTable;
+    DEVIntegMessageTypeTableOutbound                messageTypeTableOutbound;
 
     int  readMessageCount;
     int  currentTimeStart;
@@ -21,6 +22,17 @@ class DEVIntegMessagesLoadBaseType
     {
         messageTypeTable = _messageTypeTable;
         return messageTypeTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTypeTableOutbound</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeTableOutbound parmMessageTypeTableOutbound(DEVIntegMessageTypeTableOutbound _messageTypeTableOutbound = messageTypeTableOutbound)
+    {
+        messageTypeTableOutbound = _messageTypeTableOutbound;
+        return messageTypeTableOutbound;
     }
 
 ]]></Source>
@@ -114,6 +126,21 @@ class DEVIntegMessagesLoadBaseType
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>constructFromMessageTypeOutbound</Name>
+				<Source><![CDATA[
+    static  DEVIntegMessagesLoadBaseType constructFromMessageTypeOutbound(DEVIntegMessageTypeTableOutbound        _messageTypeTableOutbound)
+    {
+        DEVIntegMessagesLoadBaseType  shareClass;
+        ;
+        shareClass = DEVIntegMessagesLoadBaseType::constructFromConnectionType(_messageTypeTableOutbound.connectionType());
+
+        shareClass.parmMessageTypeTableOutbound(_messageTypeTableOutbound);
+        return shareClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>constructFromConnectionType</Name>
 				<Source><![CDATA[
     static  DEVIntegMessagesLoadBaseType constructFromConnectionType(DEVIntegConnectionType _connectionType)
@@ -133,6 +160,16 @@ class DEVIntegMessagesLoadBaseType
                 break;
         }
         return shareClass;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFile</Name>
+				<Source><![CDATA[
+    public void sendFile(FileName  _fileName, System.IO.MemoryStream  _fileDataStream)
+    {
+        throw error(Error::missingOverload(funcName()));
     }
 
 ]]></Source>
