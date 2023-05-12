@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVBatchControlStopAction</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVBatchControlStopAction extends RunBaseBatch implements BatchRetryable
+{
+    Seconds      stopDuration;
+    Seconds      stopTryInterval;
+    NoYesId      isRunStartJob;
+    Minutes      startJobDelayMin;
+    
+    DialogField  dlgStopDuration;
+    DialogField  dlgStopTryInterval;
+    DialogField  dlgIsRunStartJob;
+    DialogField  dlgStartJobDelayMin;
+    
+    DEVBatchControlTable      batchControlTable;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        stopDuration,
+        stopTryInterval,
+        isRunStartJob,
+        startJobDelayMin
+    #endmacro
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmBatchControlTable</Name>
+				<Source><![CDATA[
+    public DEVBatchControlTable parmBatchControlTable(DEVBatchControlTable _batchControlTable = batchControlTable)
+    {
+        batchControlTable = _batchControlTable;
+        return batchControlTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dialog.addGroup("Stop");
+        dlgStopDuration      = dialog.addFieldValue(extendedtypestr(Seconds), stopDuration, "Stop max duration", "Period to try to stop batch tasks. Recomended 300s");
+        dlgStopTryInterval   = dialog.addFieldValue(extendedtypestr(Seconds), stopTryInterval, "Stop interval", "Interval to check the status of batch jobs. Recomended 10s");
+        dialog.addGroup("Start");
+        dlgIsRunStartJob     = dialog.addFieldValue(extendedtypestr(NoYesId), IsRunStartJob, "Create start job", "Create a job that starts the tasks");
+        dlgStartJobDelayMin  = dialog.addFieldValue(extendedtypestr(Minutes), startJobDelayMin, "Start after(min)", "The time when the start job starts. Should be after upgrade. Recomended 60min");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        stopDuration       = dlgStopDuration.value();
+        stopTryInterval    = dlgStopTryInterval.value();
+        IsRunStartJob      = dlgIsRunStartJob.value();
+        startJobDelayMin   = dlgStartJobDelayMin.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmStopDuration</Name>
+				<Source><![CDATA[
+    public Seconds parmStopDuration(Seconds _stopDuration = stopDuration)
+    {
+        stopDuration = _stopDuration;
+        return stopDuration;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmStopTryInterval</Name>
+				<Source><![CDATA[
+    public Seconds parmStopTryInterval(Seconds _stopTryInterval = stopTryInterval)
+    {
+        stopTryInterval = _stopTryInterval;
+        return stopTryInterval;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsRunStartJob</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsRunStartJob(NoYesId _IsRunStartJob = IsRunStartJob)
+    {
+        IsRunStartJob = _IsRunStartJob;
+        return IsRunStartJob;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmStartJobDelayMin</Name>
+				<Source><![CDATA[
+    public Minutes parmStartJobDelayMin(Minutes _startJobDelayMin = startJobDelayMin)
+    {
+        startJobDelayMin = _startJobDelayMin;
+        return startJobDelayMin;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startBatchLine</Name>
+				<Source><![CDATA[
+    public void startBatchLine(DEVBatchControlLines  _batchControlLines)
+    {
+        BatchJob                 batchJobUpd;
+        DEVBatchControlStatus    lineStatus;
+
+        ttsbegin;
+        
+        select firstonly pessimisticlock batchJobUpd
+            where batchJobUpd.RecId ==  _batchControlLines.BatchJobRefRecId;
+
+        if (batchJobUpd.Status == BatchStatus::Hold)
+        {
+            batchJobUpd.Status = BatchStatus::Waiting;
+            batchJobUpd.update();
+
+            lineStatus =  DEVBatchControlStatus::Started;
+        }
+        else
+        {
+            warning(strFmt("Can't find a batch job %1. Status %2, %3", _batchControlLines.BatchJobRefRecId, batchJobUpd.Status, batchJobUpd.Caption));
+            lineStatus =  DEVBatchControlStatus::SkippedToStart;
+        }
+
+        _batchControlLines.skipTTSCheck(true);
+        _batchControlLines.BatchControlStatus  = lineStatus;
+        _batchControlLines.update();
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startSelected</Name>
+				<Source><![CDATA[
+    public void startSelected(DEVBatchControlLines   _batchControlLines)
+    {
+        DEVBatchControlLines    batchControlLines;
+
+        FormDataSource                batchControlLinesDS;
+        int                           processedCounter;
+        ;
+        batchControlLinesDS = FormDataUtil::getFormDataSource(_batchControlLines);
+    
+        for(batchControlLines = batchControlLinesDS.getFirst(true) ? batchControlLinesDS.getFirst(true) : batchControlLinesDS.cursor();
+            batchControlLines.RecId;
+            batchControlLines = batchControlLinesDS.getNext())
+        {
+            if (batchControlLines.BatchControlStatus == DEVBatchControlStatus::Stopped)
+            {
+                this.startBatchLine(batchControlLines);
+                processedCounter++;
+            }
+            else
+            {
+                warning(strFmt("Only stopped jobs can be started"));
+            }
+        }
+        this.startUpdateHeader();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startAll</Name>
+				<Source><![CDATA[
+    public void startAll()
+    {        
+        DEVBatchControlLines    batchControlLines;
+
+        batchControlLines = null;
+        while select batchControlLines
+            where batchControlLines.BatchControlTableId == batchControlTable.BatchControlTableId &&
+                  batchControlLines.BatchControlStatus  == DEVBatchControlStatus::Stopped
+        {
+            this.startBatchLine(batchControlLines);
+        }
+        this.startUpdateHeader();
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startUpdateHeader</Name>
+				<Source><![CDATA[
+    public void startUpdateHeader()
+    {
+        DEVBatchControlLines    batchControlLines;
+
+        select count(RecId) from batchControlLines
+            where batchControlLines.BatchControlTableId == batchControlTable.BatchControlTableId &&
+                  batchControlLines.BatchControlStatus  == DEVBatchControlStatus::Stopped;
+        
+        if (! batchControlLines.RecId)
+        {
+            batchControlTable.skipTTSCheck(true);
+            batchControlTable.Status = DEVBatchControlStatus::Started;
+            batchControlTable.update();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        boolean isNewMode;
+
+        if (! batchControlTable.RecId)
+        {
+            //create a header 
+            System.DateTime dateNow;
+            dateNow = System.DateTime::Now;
+            Num sDate = dateNow.ToString('yyyyMMdd_HHmmss', System.Globalization.DateTimeFormatInfo::InvariantInfo);
+
+        
+            batchControlTable.BatchControlTableId  = sDate;
+            batchControlTable.LastUpdateDateTime   = DateTimeUtil::utcNow();
+            batchControlTable.UserId               = curUserId();
+            batchControlTable.insert();
+            isNewMode = true;
+        }
+        else
+        {
+            batchControlTable.LastUpdateDateTime   = DateTimeUtil::utcNow();
+            batchControlTable.UserId               = curUserId();
+        }
+        int numOfInterval, i;
+
+        if (stopDuration && stopTryInterval && isNewMode)
+        {   
+            numOfInterval =  any2Int(stopDuration /  stopTryInterval);
+        }
+        if (numOfInterval <= 1)
+        {
+            numOfInterval = 1;
+        }
+        for (i = 1; i <= numOfInterval; i++)
+        {
+            boolean isAllStopped = this.tryToStopBatch();
+            if (isAllStopped)
+            {
+                break;
+            }
+            else
+            {
+                if (i < numOfInterval)
+                {
+                    sleep(stopTryInterval * 1000);
+                }
+            }
+        }
+        if (isRunStartJob)
+        {
+            if (this.isInBatch())
+            {
+                DEVBatchControlStartAction  startAction = DEVBatchControlStartAction::construct();
+                startAction.parmBatchControlTableId(batchControlTable.BatchControlTableId);
+
+                SysRecurrenceData recurrenceData = SysRecurrence::defaultRecurrence();
+                recurrenceData = SysRecurrence::setRecurrenceStartDateTime(recurrenceData,DateTimeUtil::addMinutes(DateTimeUtil::utcNow(), startJobDelayMin));
+                recurrenceData = SysRecurrence::setRecurrenceEndAfter(recurrenceData, 1);
+    
+                BatchHeader batchHeader = batchHeader::construct();
+                batchHeader.addTask(startAction);
+                batchHeader.parmRecurrenceData(recurrenceData);
+                batchHeader.save();
+        
+            }
+            else
+            {
+                warning("Not in batch mode. Create Start job skipped");
+            }
+
+        }
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tryToStopBatch</Name>
+				<Source><![CDATA[
+    public boolean tryToStopBatch()
+    {
+        BatchJob                batchJob;
+        BatchJob                batchJobUpd;
+        DEVBatchControlLines    batchControlLines;
+        DEVBatchControlJobsDetail  batchControlJobsDetailExists;
+
+        delete_from batchControlLines
+            where batchControlLines.BatchControlTableId == batchControlTable.BatchControlTableId &&
+                  batchControlLines.BatchControlStatus  == DEVBatchControlStatus::StoppingInExecuting;
+
+        while select  batchJob
+            where batchJob.Status == BatchStatus::Waiting
+        notexists join batchControlJobsDetailExists
+            where batchControlJobsDetailExists.BatchJobRefRecId == batchJob.RecId &&
+                  batchControlJobsDetailExists.IsSkip
+        {
+            try
+            {
+                ttsbegin;
+                batchJobUpd = null;
+                select firstonly pessimisticlock batchJobUpd
+                    where batchJobUpd.RecId ==  batchJob.RecId;
+                //still waiting
+                if (batchJobUpd.Status == BatchStatus::Waiting)
+                {
+                    batchJobUpd.Status = BatchStatus::Hold;
+                    batchJobUpd.update();
+
+                    batchControlLines = null;
+                    batchControlLines.BatchControlTableId = batchControlTable.BatchControlTableId;
+                    batchControlLines.BatchJobRefRecId    = batchJobUpd.RecId;
+                    batchControlLines.BatchControlStatus  = DEVBatchControlStatus::Stopped;
+                    batchControlLines.insert();
+
+                    batchControlTable.NumberOfWithhold++;
+                    batchControlTable.Status = DEVBatchControlStatus::StoppingInProgress;
+                    batchControlTable.skipTTSCheck(true);
+                    batchControlTable.update();
+                }
+        
+                ttscommit;
+            }
+            catch(Exception::Error)
+            {
+                //add this job to system
+                DEVBatchControlJobsDetail  batchControlJobsDetail;
+
+                batchControlJobsDetail = null;
+                batchControlJobsDetail.BatchJobRefRecId = batchJob.RecId;
+                batchControlJobsDetail.BatchType = DEVBatchControlBatchType::System;
+                batchControlJobsDetail.IsSkip    = true;
+                batchControlJobsDetail.insert();
+            }
+        }
+        batchJob = null;
+        int numOfActiveJobs;
+        Batch   batch;
+        batchControlJobsDetailExists = null;
+        while select batchJob
+            where batchJob.Status == BatchStatus::Waiting ||
+                  batchJob.Status == BatchStatus::Executing
+        notexists join batchControlJobsDetailExists
+            where batchControlJobsDetailExists.BatchJobRefRecId == batchJob.RecId &&
+                  batchControlJobsDetailExists.IsSkip
+
+        {
+            batch = null;
+            select firstonly RecId from batch
+                where batch.BatchJobId ==  batchJob.RecId &&
+                      batch.ClassNumber == classNum(DEVBatchControlStopAction);
+            if (! batch.RecId)
+            {
+                numOfActiveJobs++;
+            
+                batchControlLines = null;
+                batchControlLines.BatchControlTableId = batchControlTable.BatchControlTableId;
+                batchControlLines.BatchJobRefRecId    = batchJob.RecId;
+                batchControlLines.BatchControlStatus  = DEVBatchControlStatus::StoppingInExecuting;
+                batchControlLines.insert();
+            }
+        }
+        batchControlTable.NumberOfExecuting = numOfActiveJobs;
+        if (batchControlTable.NumberOfExecuting == 0)
+        {
+            batchControlTable.Status = DEVBatchControlStatus::Stopped;
+        }
+        else
+        {
+            warning(strFmt("%1 jobs are executing", batchControlTable.NumberOfExecuting));
+        }
+        batchControlTable.skipTTSCheck(true);
+        batchControlTable.update();
+
+        return  (batchControlTable.NumberOfExecuting == 0) ? true : false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVBatchControlStopAction construct()
+    {
+        return new DEVBatchControlStopAction();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Withhold all batches";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVBatchControlStopAction    runObject = DEVBatchControlStopAction::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+
+            DEVBatchControlTable  batchControlTableExt;
+            if (_args && _args.record().TableId == tablenum(DEVBatchControlTable))
+            {
+                batchControlTableExt =  _args.record();
+                FormDataSource  fds = batchControlTableExt.dataSource();
+                if (fds)
+                {
+                    fds.executeQuery();
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

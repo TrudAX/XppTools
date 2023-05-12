@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVBatchControlStatus</Name>
+	<Help>Batch control status</Help>
+	<Label>Status</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>NewRelease</Name>
+			<Label>New release</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>StoppingInProgress</Name>
+			<Label>InProgress</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Stopped</Name>
+			<Label>Stopped</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Started</Name>
+			<Label>Started</Label>
+			<Value>3</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>SkippedToStart</Name>
+			<Label>Skipped to start</Label>
+			<Value>4</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>StoppingInExecuting</Name>
+			<Label>Executing during stop</Label>
+			<Value>5</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

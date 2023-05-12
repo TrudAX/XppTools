@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVBatchControlStartAction</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVBatchControlStartAction extends RunBaseBatch implements BatchRetryable
+{
+    DEVBatchControlTableId  batchControlTableId;
+    
+    DialogField             dlgBatchControlTableId;
+    
+    
+    DEVBatchControlTable    callerDEVBatchControlTable;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        batchControlTableId
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgBatchControlTableId  = dialog.addFieldValue(extendedtypestr(DEVBatchControlTableId), batchControlTableId);
+        dlgBatchControlTableId.mandatory_RU(true);
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        batchControlTableId   = dlgBatchControlTableId.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBatchControlTableId</Name>
+				<Source><![CDATA[
+    public DEVBatchControlTableId parmBatchControlTableId(DEVBatchControlTableId _batchControlTableId = batchControlTableId)
+    {
+        batchControlTableId = _batchControlTableId;
+        return batchControlTableId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCallerDEVBatchControlTable</Name>
+				<Source><![CDATA[
+    public DEVBatchControlTable parmCallerDEVBatchControlTable(DEVBatchControlTable _callerDEVBatchControlTable = callerDEVBatchControlTable)
+    {
+        callerDEVBatchControlTable = _callerDEVBatchControlTable;
+        return callerDEVBatchControlTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        DEVBatchControlStopAction    batchStopAction = DEVBatchControlStopAction::construct();
+        DEVBatchControlTable  DEVBatchControlTable = DEVBatchControlTable::find(batchControlTableId);
+        ;
+        if (! DEVBatchControlTable.RecId)
+        {
+            throw error(strFmt("Can't find %1 batch control table", batchControlTableId));
+        }
+
+        batchStopAction.parmBatchControlTable(DEVBatchControlTable);
+        batchStopAction.startAll();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVBatchControlStartAction construct()
+    {
+        return new DEVBatchControlStartAction();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Start batches in batch control";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVBatchControlStartAction    runObject = DEVBatchControlStartAction::construct();
+        QueryBuildDataSource  qbds;
+        ;
+        if (_args.dataset() == tablenum(DEVBatchControlTable))
+        {
+            runObject.parmCallerDEVBatchControlTable(_args.record());
+            runObject.parmBatchControlTableId(runObject.parmCallerDEVBatchControlTable().BatchControlTableId);
+        }
+        
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

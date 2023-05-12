@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVBatchControlTestClass</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVBatchControlTestClass extends RunBaseBatch implements BatchRetryable
+{
+    Description     batchMessage;
+    PositiveNumber  execTime;
+    NoYesId         isGenerateError;
+    
+    DialogField     dlgBatchMessage;
+    DialogField     dlgExecTime;
+    DialogField     dlgIsGenerateError;
+    
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        batchMessage,
+        execTime,
+        isGenerateError
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgBatchMessage     = dialog.addFieldValue(extendedtypestr(Description), batchMessage, "Message");
+        dlgExecTime         = dialog.addFieldValue(extendedtypestr(PositiveNumber), execTime, "Execution time(s)");
+        dlgIsGenerateError  = dialog.addFieldValue(extendedtypestr(NoYesId), isGenerateError, "Generate error");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        batchMessage      = dlgBatchMessage.value();
+        execTime          = dlgExecTime.value();
+        isGenerateError   = dlgIsGenerateError.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmBatchMessage</Name>
+				<Source><![CDATA[
+    public Description parmBatchMessage(Description _batchMessage = batchMessage)
+    {
+        batchMessage = _batchMessage;
+        return batchMessage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmExecTime</Name>
+				<Source><![CDATA[
+    public PositiveNumber parmExecTime(PositiveNumber _execTime = execTime)
+    {
+        execTime = _execTime;
+        return execTime;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsGenerateError</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsGenerateError(NoYesId _isGenerateError = isGenerateError)
+    {
+        isGenerateError = _isGenerateError;
+        return isGenerateError;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        info(strFmt("Batch starts: %1", time2StrHMS(DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone()))));
+        sleep(execTime * 1000);
+        if (isGenerateError)
+        {
+            throw error(strFmt("Error %1, %2", batchMessage, time2StrHMS(DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone()))));
+        }
+        else
+        {
+            info(strFmt("Batch ends: %1, %2", time2StrHMS(DateTimeUtil::getTimeNow(DateTimeUtil::getUserPreferredTimeZone())), batchMessage));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVBatchControlTestClass construct()
+    {
+        return new DEVBatchControlTestClass();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Test batch class";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVBatchControlTestClass    runObject = DEVBatchControlTestClass::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

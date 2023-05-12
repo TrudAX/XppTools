@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEVBatchControlTableId</Name>
+	<Extends>Num</Extends>
+	<HelpText>Identification of the release number</HelpText>
+	<Label>Release number</Label>
+	<ReferenceTable>DEVBatchControlTable</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>BatchControlTableId</RelatedField>
+			<Table>DEVBatchControlTable</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+</AxEdt>
