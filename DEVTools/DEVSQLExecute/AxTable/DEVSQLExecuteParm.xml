@@ -37,7 +37,10 @@ public class DEVSQLExecuteParm extends common
         switch(this.OutputType)
         {
             case DEVSQLOutputType::HTML:
-                res += '.html';
+                if (strScan(res, '.', 1, strLen(res)) == 0)
+                {
+                    res += '.html';
+                }
                 break;
             case DEVSQLOutputType::Excel:
                 res += '.xlsx';

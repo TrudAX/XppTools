@@ -153,26 +153,28 @@ class DEVSQLQueryExecute
         {
             if (executeParm.QueryExecuteMode == DEVSQLQueryExecuteMode::Update)
             {
-                DEVSQLExecuteParm  executeParmLocal;
+                DEVSQLExecuteResult  executeResultLocal;
 
                 if (executeParm.OutputType != DEVSQLOutputType::Screen)
                 {
                     ttsbegin;
-                    executeParmLocal = DEVSQLExecuteParm::find(curUserId(), true);
-                    executeParmLocal.SQLResults = '';
-                    executeParmLocal.update();
+                    executeResultLocal = DEVSQLExecuteResult::find(curUserId(), true);
+                    executeResultLocal.SQLResults = '';
+                    executeResultLocal.update();
                     ttscommit;
                 }
 
                 this.doExecuteUpdate(executeParm.SQLText);
-                res = strFmt('Executed %1', DateTimeUtil::applyTimeZoneOffset(DateTimeUtil::getSystemDateTime(), DateTimeUtil::getUserPreferredTimeZone()));
+                res = strFmt('Executed %1, %2', 
+                    DateTimeUtil::applyTimeZoneOffset(DateTimeUtil::getSystemDateTime(), DateTimeUtil::getUserPreferredTimeZone()),
+                    curUserId());
 
                 if (executeParm.OutputType == DEVSQLOutputType::HTML)
                 {
-                    executeParmLocal = DEVSQLExecuteParm::find(curUserId());
-                    if (executeParmLocal.SQLResults)
+                    executeResultLocal = DEVSQLExecuteResult::find(curUserId());
+                    if (executeResultLocal.SQLResults)
                     {
-                        File::SendStringAsFileToUser(executeParmLocal.SQLResults, executeParm.getFilename());
+                        File::SendStringAsFileToUser(executeResultLocal.SQLResults, executeParm.getFilename());
                     }
                 }
             }

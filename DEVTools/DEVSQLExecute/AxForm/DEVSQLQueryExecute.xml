@@ -65,7 +65,7 @@ public class DEVSQLQueryExecute extends FormRun
         str  helpText;
 
         helpText += "To get the value from the UPDATE statement use the following sample:\n";
-        helpText += strFmt('UPDATE %1  \n', tableStr (DEVSQLExecuteParm));
+        helpText += strFmt('UPDATE %1  \n', tableStr (DEVSQLExecuteResult));
         helpText += 'SET SQLResults =  \n';
         helpText += '  (SELECT TOP 1 CONVERT(nvarchar(max), query_plan) from sys.dm_exec_query_plan(0x06000C00061DE137A0156608AD02000001000000000000000000000000000000000000000000000000000000)) \n';
         helpText += strFmt('WHERE UserId = \'%1\'', curUserId());

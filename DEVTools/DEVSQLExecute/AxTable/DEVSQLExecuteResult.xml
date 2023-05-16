@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLExecuteResult</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVSQLExecuteResult extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEVSQLExecuteResult find(SysUserId  _userId,
+                                         boolean    _forUpdate = false,
+                                         boolean    _create = true)
+    {
+        DEVSQLExecuteResult executeResult;
+        ;
+        executeResult.selectForUpdate(_forUpdate);
+        
+        select firstonly executeResult
+            where executeResult.UserId  == _userId;
+        
+        if (! executeResult.RecId)
+        {
+            executeResult.UserId  = _userId;
+            executeResult.insert();
+        }
+        return executeResult;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>SQL Execute results</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>RecId</TitleField1>
+	<TitleField2>UserId</TitleField2>
+	<ClusteredIndex>UserIdIdx</ClusteredIndex>
+	<PrimaryIndex>UserIdIdx</PrimaryIndex>
+	<ReplacementKey>UserIdIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Results</Name>
+			<Label>Results</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>SQLResults</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UserId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>SysUserId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SQLResults</Name>
+			<ExtendedDataType>Notes</ExtendedDataType>
+			<Label>Filed for storing SQL results</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>UserIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>UserId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>
