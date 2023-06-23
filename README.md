@@ -14,6 +14,7 @@ This repository contains 3 D365FO models:
     - [-Execute direct SQL in D365FO database](#-execute-direct-sql-in-d365fo-database)
     - [-SQL reports](#-sql-reports)
     - [-D365FO Infolog call stack](#-d365fo-infolog-call-stack)
+    - [-D365FO DFM Tools](#-d365fo-dfm-tools)
   - [DEVCommon model](#devcommon-model)
     - [-DEV class](#-dev-class)
     - [-DEVDimensionHelper class](#-devdimensionhelper-class)
@@ -111,6 +112,15 @@ Full description: [D365FO Infolog call stack](https://denistrunin.com/xpptools-d
 Sub-model name: DEVCallStackInfolog
 
 ![DEV Call Stack](assets/DevCallStackInfoMain.jpg)
+
+### -D365FO DFM Tools
+
+Refresh Data Entities Faster in D365FO.
+
+Full description: [How to Refresh Data Entities Faster in D365FO.](https://www.linkedin.com/pulse/how-refresh-data-entities-faster-d365fo-denis-trunin)
+Sub-model name: DEVDMFTools
+
+![DEV DMF Tools](assets/DEVDMFTools.png)
 
 **[⬆ back to top](#XppTools)**
 
