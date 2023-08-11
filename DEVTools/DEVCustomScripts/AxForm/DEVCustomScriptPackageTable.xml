@@ -144,6 +144,25 @@ public class DEVCustomScriptPackageTable extends FormRun
 							</AxFormControl>
 						</Controls>
 					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>Execute</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVCustomScriptExecuteStaticMethod</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>DEVCustomScriptExecuteStaticMethod</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+							</AxFormControl>
+						</Controls>
+						<Caption>Execute</Caption>
+					</AxFormControl>
 				</Controls>
 			</AxFormControl>
 			<AxFormControl xmlns=""

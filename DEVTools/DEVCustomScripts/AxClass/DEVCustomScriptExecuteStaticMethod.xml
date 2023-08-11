@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVCustomScriptExecuteStaticMethod</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVCustomScriptExecuteStaticMethod extends RunBase
+{
+    IdentifierName  classOrTableName;
+    MethodName      methodName;
+
+    DialogField     dlgClassOrTableName;
+    DialogField     dlgMethodName;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        classOrTableName,  methodName
+    #endmacro
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        Dialog dialog = super();
+        ;
+
+        dlgClassOrTableName = dialog.addFieldValue(extendedTypeStr(IdentifierName), classOrTableName, "Class or table name");
+        dlgMethodName = dialog.addFieldValue(extendedTypeStr(MethodName), methodName, "Method name");
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        
+        classOrTableName  = dlgClassOrTableName.value();
+        methodName  = dlgMethodName.value();
+
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "Execute table or class X++ static method";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Integer     version = conPeek(_packedClass,1);
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList] = _packedClass;
+                break;
+            default :
+                return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        Dictionary  d = new Dictionary();
+        DictClass   dictClass = d.classObject(className2Id(classOrTableName));
+        DictTable   dictTable = d.tableObject(tableName2Id(classOrTableName));
+        DictMethod  dm;
+
+        if (dictClass)
+        {
+
+            dm = new DictMethod(UtilElementType::ClassStaticMethod, dictClass.id(), methodName); 
+            if (! dm)
+            {
+                throw error(strFmt("Method %1 not found on class or table %2", methodName, classOrTableName));
+            }
+            if (dm.parameterCnt() !=0)
+            {
+                throw error("Method with parameters can't executed");
+            }
+            if (dm.returnType() == Types::void)
+            {
+                dictClass.callStatic(dm.name());
+                Info("Executed");
+            }
+            else
+            {
+                info(strFmt("Executed with return value: %1", dictClass.callStatic(dm.name())));
+            }
+        }
+        else
+        {
+            if (dictTable)
+            {
+                dm = new DictMethod(UtilElementType::TableStaticMethod, dictTable.id(), methodName);
+                if (! dm)
+                {
+                    throw error(strFmt("Method %1 not found on class or table %2", methodName, classOrTableName));
+                }
+                if (dm.parameterCnt() !=0)
+                {
+                    throw error("Method with parameters can't executed");
+                }
+                if (dm.returnType() == Types::void)
+                {
+                    dictTable.callStatic(dm.name());
+                    Info("Executed");
+                }
+                else
+                {
+                    info(strFmt("Executed with return value: %1", dictTable.callStatic(dm.name())));
+                }
+            }
+            else
+            {
+                throw error(strFmt("Class or table %1 not found", classOrTableName));
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVCustomScriptExecuteStaticMethod construct()
+    {
+        return new DEVCustomScriptExecuteStaticMethod();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVCustomScriptExecuteStaticMethod action = DEVCustomScriptExecuteStaticMethod::construct();
+
+        if (action.prompt())
+        {
+            action.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
