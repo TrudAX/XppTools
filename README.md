@@ -182,7 +182,7 @@ A sample code to Create a new design for Sales Invoice report in D365FO (https:/
 
 ## DEVExternalIntegration submodel
 
-Contains "External integration" framework. It includes [core module](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegration) and [samples](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegrationSamples)
+Contains "External integration" framework. It includes [core module](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegration) and [samples](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegrationSamples). The External Integration framework provides a standardized approach to developing X++ based integrations. It emphasizes ease of support and expedites the development process.
 
 ### -File-based integration in Dynamics 365 FinOps using X++
 
