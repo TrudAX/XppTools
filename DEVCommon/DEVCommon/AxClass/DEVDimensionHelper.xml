@@ -119,6 +119,14 @@ class DEVDimensionHelper
     //--LedgerDimension from DefaultAccount and DefaultDimension
     //LedgerDimensionFacade::serviceCreateLedgerDimension(
 
+    //--Create dimension value				
+    //DimensionValueService dimensionValueService = new DimensionValueService();
+    //DimensionValueContract dimensionValueContract = new DimensionValueContract();
+    //dimensionValueContract.parmValue(_newProjCategory.Id);
+    //dimensionValueContract.parmDimensionAttribute(mgcDimHelper::getProjCategoryAttribute);
+    //dimensionValueContract.parmDescription(_newProjCategory.Name);
+    //dimensionValueService.createDimensionValue(dimensionValueContract);				
+
     // --DefaultDimension from Value str
     static DimensionDefault setValueToDefaultDimension(DimensionDefault _dimensionDefault,Name _dimensionName, DimensionValue  _newDimensionValue)
     {
