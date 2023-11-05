@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSrsReportRunController_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(SrsReportRunController))]
+final class DEVSrsReportRunController_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialogPostShow</Name>
+				<Source><![CDATA[
+    public SysOperationStartResult dialogPostShow()
+    {
+        SysOperationStartResult     startResult;
+        SrsReportDataContract       reportContract;
+        DEVCSXppCallStackUserSetup  callStackUserSetup;
+        SqlDictionary               sqlDict;
+        str                         dpClassName;
+        str                         controllerClassName;
+        int                         classId;
+       
+        try
+        {
+            if (DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled == UnknownNoYes::Unknown)
+            {
+                DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled = UnknownNoYes::No;
+
+                select firstonly RecId from sqlDict
+                    where sqlDict.fieldId  == 0 &&
+                            sqlDict.name     == tableStr(DEVCSXppCallStackUserSetup);
+
+                if (sqlDict.recid)
+                {
+                    DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled = UnknownNoYes::Yes;
+                }
+            }
+
+            if (DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled == UnknownNoYes::Yes)
+            {
+                callStackUserSetup = DEVCSXppCallStackUserSetup::findCurrent();
+
+                if (callStackUserSetup.RecId && callStackUserSetup.TraceRunbaseCalls)
+                {
+                    classId = classIdGet(this);
+
+                    if (classId)
+                    {
+                        controllerClassName = classId2Name(classId);
+        
+                        if (controllerClassName == "SrsReportRunController")
+                        {
+                            reportContract  = this.reportContract;
+                            if (reportContract)
+                            {
+                                dpClassName     = reportContract.parmRdpName();
+                                DEVCSXppBatchCallStackHandler::createSysOperationLog(dpClassName);
+                            }
+                        }
+                        else
+                        {
+                            DEVCSXppBatchCallStackHandler::createSysOperationLog(controllerClassName);
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled = UnknownNoYes::No;
+        }
+        
+        startResult = next dialogPostShow();
+        
+        return startResult;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

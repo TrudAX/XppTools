@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVCSXppBatchCallStackHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVCSXppBatchCallStackHandler
+{
+    public static UnknownNoYes  isRunBaseTraceEnabled = UnknownNoYes::Unknown;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>createBatchLog</Name>
+				<Source><![CDATA[
+    public static void createBatchLog(XppPrePostArgs _args)
+    {
+        DEVCSXppCallStackTable      callStackTable;
+        str                         className,extendClassName;
+        DEVCSXppCallStackUserSetup  callStackUserSetup;
+        SqlDictionary  sqlDict;
+
+        try
+        {
+            if (DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled == UnknownNoYes::Unknown)
+            {
+                DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled = UnknownNoYes::No;
+
+                select firstonly RecId from sqlDict
+                    where sqlDict.fieldId  == 0 &&
+                            sqlDict.name     == tableStr(DEVCSXppCallStackUserSetup);
+
+                if (sqlDict.recid)
+                {
+                    DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled = UnknownNoYes::Yes;
+                }
+            }
+
+            if (DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled == UnknownNoYes::Yes)
+            {
+                callStackUserSetup = DEVCSXppCallStackUserSetup::findCurrent();
+
+                if (callStackUserSetup.RecId && callStackUserSetup.TraceRunbaseCalls)
+                {
+                    if (_args && _args.getThis())
+                    {
+                        int classId = classIdGet(_args.getThis());
+                        if (classId)
+                        {
+                            var dictClass = new DictClass(classId);
+
+                            if (dictClass)
+                            {
+                                className       = dictClass.name();
+                                extendClassName = classId2Name(dictClass.extend());
+                        
+                                UserConnection       userConnection = new UserConnection();
+                                callStackTable.setConnection(userConnection);
+                                callStackTable.clear();
+                                callStackTable.initValue();
+                                callStackTable.Exception    = Exception::Info;
+                                callStackTable.InfologStr   = strFmt("%1 class extended from %2 class",className,extendClassName);
+                                callStackTable.CallStack    = xSession::xppCallStack();
+                                callStackTable.insert();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled = UnknownNoYes::No;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createSysOperationLog</Name>
+				<Source><![CDATA[
+    public static void createSysOperationLog(str _dpClassName)
+    {
+        DEVCSXppCallStackTable  callStackTable;
+        UserConnection          userConnection = new UserConnection();
+
+        callStackTable.setConnection(userConnection);
+        callStackTable.clear();
+        callStackTable.initValue();
+        callStackTable.Exception    = Exception::Info;
+        callStackTable.InfologStr   = strFmt("%1 class",_dpClassName);
+        callStackTable.CallStack    = xSession::xppCallStack();
+        callStackTable.insert();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

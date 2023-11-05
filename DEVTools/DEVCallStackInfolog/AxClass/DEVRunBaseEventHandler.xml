@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVRunBaseEventHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVRunBaseEventHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Runbase_Pre_prompt</Name>
+				<Source><![CDATA[
+    [PreHandlerFor(classStr(Runbase), methodStr(Runbase, prompt))]
+    public static void Runbase_Pre_prompt(XppPrePostArgs args)
+    {
+        DEVCSXppBatchCallStackHandler::createBatchLog(args);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
