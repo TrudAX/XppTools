@@ -281,6 +281,7 @@ public class DEVCSXppCallStackTable extends FormRun
 		</AxFormDataSource>
 	</DataSources>
 	<Design>
+		<Caption xmlns="">DEV Tools - Call stack</Caption>
 		<Pattern xmlns="">Custom</Pattern>
 		<Style xmlns="">SimpleListDetails</Style>
 		<UseCaptionFromMenuItem xmlns="">Yes</UseCaptionFromMenuItem>

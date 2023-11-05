@@ -36,7 +36,7 @@ class DEVCSXppCallStackHandler
 
                 if (sqlDict.recid)
                 {
-                     DEVCSXppCallStackHandler::isCheckEnabled     = UnknownNoYes::Yes;
+                    DEVCSXppCallStackHandler::isCheckEnabled    = UnknownNoYes::Yes;
                 }
             }
 
@@ -54,14 +54,22 @@ class DEVCSXppCallStackHandler
                             break;
                         case SysInfologLevel::Warning:
                             if (_eventArgs.exception== Exception::Info)
-                            isEnabled = false;
+                            {
+                                isEnabled = false;
+                            }
                             break;
                         case SysInfologLevel::Error:
                             if (_eventArgs.exception == Exception::Info ||
                                 _eventArgs.exception == Exception::Warning)
-                            isEnabled = false;
+                            {
+                                isEnabled = false;
+                            }
                             break;
                     }
+                }
+                else
+                {
+                    DEVCSXppCallStackHandler::isCheckEnabled = UnknownNoYes::No;
                 }
             }
 

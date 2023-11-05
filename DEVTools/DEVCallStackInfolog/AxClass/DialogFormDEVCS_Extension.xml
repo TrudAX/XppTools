@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DialogFormDEVCS_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classstr(DialogForm))]
+final class DialogFormDEVCS_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>doInit</Name>
+				<Source><![CDATA[
+    public void doInit(Dialog dialog)
+    {
+        next doInit(dialog);
+        DEVCSXppBatchCallStackHandler::createDialogCallLog(dialog);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-	<Name>DEVSrsReportRunController_Extension</Name>
+	<Name>SrsReportRunControllerDEVCS_Extension</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-[ExtensionOf(classStr(SrsReportRunController))]
-final class DEVSrsReportRunController_Extension
+[ExtensionOf(classstr(SrsReportRunController))]
+final class SrsReportRunControllerDEVCS_Extension
 {
 }
 ]]></Declaration>
@@ -59,12 +59,17 @@ final class DEVSrsReportRunController_Extension
                                 DEVCSXppBatchCallStackHandler::createSysOperationLog(dpClassName);
                             }
                         }
-                        else
-                        {
-                            DEVCSXppBatchCallStackHandler::createSysOperationLog(controllerClassName);
-                        }
+                        // else already covered in dialog
+                        // {
+                        //     DEVCSXppBatchCallStackHandler::createSysOperationLog(controllerClassName);
+                        // }
                     }
                 }
+                else
+                {
+                    DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled = UnknownNoYes::No;
+                }
+
             }
         }
         catch

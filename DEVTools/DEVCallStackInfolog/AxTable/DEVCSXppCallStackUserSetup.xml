@@ -172,8 +172,8 @@ public class DEVCSXppCallStackUserSetup extends common
 			i:type="AxTableFieldEnum">
 			<Name>TraceRunbaseCalls</Name>
 			<ExtendedDataType>NoYesId</ExtendedDataType>
-			<HelpText>Runbase calls log is enabled</HelpText>
-			<Label>Trace runbase calls</Label>
+			<HelpText>Runbase dialog calls log is enabled</HelpText>
+			<Label>Trace dialog calls</Label>
 			<EnumType>NoYes</EnumType>
 		</AxTableField>
 	</Fields>
