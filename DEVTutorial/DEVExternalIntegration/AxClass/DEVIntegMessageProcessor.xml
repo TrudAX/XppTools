@@ -138,11 +138,6 @@ public class DEVIntegMessageProcessor
             isErrorCaught   = true;
             exception       = Exception::Internal;
         }
-        catch (Exception::Break)
-        {
-            isErrorCaught   = true;
-            exception       = Exception::Break;
-        }
         catch (Exception::DDEerror)
         {
             isErrorCaught   = true;

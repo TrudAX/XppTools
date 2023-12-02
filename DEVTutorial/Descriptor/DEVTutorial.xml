@@ -24,6 +24,7 @@
 		<d2p1:string>DEVCommon</d2p1:string>
 		<d2p1:string>Dimensions</d2p1:string>
 		<d2p1:string>Directory</d2p1:string>
+		<d2p1:string>FinTag</d2p1:string>
 		<d2p1:string>FiscalBooks</d2p1:string>
 		<d2p1:string>GeneralLedger</d2p1:string>
 		<d2p1:string>Ledger</d2p1:string>
@@ -40,6 +41,7 @@
 	</ModuleReferences>
 	<Name>DEVTutorial</Name>
 	<Publisher>TrudAX</Publisher>
+	<SolutionId>00000000-0000-0000-0000-000000000000</SolutionId>
 	<VersionBuild>0</VersionBuild>
 	<VersionMajor>1</VersionMajor>
 	<VersionMinor>0</VersionMinor>
