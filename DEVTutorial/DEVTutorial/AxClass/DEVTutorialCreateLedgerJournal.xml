@@ -244,12 +244,20 @@ class DEVTutorialCreateLedgerJournal
             }
             ledgerJournalTrans.modifiedField(fieldNum(LedgerJournalTrans, LedgerDimension));
             ledgerJournalEngine.accountModified(LedgerJournalTrans);
+            if (ledgerJournalTrans.AccountType != LedgerJournalACType::Ledger)
+            {
+                ledgerJournalTrans.DefaultDimension = ledgerJournalTransOrig.DefaultDimension;
+            }
         
             ledgerJournalTrans.OffsetAccountType = ledgerJournalTransOrig.OffsetAccountType;
             ledgerJournalTrans.modifiedField(fieldNum(LedgerJournalTrans, OffsetAccountType));
             ledgerJournalTrans.OffsetLedgerDimension = ledgerJournalTransOrig.OffsetLedgerDimension;
             ledgerJournalTrans.modifiedField(fieldNum(LedgerJournalTrans, OffsetLedgerDimension));
             ledgerJournalEngine.offsetAccountModified(ledgerJournalTrans);
+            if (ledgerJournalTrans.OffsetAccountType != LedgerJournalACType::Ledger)
+            {
+                ledgerJournalTrans.OffsetDefaultDimension = ledgerJournalTransOrig.OffsetDefaultDimension;
+            }
 
             //amounts
             LedgerJournalTrans.CurrencyCode         =   ledgerJournalTransOrig.CurrencyCode;
@@ -266,6 +274,13 @@ class DEVTutorialCreateLedgerJournal
             DEV::validateWriteRecordCheck(ledgerJournalTrans);
             ledgerJournalTrans.insert();
             ledgerJournalEngine.write(ledgerJournalTrans);
+        }
+
+        if (ledgerJournalTable.RecId)
+        {
+            ledgerJournalTable.reread();
+            ledgerJournalTable.NumOfLines = ledgerJournalTable.NumOfLines();
+            ledgerJournalTable.update();
         }
         return numLines;
     }
