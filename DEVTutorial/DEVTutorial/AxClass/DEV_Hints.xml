@@ -39,7 +39,8 @@ final class MarkupTableFormPLT_Extension
 Debug source document distribution
 \Classes\AccountingDistributionProcessor\distributeAmount                
 
-
+3. settle transactions					
+CustTrans::settleTransaction(..
        */
               
     }
