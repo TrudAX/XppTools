@@ -81,6 +81,11 @@
 					<Name>DEVIntegMessageTypeInbound</Name>
 					<MenuItemName>DEVIntegMessageTypeInbound</MenuItemName>
 				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegMappingTable</Name>
+					<MenuItemName>DEVIntegMappingTable</MenuItemName>
+				</AxMenuElement>
 			</Elements>
 		</AxMenuElement>
 	</Elements>

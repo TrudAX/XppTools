@@ -191,6 +191,17 @@ class DEVIntegManualFileImport extends RunBaseBatch
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>createMessageTable</Name>
+				<Source><![CDATA[
+    protected void createMessageTable(DEVIntegMessageCreator  _messageCreator, DEVIntegMessageTypeInbound  _messageTypeTable)
+    {
+        messageTable = _messageCreator.createMessage(_messageTypeTable);
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>run</Name>
 				<Source><![CDATA[
     public void run()
@@ -225,7 +236,12 @@ class DEVIntegManualFileImport extends RunBaseBatch
             messageCreator = DEVIntegMessageCreator::construct();
             messageCreator.initFromStreamLocalFile(fileName, folderName, memoryStreamFile);
             messageCreator.parmIsManualImport(true);
-            messageTable = messageCreator.createMessage(messageTypeTable);
+
+            ttsbegin;
+
+            this.createMessageTable(messageCreator, messageTypeTable);
+
+            ttscommit;
 
             //process message
             messageProcessor = DEVIntegMessageProcessor::construct(messageTypeTable);

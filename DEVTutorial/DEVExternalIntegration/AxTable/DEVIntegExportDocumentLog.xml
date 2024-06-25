@@ -377,10 +377,25 @@ public class DEVIntegExportDocumentLog extends common
 					<DataField>RefRecId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
+					<DataField>DocumentId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>ClassName</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>MessageTypeIdOutbound</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DetailsTime</Name>
+			<Label>Time details</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>StatusChangeDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DurationInMilliseconds</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -482,6 +497,14 @@ public class DEVIntegExportDocumentLog extends common
 			<Name>MessageTypeIdOutbound</Name>
 			<ExtendedDataType>DEVIntegMessageTypeIdOutbound</ExtendedDataType>
 			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>DurationInMilliseconds</Name>
+			<ExtendedDataType>DurationInMilliseconds</ExtendedDataType>
+			<HelpText>Duration of the last call(ms)</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Duration(ms)</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

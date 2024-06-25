@@ -286,6 +286,33 @@ public class DEVIntegConnectionType extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Web</Name>
+			<Label>Web</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>FTPHostName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FTPUserName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ConnectionStringSource</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FTPPassword</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>KeyVaultName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>FTPPasswordSecretEdit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TimeoutInSec</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -350,6 +377,13 @@ public class DEVIntegConnectionType extends common
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<HelpText>FTP Port</HelpText>
 			<Label>Port</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>TimeoutInSec</Name>
+			<ExtendedDataType>RetailTimeoutInSec</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Timeout(Sec)</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

@@ -64,16 +64,31 @@ public class DEVIntegMessageTypeTableOutbound extends common
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>connectionTypeResource</Name>
+				<Source><![CDATA[
+    public DEVIntegConnectionTypeResource connectionTypeResource()
+    {
+        DEVIntegConnectionTypeResource  connectionTypeResource = this.connectionType().ConnectionTypeResource;
+
+        return connectionTypeResource;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>getActionClass</Name>
 				<Source><![CDATA[
     DEVIntegExportMessageBase getActionClass()
     {
-        if (!this.IsFullExport && this.ClassName)
+        DEVIntegExportMessageBase   res;
+        if (this.IsFullExport == DEVIntegOutboundExportType::DocumentsOnEvents && this.ClassName)
         {
             SysDictClass dc = new SysDictClass(className2Id(this.ClassName));
             if (dc)
             {
-                return dc.makeObject();
+                res = dc.makeObject();
+                res.parmMessageTypeTableOutbound(this);
+                return res;
             }
         }
         return null;
@@ -87,7 +102,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
     DEVIntegExportBulkBase getBulkExportClass()
     {
         DEVIntegExportBulkBase      res;
-        if (this.IsFullExport && this.ClassName)
+        if (this.IsFullExport == DEVIntegOutboundExportType::Periodic && this.ClassName)
         {
             SysDictClass dc = new SysDictClass(className2Id(this.ClassName));
             if (dc)
@@ -111,7 +126,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
 
         if (this.ClassName)
         {
-            if (this.IsFullExport)
+            if (this.IsFullExport == DEVIntegOutboundExportType::Periodic)
             {
                 DEVIntegExportBulkBase  bulkBase = this.getBulkExportClass();
                 if (bulkBase)
@@ -121,10 +136,13 @@ public class DEVIntegMessageTypeTableOutbound extends common
             }
             else
             {
-                DEVIntegExportMessageBase  exportMessageBase = this.getActionClass();
-                if (exportMessageBase)
+                if (this.IsFullExport == DEVIntegOutboundExportType::DocumentsOnEvents)
                 {
-                    res = exportMessageBase.getDescription();
+                    DEVIntegExportMessageBase  exportMessageBase = this.getActionClass();
+                    if (exportMessageBase)
+                    {
+                        res = exportMessageBase.getDescription();
+                    }
                 }
             }
         }
@@ -149,7 +167,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
    
         ret = super();
 
-        if (! this.IsFullExport && this.ClassName && this.IsEnabled)
+        if (this.IsFullExport == DEVIntegOutboundExportType::DocumentsOnEvents && this.ClassName && this.IsEnabled)
         {
             select firstonly messageTypeTableOutbound
                 where messageTypeTableOutbound.ClassName == this.ClassName &&
@@ -697,10 +715,7 @@ public class DEVIntegMessageTypeTableOutbound extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldEnum">
 			<Name>IsFullExport</Name>
-			<ExtendedDataType>NoYesId</ExtendedDataType>
-			<HelpText>Export log is not used for the export</HelpText>
-			<Label>Full export</Label>
-			<EnumType>NoYes</EnumType>
+			<EnumType>DEVIntegOutboundExportType</EnumType>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">

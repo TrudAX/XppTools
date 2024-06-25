@@ -229,6 +229,9 @@ public class DEVIntegMessageTypeInbound extends FormRun
 					<DataField>ReadLocation</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>ReadNumberOfDays</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>RecId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -792,6 +795,15 @@ public class DEVIntegMessageTypeInbound extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>ThreadsCount</DataField>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>Performance_ReadNumberOfDays</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ReadNumberOfDays</DataField>
 										<DataSource>DEVIntegMessageTypeInbound</DataSource>
 									</AxFormControl>
 								</Controls>

@@ -2,8 +2,8 @@
 <AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
 	i:type="AxEdtString">
 	<Name>DEVIntegConnectionTypeId</Name>
-	<HelpText>Integration connection type</HelpText>
-	<Label>Connection type</Label>
+	<HelpText>Integration connection type ID</HelpText>
+	<Label>Connection ID</Label>
 	<ReferenceTable>DEVIntegConnectionType</ReferenceTable>
 	<ArrayElements />
 	<Relations />

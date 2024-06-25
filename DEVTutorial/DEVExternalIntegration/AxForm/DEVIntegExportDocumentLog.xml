@@ -12,6 +12,16 @@ public class DEVIntegExportDocumentLog extends FormRun
 }
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>enableDSFields</Name>
+				<Source><![CDATA[
+    void enableDSFields()
+    {
+
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 		<DataSources xmlns="">
 			<DataSource>
@@ -24,6 +34,22 @@ public class DEVIntegExportDocumentLog extends FormRun
         {
             super();
             DEVIntegExportDocumentLog_ds.queryBuildDataSource().addSortField(fieldNum(DEVIntegExportDocumentLog, StatusChangeDate), SortOrder::Descending);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+        
+            ret = super();
+
+            element.enableDSFields();
+        
+            return ret;
         }
 
 ]]></Source>
@@ -68,6 +94,26 @@ public class DEVIntegExportDocumentLog extends FormRun
 					</Method>
 				</Methods>
 			</Control>
+			<Control>
+				<Name>ViewDocumentButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            DEVIntegExportMessageBase  messageBase = DEVIntegExportDocumentLog.messageTypeTableOutbound().getActionClass();
+            if (messageBase)
+            {
+                messageBase.viewDocumentButtonClicked(DEVIntegExportDocumentLog);
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
 		</DataControls>
 		<Members xmlns="" />
 	</SourceCode>
@@ -99,6 +145,9 @@ public class DEVIntegExportDocumentLog extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>DocumentId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DurationInMilliseconds</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ExportStatus</DataField>
@@ -155,6 +204,9 @@ public class DEVIntegExportDocumentLog extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Exception</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>ExportLogRefRecId</DataField>
@@ -237,6 +289,15 @@ public class DEVIntegExportDocumentLog extends FormRun
 								<MultiSelect>Yes</MultiSelect>
 								<NeedsRecord>Yes</NeedsRecord>
 								<Text>Export records</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>ViewDocumentButton</Name>
+								<HelpText>View the original document linked to the current record</HelpText>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>View Document</Text>
 							</AxFormControl>
 						</Controls>
 						<ArrangeMethod>Vertical</ArrangeMethod>
@@ -453,6 +514,15 @@ public class DEVIntegExportDocumentLog extends FormRun
 									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
+										<Name>DetailsGroup_DocumentId</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>DocumentId</DataField>
+										<DataSource>DEVIntegExportDocumentLog</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
 										<Name>DetailsGroup_ClassName</Name>
 										<Type>String</Type>
 										<FormControlExtension
@@ -470,7 +540,38 @@ public class DEVIntegExportDocumentLog extends FormRun
 										<DataSource>DEVIntegExportDocumentLog</DataSource>
 									</AxFormControl>
 								</Controls>
+								<Breakable>No</Breakable>
 								<DataGroup>DetailsGroup</DataGroup>
+								<DataSource>DEVIntegExportDocumentLog</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>DetailsTime</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateTimeControl">
+										<Name>DetailsTime_StatusChangeDate</Name>
+										<Type>DateTime</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>StatusChangeDate</DataField>
+										<DataSource>DEVIntegExportDocumentLog</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>DetailsTime_DurationInMilliseconds</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>DurationInMilliseconds</DataField>
+										<DataSource>DEVIntegExportDocumentLog</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>DetailsTime</DataGroup>
 								<DataSource>DEVIntegExportDocumentLog</DataSource>
 							</AxFormControl>
 						</Controls>
@@ -510,6 +611,16 @@ public class DEVIntegExportDocumentLog extends FormRun
 												<Controls />
 												<DataSource>DEVIntegMessageDataOutbound</DataSource>
 												<ReferenceField>ExportLogRefRecId</ReferenceField>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>Overview_Exception</Name>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Exception</DataField>
+												<DataSource>DEVIntegMessageDataOutbound</DataSource>
+												<Items />
 											</AxFormControl>
 										</Controls>
 										<DataGroup>Overview</DataGroup>

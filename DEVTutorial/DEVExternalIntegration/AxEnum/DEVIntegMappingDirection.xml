@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMappingDirection</Name>
+	<Help>External integration direction</Help>
+	<Label>Direction</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>None</Name>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Export</Name>
+			<Label>Export from D365</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Import</Name>
+			<Label>Import to D365</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>ExportImport</Name>
+			<Label>Export and import</Label>
+			<Value>3</Value>
+		</AxEnumValue>
+	</EnumValues>
+	<IsExtensible>true</IsExtensible>
+</AxEnum>

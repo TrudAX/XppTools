@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMappingTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegMappingTable extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        ttsbegin;
+        DEVIntegMappingTable    this_orig = this.orig();
+        super();
+        
+        if (this.Subtype != this_orig.Subtype)
+        {
+            this.updateLinesSubtype(this_orig.Subtype, this.Subtype);
+        }
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateLinesSubtype</Name>
+				<Source><![CDATA[
+    public void updateLinesSubtype(DEVIntegMappingSubtype _oldSubtype, DEVIntegMappingSubtype _newSubtype)
+    {
+        DEVIntegMappingLine    DEVIntegMappingLine;
+
+        update_recordset DEVIntegMappingLine setting Subtype = _newSubtype
+            where DEVIntegMappingLine.Type    == this.Type
+               && DEVIntegMappingLine.Subtype == _oldSubtype;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEVIntegMappingTable find(DEVIntegMappingType _type, DEVIntegMappingSubtype _subtype, boolean _forupdate = false)
+    {
+        DEVIntegMappingTable    DEVIntegMappingTable;
+
+        if (_type != DEVIntegMappingType::None)
+        {
+            DEVIntegMappingTable.selectForUpdate(_forupdate);
+
+            select DEVIntegMappingTable
+               where DEVIntegMappingTable.Type == _type
+                  && DEVIntegMappingTable.Subtype == _subtype;
+        }
+        return DEVIntegMappingTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findOrCreate</Name>
+				<Source><![CDATA[
+    public static DEVIntegMappingTable findOrCreate(DEVIntegMappingType _type, DEVIntegMappingSubtype _subtype, boolean _forupdate = false)
+    {
+        if (_type == DEVIntegMappingType::None)
+        {
+            throw error(error::wrongUseOfFunction(funcName()));
+        }
+
+        DEVIntegMappingTable    DEVIntegMappingTable = DEVIntegMappingTable::find(_type, _subtype, _forupdate);
+
+        if (! DEVIntegMappingTable)
+        {
+            DEVIntegMappingTable.clear();
+            DEVIntegMappingTable.initValue();
+            DEVIntegMappingTable.Type = _type;
+            DEVIntegMappingTable.Subtype = _subtype;
+            DEVIntegMappingTable.initDefaultParameters();
+            DEVIntegMappingTable.insert();
+        }
+
+        return DEVIntegMappingTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExtCodeByOurCode</Name>
+				<Source><![CDATA[
+    public static DEVIntegMappingExtCode getExtCodeByOurCode(DEVIntegMappingType _type, DEVIntegMappingOurCode _ourCode, DEVIntegMappingSubtype _subtype = '')
+    {
+        DEVIntegMappingLine DEVIntegMappingLine;
+
+        select firstonly DEVIntegMappingLine
+            where DEVIntegMappingLine.Type == _type
+               && DEVIntegMappingLine.Subtype == _subtype
+               && DEVIntegMappingLine.OurCode == _ourCode;
+
+        if (! DEVIntegMappingLine)
+        {
+            if (DEVIntegMappingTable::find(_type, _subtype).RequireOurMapping)
+            {
+                throw Error(strFmt("External code mapping for type '%1' %2 and our code '%3' not found", _type, _subtype, _ourCode));
+            }
+            return _ourCode;
+        }
+        return DEVIntegMappingLine.ExtCode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getOurCodeByExtCode</Name>
+				<Source><![CDATA[
+    public static DEVIntegMappingOurCode getOurCodeByExtCode(DEVIntegMappingType _type, DEVIntegMappingExtCode _extCode, DEVIntegMappingSubtype _subtype = '')
+    {
+        DEVIntegMappingLine DEVIntegMappingLine;
+
+        select firstonly DEVIntegMappingLine
+            where DEVIntegMappingLine.Type == _type
+               && DEVIntegMappingLine.Subtype == _subtype
+               && DEVIntegMappingLine.ExtCode == _extCode;
+
+        if (! DEVIntegMappingLine)
+        {
+            if (DEVIntegMappingTable::find(_type, _subtype).RequireExtMapping)
+            {
+                throw Error(strFmt("External code mapping for type '%1'%2 and external code '%3' not found", _type, _subtype, _extCode));
+            }
+
+            DEVIntegMappingLine.clear();
+            DEVIntegMappingLine.Type = _type;
+            DEVIntegMappingLine.Subtype = _subtype;
+            DEVIntegMappingLine.OurCode = _extCode;
+
+            if (! DEVIntegMappingLine.validateField(fieldNum(DEVIntegMappingLine, OurCode)))
+            {
+                throw Error(strFmt("External code mapping for type '%1'%2 and external code '%3' not found in the mapping table and Record not found in '%4'",
+                                   _type, 
+                                   _subtype, 
+                                   _extCode,
+                                    DEV::tableId2Label(DEVIntegMappingTable::mappingType2TableId(_type))));
+            }
+            return _extCode;
+        }
+        return DEVIntegMappingLine.OurCode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mappingType2Parameters</Name>
+				<Source><![CDATA[
+    public static container mappingType2Parameters(DEVIntegMappingType _type)
+    {
+        DEVIntegMappingTable    parameters;
+
+        parameters.Description       = '';
+        parameters.RequireOurMapping = NoYes::No;
+        parameters.RequireExtMapping = NoYes::No;
+        parameters.Direction         = DEVIntegMappingDirection::None;
+
+        return parameters.packDefaultParameters(0);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>mappingType2TableId</Name>
+				<Source><![CDATA[
+    public static TableId mappingType2TableId(DEVIntegMappingType _type)
+    {
+        return conPeek(DEVIntegMappingTable::mappingType2Parameters(_type), 1);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>modifiedField</Name>
+				<Source><![CDATA[
+    public void modifiedField(FieldId _fieldId)
+    {
+        super(_fieldId);
+
+        switch (_fieldId)
+        {
+            case fieldNum(DEVIntegMappingTable, Type):
+                this.initDefaultParameters();
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public void initDefaultParameters()
+    {
+        TableId baseTableId;
+
+        [baseTableId, 
+         this.Description,
+         this.Direction, 
+         this.RequireOurMapping, 
+         this.RequireExtMapping] = DEVIntegMappingTable::mappingType2Parameters(this.Type);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>packDefaultParameters</Name>
+				<Source><![CDATA[
+    public container packDefaultParameters(TableId _baseTableId)
+    {
+        return [_baseTableId,
+                 this.Description,
+                 this.Direction,
+                 this.RequireOurMapping,
+                 this.RequireExtMapping];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uniqueOurCode</Name>
+				<Source><![CDATA[
+    public boolean uniqueOurCode()
+    {
+        return DEV::inlist(this.Direction, [DEVIntegMappingDirection::Export, DEVIntegMappingDirection::ExportImport]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uniqueExtCode</Name>
+				<Source><![CDATA[
+    public boolean uniqueExtCode()
+    {
+        return DEV::inlist(this.Direction, [DEVIntegMappingDirection::Import, DEVIntegMappingDirection::ExportImport]);
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Mapping header</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Main</TableGroup>
+	<TitleField1>Type</TitleField1>
+	<TitleField2>Subtype</TitleField2>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<CacheLookup>NotInTTS</CacheLookup>
+	<ClusteredIndex>MappingIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>MappingIdx</PrimaryIndex>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Type</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Subtype</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Direction</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RequireOurMapping</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>RequireExtMapping</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Type</Name>
+			<AllowEdit>No</AllowEdit>
+			<Mandatory>Yes</Mandatory>
+			<EnumType>DEVIntegMappingType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Subtype</Name>
+			<ExtendedDataType>DEVIntegMappingSubtype</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Direction</Name>
+			<EnumType>DEVIntegMappingDirection</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>RequireOurMapping</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Generate error if mapping is not found or use the original value</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Require our mapping</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>RequireExtMapping</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Generate error if mapping is not found or use the original value</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Require external mapping</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MappingIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Type</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Subtype</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

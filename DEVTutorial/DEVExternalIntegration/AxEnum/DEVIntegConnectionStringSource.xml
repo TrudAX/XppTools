@@ -2,7 +2,7 @@
 <AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
 	<Name>DEVIntegConnectionStringSource</Name>
 	<Help>Connection string storage settings</Help>
-	<Label>Connection string storage</Label>
+	<Label>Password storage type</Label>
 	<UseEnumValue>No</UseEnumValue>
 	<EnumValues>
 		<AxEnumValue>

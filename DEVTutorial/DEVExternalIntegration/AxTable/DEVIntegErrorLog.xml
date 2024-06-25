@@ -66,6 +66,27 @@ public class DEVIntegErrorLog extends common
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>findForMessageTable</Name>
+				<Source><![CDATA[
+    public static DEVIntegErrorLog findForMessageTable(DEVIntegMessageRefRecId  _refRecId, RefTableId  _refTableId, boolean _forUpdate = false)
+    {
+        DEVIntegErrorLog    errorLog;
+
+        if (_refRecId && _refTableId)
+        {
+            errorLog.selectForUpdate(_forUpdate);
+        
+            select firstonly errorLog
+                where errorLog.MessageRefRecId ==  _refRecId  &&
+                      errorLog.MessageTableId  ==  _refTableId;
+        }
+
+        return errorLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>showLog</Name>
 				<Source><![CDATA[
     public void showLog()

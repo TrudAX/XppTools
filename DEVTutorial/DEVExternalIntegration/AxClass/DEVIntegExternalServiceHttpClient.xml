@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegExternalServiceHttpClient</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+//using Microsoft.Dynamics.HttpCommunication;
+//this is based on WhsExternalServiceHttpClient
+public class DEVIntegExternalServiceHttpClient
+{
+    private const int DefaultRequestTimeoutMilliseconds = 7 * 1000;
+
+    //private static IHttpClientFactory HttpClientFactory = new DefaultHttpClientFactory();
+    
+    private int timeoutInMs = DefaultRequestTimeoutMilliseconds;
+
+    container  requestHeadersCon;
+    DEVIntegMessageProcessResult     processResults;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegExternalServiceHttpClient construct()
+    {
+        return new DEVIntegExternalServiceHttpClient();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmProcessResults</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageProcessResult parmProcessResults(DEVIntegMessageProcessResult _processResults = processResults)
+    {
+        processResults = _processResults;
+        return processResults;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestHeaderClear</Name>
+				<Source><![CDATA[
+    public void requestHeaderClear()
+    {
+        requestHeadersCon = conNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>requestHeaderAdd</Name>
+				<Source><![CDATA[
+    public void requestHeaderAdd(str _name, str _value)
+    {
+        requestHeadersCon += [_name, _value];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>withTimeoutInSec</Name>
+				<Source><![CDATA[
+    public DEVIntegExternalServiceHttpClient withTimeoutInSec(int _timeoutInSec)
+    {
+        if (_timeoutInSec)
+        {
+            timeoutInMs = _timeoutInSec * 1000;
+        }
+        return this;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getNameValueJson</Name>
+				<Source><![CDATA[
+    static str getNameValueJson(container _jsonDataNameValue)
+    {
+        System.IO.StringWriter          stringWriter = new System.IO.StringWriter();
+        Newtonsoft.Json.JsonTextWriter  jsonWriter   = new Newtonsoft.Json.JsonTextWriter(stringWriter);
+        int                             i;
+        str                             json;
+
+        jsonWriter.WriteStartObject();
+        for (i = 1; i <= conLen(_jsonDataNameValue); i+=2)
+        {
+            jsonWriter.WritePropertyName(conPeek(_jsonDataNameValue, i));
+            jsonWriter.WriteValue(conPeek(_jsonDataNameValue, i + 1));
+        }
+        jsonWriter.WriteEndObject();
+        json = stringWriter.ToString();
+        return json;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>invokeOperationSimple</Name>
+				<Source><![CDATA[
+    public str invokeOperationSimple(str _url, System.Net.Http.HttpMethod _method, str _content)
+    {
+        HttpRequestMessage  request    = new HttpRequestMessage();
+        str                 ret, json;
+        int                 i;
+
+        request.Method     = _method;
+        request.RequestUri = new System.Uri(_url);
+        request.Content = new StringContent(_content, System.Text.Encoding::UTF8, "application/json");
+
+        HttpRequestHeaders  reqHeaders = request.Headers;
+        for (i = 1; i <= conLen(requestHeadersCon); i+=2)
+        {
+            reqHeaders.Add(conPeek(requestHeadersCon, i), conPeek(requestHeadersCon, i + 1));
+        }
+
+        if (processResults)
+        {
+            if (_method == HttpMethod::Delete)
+            {
+                processResults.parmMessageBodyStr(strFmt("DELETE %1", _url));
+            }
+            else
+            {
+                processResults.parmMessageBodyStr(_content);
+            }
+        }
+
+        HttpResponseMessage  response = this.invokeOperation(request);
+        var         body       = response.Content.ReadAsStringAsync().Result;
+        if (! response.IsSuccessStatusCode)
+        {
+            throw error(strFmt("Failed to call %1. Reason: %2, Error: %3", _url, response.ReasonPhrase, body));
+        }
+        return body;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>invokeOperation</Name>
+				<Source><![CDATA[
+    public HttpResponseMessage invokeOperation(HttpRequestMessage _requestMessage)
+    {
+        HttpClient httpClient = this.createHttpClient();
+
+        // Invoke the httpClient using the async pattern and use WaitAny to keep any exception wrapped in the Task object
+        // This way, we don't need to worry about X++ aborting the transaction in case of survivable failures
+        System.Threading.Tasks.Task[] taskArray = new System.Threading.Tasks.Task[1]();
+
+        var task = httpClient.SendAsync(_requestMessage, System.Threading.CancellationToken::None);
+        taskArray.set_Item(0, task);
+        System.Threading.Tasks.Task::WaitAny(taskArray);
+
+        if (task.IsCanceled)
+        {
+            throw error(strFmt("@WAX:ExternalServiceMaximumDurationTimeout", httpClient.Timeout.ToString('c')));
+        }
+        else if (task.IsFaulted)
+        {
+            str exceptionMessage = '';
+
+            if (task.Exception)
+            {
+                System.Exception exception = task.Exception;
+                exceptionMessage = exception.Message;
+                
+                while (exception.InnerException)
+                {
+                    exception = exception.InnerException;
+                    exceptionMessage = exception.Message;
+                }
+            }
+
+            throw error(exceptionMessage);
+        }
+
+        HttpResponseMessage responseMessage = task.get_Result() as HttpResponseMessage;
+
+        return responseMessage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createHttpClient</Name>
+				<Source><![CDATA[
+    private HttpClient createHttpClient()
+    {
+        HttpClient newHttpClient = new System.Net.Http.HttpClient();//pClientFactory.CreateClient();
+        newHttpClient.Timeout = new System.TimeSpan(0, 0, 0, 0, timeoutInMs);
+
+        return newHttpClient;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

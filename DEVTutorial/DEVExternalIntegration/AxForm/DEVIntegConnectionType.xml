@@ -23,9 +23,11 @@ public class DEVIntegConnectionType extends FormRun
         DEVIntegConnectionType_ds.object(fieldNum(DEVIntegConnectionType,KeyVaultName)).visible(
             DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::KeyVault);
 
-        SFTPGroup.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP);
+        SFTPGroup.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP ||
+                          DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::Web  );
 
-        ConnectionDetail.visible(DEVIntegConnectionType.ConnectionTypeResource != DEVIntegConnectionTypeResource::SFTP);
+        ConnectionDetail.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
+                                 DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
 
         DEVIntegConnectionType_ds.object(fieldNum(DEVIntegConnectionType,FTPPassword)).visible(
             DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::ManualEntry);
@@ -162,6 +164,9 @@ public class DEVIntegConnectionType extends FormRun
 				<AxFormDataSourceField>
 					<DataField>TableId</DataField>
 				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TimeoutInSec</DataField>
+				</AxFormDataSourceField>
 			</Fields>
 			<ReferencedDataSources />
 			<DataSourceLinks />
@@ -242,15 +247,6 @@ public class DEVIntegConnectionType extends FormRun
 										<DataSource>DEVIntegConnectionType</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""
-										i:type="AxFormStringControl">
-										<Name>GridGroup1_KeyVaultName</Name>
-										<Type>String</Type>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>KeyVaultName</DataField>
-										<DataSource>DEVIntegConnectionType</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
 										i:type="AxFormComboBoxControl">
 										<Name>GridGroup1_ConnectionTypeResource</Name>
 										<Type>ComboBox</Type>
@@ -299,15 +295,6 @@ public class DEVIntegConnectionType extends FormRun
 						<FormControlExtension
 							i:nil="true" />
 						<DataField>ConnectionTypeId</DataField>
-						<DataSource>DEVIntegConnectionType</DataSource>
-					</AxFormControl>
-					<AxFormControl xmlns=""
-						i:type="AxFormStringControl">
-						<Name>GridGroup_KeyVaultName</Name>
-						<Type>String</Type>
-						<FormControlExtension
-							i:nil="true" />
-						<DataField>KeyVaultName</DataField>
 						<DataSource>DEVIntegConnectionType</DataSource>
 					</AxFormControl>
 					<AxFormControl xmlns=""
@@ -438,7 +425,6 @@ public class DEVIntegConnectionType extends FormRun
 											i:nil="true" />
 										<DataField>ConnectionStringSource</DataField>
 										<DataSource>DEVIntegConnectionType</DataSource>
-										<Label>Password storage</Label>
 										<Items />
 									</AxFormControl>
 									<AxFormControl xmlns=""
@@ -475,6 +461,7 @@ public class DEVIntegConnectionType extends FormRun
 								<Breakable>No</Breakable>
 								<DataGroup>SFTP</DataGroup>
 								<DataSource>DEVIntegConnectionType</DataSource>
+								<FrameType>None</FrameType>
 							</AxFormControl>
 						</Controls>
 						<ColumnsMode>Fill</ColumnsMode>

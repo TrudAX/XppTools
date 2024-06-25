@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegJObject</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Newtonsoft.Json.Linq;
+class DEVIntegJObject
+{
+    public Newtonsoft.Json.Linq.JObject body;
+   
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>Parse</Name>
+				<Source><![CDATA[
+    public static DEVIntegJObject Parse(str _body)
+    {
+        DEVIntegJObject jo = new DEVIntegJObject();
+        
+        jo.body = JObject::Parse(_body);
+        
+        return jo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegJObject construct()
+    {
+        DEVIntegJObject jo = new DEVIntegJObject();
+        
+        jo.body = new Newtonsoft.Json.Linq.JObject();
+        
+        return jo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Create</Name>
+				<Source><![CDATA[
+    public static DEVIntegJObject Create(JObject _body)
+    {
+        DEVIntegJObject jo = new DEVIntegJObject();
+        
+        jo.body = _body;
+        
+        return _body == null ? null : jo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetValueString</Name>
+				<Source><![CDATA[
+    public str GetValueString(str _propertyName)
+    {
+        try
+        {
+            JToken jToken = this.body.GetValue(_propertyName);
+            
+            if (jToken == null)
+                 return "";
+            
+            str res = jToken.Type == JTokenType::Null ? "" : jToken.ToString();
+
+            return res;
+        }
+        catch (Exception::CLRError)
+        {
+            return "";
+        }
+        catch (Exception::Internal)
+        {
+            return "";
+        }
+
+        catch
+        {
+            return "";
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetValueInt64</Name>
+				<Source><![CDATA[
+    public int64 GetValueInt64(str _propertyName)
+    {
+        try
+        {
+            JToken jToken = this.body.GetValue(_propertyName);
+
+            if (jToken == null)
+            {
+                return 0;
+            }
+
+            int64 res = jToken.Type == JTokenType::Null ? 0 : jToken;
+
+            return res;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetValueInt</Name>
+				<Source><![CDATA[
+    public int GetValueInt(str _propertyName)
+    {
+        try
+        {
+            JToken jToken = this.body.GetValue(_propertyName);
+
+            if (jToken == null)
+            {
+                return 0;
+            }
+
+            int res = jToken.Type == JTokenType::Null ? 0 : jToken;
+
+            return res;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetValueReal</Name>
+				<Source><![CDATA[
+    public real GetValueReal(str _propertyName)
+    {
+        try
+        {
+            JToken jToken = this.body.GetValue(_propertyName);
+
+            if (jToken == null)
+            {
+                return 0;
+            }
+
+            real res = jToken.Type == JTokenType::Null ? 0 : jToken;
+
+            return res;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetValueDate</Name>
+				<Source><![CDATA[
+    public date GetValueDate(str _propertyName)
+    {
+        try
+        {
+            JToken jToken = this.body.GetValue(_propertyName);
+
+            if (jToken == null)
+            {
+                return dateNull();
+            }
+
+            date res = jToken.Type == JTokenType::Null ? dateNull() : any2Date(jToken.ToString());
+
+            return res;
+        }
+        catch
+        {
+            return dateNull();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetValueDateTime</Name>
+				<Source><![CDATA[
+    public date GetValueDateTime(str _propertyName)
+    {
+        try
+        {
+            JToken jToken = this.body.GetValue(_propertyName);
+
+            if (jToken == null)
+            {
+                return dateNull();
+            }
+            else
+            {
+                if (jToken.Type == JTokenType::Date)
+                {
+                    str  sDate = jToken.ToString();
+                    date res   = str2Date(sDate, 123);
+                    
+                    return res;
+                }
+            }
+
+            return dateNull();
+        }
+        catch
+        {
+            return dateNull();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetValueArray</Name>
+				<Source><![CDATA[
+    public JArray GetValueArray(str _propertyName)
+    {
+        try
+        {
+
+            JArray  items = null;
+
+            var arrValue = this.GetValueString(_propertyName);
+
+            if (arrValue)
+            {
+                items = JArray::Parse(arrValue);
+            }
+
+            return items;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>GetValueObject</Name>
+				<Source><![CDATA[
+    public DEVIntegJObject GetValueObject(str _propertyName)
+    {
+        JToken      jToken = this.body.GetValue(_propertyName);
+        DEVIntegJObject res;
+        
+        if (jToken)
+        {
+            res = jToken.Type == JTokenType::Null ? null : DEVIntegJObject::Parse(jToken.ToString());
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Add</Name>
+				<Source><![CDATA[
+    public Newtonsoft.Json.Linq.JObject Add(str _propertyName, Newtonsoft.Json.Linq.JToken _propertyValue)
+    {
+        Newtonsoft.Json.Linq.JObject bodyLocal = this.body;
+        
+        bodyLocal.Add(_propertyName, _propertyValue);
+        
+        return bodyLocal;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>AddBoolean</Name>
+				<Source><![CDATA[
+    public Newtonsoft.Json.Linq.JObject AddBoolean(str _propertyName, boolean _propertyValue)
+    {
+        Newtonsoft.Json.Linq.JObject bodyLocal = this.body;
+        
+        str boolStr = enum2Str(_propertyValue);
+        
+        bodyLocal.Add(_propertyName, boolStr);
+    
+        return bodyLocal;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -28,10 +28,11 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 				<Source><![CDATA[
     void testConnection()
     {
-        DEVIntegMessagesLoadBaseType loadFileShare = DEVIntegMessagesLoadBaseType::constructFromConnectionType(
-            DEVIntegConnectionType::find(DEVIntegMessageTypeTableOutbound.ConnectionTypeId));
+        //DEVIntegMessagesLoadBaseType loadFileShare = DEVIntegMessagesLoadBaseType::constructFromConnectionType(
+        //    DEVIntegConnectionType::find(DEVIntegMessageTypeTableOutbound.ConnectionTypeId));
+        //loadFileShare.testOutboundConnection(DEVIntegMessageTypeTableOutbound);
+        DEVIntegMessagesLoadBaseType loadFileShare = DEVIntegMessagesLoadBaseType::constructFromMessageTypeOutbound(DEVIntegMessageTypeTableOutbound);
         loadFileShare.testOutboundConnection(DEVIntegMessageTypeTableOutbound);
-
     }
 
 ]]></Source>
@@ -57,13 +58,25 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
              connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP ||
              connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::None));
 
-        DEVIntegExportBulkBaseButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport);
-        ExportAllButton.visible(! DEVIntegMessageTypeTableOutbound.IsFullExport);
+        DEVIntegExportBulkBaseButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::Periodic);
+        ExportAllButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::DocumentsOnEvents);
 
-        ExportBulkLogButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport);
+        ExportBulkLogButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::Periodic);
 
-        BulkQueryTabPage.visible(DEVIntegMessageTypeTableOutbound.IsFullExport && 
+        BulkQueryTabPage.visible(DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::Periodic  &&
             DEVIntegMessageTypeTableOutbound.queryIsEnabled());
+
+        ManualTestFormButton.visible(false);
+        if (DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::DocumentsOnEvents)
+        {
+            DEVIntegExportMessageBase  integExportMessageBase  =  DEVIntegMessageTypeTableOutbound.getActionClass();
+            if (integExportMessageBase)
+            {
+                integExportMessageBase.setManualTestButton(ManualTestFormButton);
+            }
+        }
+        DEVIntegExportDocumentLogButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::DocumentsOnEvents);
+
 
     }
 
@@ -115,7 +128,7 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
                 sysTableLookup.addLookupfield(fieldnum(TmpHelpIndex, URL));
                 sysTableLookup.setLabel("@SYS7576"); // Description
 
-                if (DEVIntegMessageTypeTableOutbound.IsFullExport)
+                if (DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::Periodic)
                 {
                     DEVIntegExportBulkBase  baseImportClassBulk;
                     thisClass = new DictClass(classNum(DEVIntegExportBulkBase));
@@ -466,6 +479,28 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 								<MenuItemName>DEVIntegExportBulkLog</MenuItemName>
 								<Text>Log</Text>
 							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegExportDocumentLogButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+								<MenuItemName>DEVIntegExportDocumentLog</MenuItemName>
+								<NeedsRecord>Yes</NeedsRecord>
+								<Text>Log</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>ManualTestFormButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>MenuFunctionButton</Type>
+								<Visible>No</Visible>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Manual test</Text>
+							</AxFormControl>
 						</Controls>
 						<ArrangeMethod>Vertical</ArrangeMethod>
 					</AxFormControl>
@@ -533,11 +568,7 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
 										<Name>GridGroup_MessageTypeIdOutbound</Name>
-										<FilterExpression>%1</FilterExpression>
-										<HeightMode>Auto</HeightMode>
 										<Type>String</Type>
-										<VerticalSpacing>-1</VerticalSpacing>
-										<WidthMode>Auto</WidthMode>
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>MessageTypeIdOutbound</DataField>
@@ -553,13 +584,14 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""
-										i:type="AxFormCheckBoxControl">
+										i:type="AxFormComboBoxControl">
 										<Name>GridGroup_IsFullExport</Name>
-										<Type>CheckBox</Type>
+										<Type>ComboBox</Type>
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>IsFullExport</DataField>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+										<Items />
 									</AxFormControl>
 								</Controls>
 								<BackgroundColor>WindowBackground</BackgroundColor>
@@ -704,13 +736,14 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 									i:nil="true" />
 								<Controls>
 									<AxFormControl xmlns=""
-										i:type="AxFormCheckBoxControl">
+										i:type="AxFormComboBoxControl">
 										<Name>EntiryGroup_IsFullExport</Name>
-										<Type>CheckBox</Type>
+										<Type>ComboBox</Type>
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>IsFullExport</DataField>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+										<Items />
 									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">

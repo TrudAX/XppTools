@@ -228,6 +228,19 @@ public class DEVIntegMessageProcessor
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>processSingleLine</Name>
+				<Source><![CDATA[
+    public void processSingleLine(DEVIntegMessageTable   _messageTable, RefRecId   _stagingRecIdToProcess)
+    {
+        DEVIntegMessageProcessResult  processResults;
+        processResults = DEVIntegMessageProcessResult::construct();
+        processMessageBase.parmStagingRecIdToProcess(_stagingRecIdToProcess);
+        processMessageBase.processMessage(_messageTable, processResults);
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 </AxClass>

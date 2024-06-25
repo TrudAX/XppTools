@@ -24,5 +24,10 @@
 			<Label>None</Label>
 			<Value>3</Value>
 		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Web</Name>
+			<Label>Web</Label>
+			<Value>4</Value>
+		</AxEnumValue>
 	</EnumValues>
 </AxEnum>

@@ -7,7 +7,6 @@ public class DEVIntegMessageDataOutbound extends common
 {
 
 }
-
 ]]></Declaration>
 		<Methods>
 			<Method>
@@ -27,6 +26,72 @@ public class DEVIntegMessageDataOutbound extends common
         }
         
         return integMessageData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertLog</Name>
+				<Source><![CDATA[
+    public static void insertLog(DEVIntegExportDocumentLog    _exportDocumentLog,
+                                 Exception                    _exception,
+                                 DEVIntegMessageProcessResult  _processResults,
+                                 int                           _infologStartLine = 0)
+    {
+        DEVIntegMessageDataOutbound  messageDataOutbound;
+
+        ttsbegin;
+
+        messageDataOutbound.clear();
+        messageDataOutbound.Exception      = _exception;
+
+        messageDataOutbound.ExportLogRefRecId = _exportDocumentLog.RecId;
+
+        container taskInfolog = conNull();
+        if (_exception != Exception::Info && infologLine() > _infologStartLine)
+        {
+            taskInfolog = infolog.copy(_infologStartLine + 1, infologLine());
+        }
+        if (taskInfolog != conNull())
+        {
+            messageDataOutbound.FileDataStr   = info::infoCon2Str(taskInfolog) + '\n';
+        }
+
+        messageDataOutbound.FileDataStr  += _processResults.parmMessageBodyStr();
+        messageDataOutbound.insert();
+
+        //errorLog.InfologData    = taskInfolog;
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertErrorByMessage</Name>
+				<Source><![CDATA[
+    public static void insertErrorByMessage(DEVIntegExportDocumentLog    _exportDocumentLog, 
+                                            int                          _infoCnt, 
+                                            Exception                    _exception, 
+                                            DEVIntegMessageProcessResult  _processResults)
+    {
+        DEVIntegMessageDataOutbound  messageDataOutbound;
+
+        ttsbegin;
+
+        container taskInfolog = conNull();
+        if (infologLine() > _infoCnt)
+        {
+            taskInfolog = infolog.copy(_infoCnt + 1, infologLine());
+        }
+        messageDataOutbound.clear();
+        messageDataOutbound.Exception      = _exception;
+
+        messageDataOutbound.ExportLogRefRecId = _exportDocumentLog.RecId;
+        messageDataOutbound.FileDataStr       = strFmt("INFOLOG %1", info::infoCon2Str(taskInfolog));
+        messageDataOutbound.insert();
+
+        //errorLog.InfologData    = taskInfolog;
+        ttscommit;
     }
 
 ]]></Source>
@@ -99,6 +164,9 @@ public class DEVIntegMessageDataOutbound extends common
 				<AxTableFieldGroupField>
 					<DataField>CreatedBy</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Exception</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 	</FieldGroups>
@@ -119,6 +187,12 @@ public class DEVIntegMessageDataOutbound extends common
 			<Name>ExportLogRefRecId</Name>
 			<ExtendedDataType>DEVIntegExportDocumentLogRefRecId</ExtendedDataType>
 			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Exception</Name>
+			<Label>Exception</Label>
+			<EnumType>Exception</EnumType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

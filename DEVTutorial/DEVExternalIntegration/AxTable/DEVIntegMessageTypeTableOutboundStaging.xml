@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageTypeTableOutboundStaging</Name>
+	<SourceCode>
+		<Methods />
+	</SourceCode>
+	<DeveloperDocumentation>@DMF:StagingDeveloperDocumentation</DeveloperDocumentation>
+	<FormRef>DEVIntegMessageTypeTableOutbound</FormRef>
+	<Label>Outbound message types</Label>
+	<TableGroup>Staging</TableGroup>
+	<TitleField1>MessageTypeIdOutbound</TitleField1>
+	<TitleField2>FileNameParameterD</TitleField2>
+	<PrimaryIndex>StagingIdx</PrimaryIndex>
+	<ReplacementKey>StagingIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ExtensionList</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>@DMF:StagingExtensionGroup</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DefinitionGroup</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsSelected</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TransferStatus</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ExecutionId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DefinitionGroup</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DMFDefinitionGroupName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+			<StringSize>60</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ExecutionId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DMFExecutionId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+			<StringSize>90</StringSize>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsSelected</Name>
+			<ExtendedDataType>DMFIsSelected</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>TransferStatus</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>DMFTransferStatus</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ConnectionTypeId</Name>
+			<ExtendedDataType>DEVIntegConnectionTypeId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsEnabled</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Integration is Enabled</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Enabled</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MessageTypeIdOutbound</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegMessageTypeIdOutbound</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OutputFolder</Name>
+			<ExtendedDataType>FilePath</ExtendedDataType>
+			<HelpText>Output location folder(e.g. ParentDir\ChildDir or /home/test for FTP)</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Output folder</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassName</Name>
+			<ExtendedDataType>DEVIntegExportClassName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ServiceBusQueueName</Name>
+			<ExtendedDataType>BusinessEventsServiceBusQueueEndpointQueueName</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Queue name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>OutboundLogType</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<EnumType>DEVIntegOutboundLogType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>AzureShareReference</Name>
+			<ExtendedDataType>FolderName</ExtendedDataType>
+			<HelpText>Share reference for Azure storage</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Share reference</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsFullExport</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Export log is not used for the export</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Full export</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FileColumnDelimiter</Name>
+			<ExtendedDataType>Delimiter</ExtendedDataType>
+			<HelpText>For Tabulation enter Tab value</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Delimiter</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FileName</Name>
+			<ExtendedDataType>Filename</ExtendedDataType>
+			<HelpText>File name template</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>File name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>FileNameParameterD</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<HelpText>Parameter to format dates for file name. A standard C# syntax for date to str is used</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Date format(%d)</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SQLText</Name>
+			<ExtendedDataType>Notes</ExtendedDataType>
+			<HelpText>Report SQL Text</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>SQL Text</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>SQLMaxRows</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Maximum allowed rows</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Max rows</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CompanyRange</Name>
+			<ExtendedDataType>Range</ExtendedDataType>
+			<HelpText>List of companies to perform the export</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Company range</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>QueryPacked</Name>
+			<HelpText>Packed query value</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Packed query</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsSendEmail</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Send the result of the export as e-mail attachment</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Send e-mail</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EmailRecipient</Name>
+			<ExtendedDataType>Email</ExtendedDataType>
+			<HelpText>Email recipient</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>Recipient</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EmailCC</Name>
+			<ExtendedDataType>Email</ExtendedDataType>
+			<HelpText>Email CC</HelpText>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Label>CC</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>EmailTemplateId</Name>
+			<ExtendedDataType>SysEmailId</ExtendedDataType>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>StagingIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>DefinitionGroup</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ExecutionId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>MessageTypeIdOutbound</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DataEntity</Name>
+			<Cardinality>ExactlyOne</Cardinality>
+			<EntityRelationshipRole>@DMF:StagingToDataEntityRelationshipRole</EntityRelationshipRole>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<RelatedTable>DEVIntegMessageTypeTableOutboundEntity</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Link</RelationshipType>
+			<Validate>No</Validate>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageTypeIdOutbound</Name>
+					<Field>MessageTypeIdOutbound</Field>
+					<RelatedField>MessageTypeIdOutbound</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

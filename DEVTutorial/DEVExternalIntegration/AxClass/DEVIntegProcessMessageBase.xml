@@ -5,9 +5,11 @@
 		<Declaration><![CDATA[
 abstract public class DEVIntegProcessMessageBase
 {
-    DEVIntegMessageTypeInbound        messageTypeTable;
+    DEVIntegMessageTypeInbound      messageTypeTable;
     DEVIntegMessageTable            messageTable;
     DEVIntegMessageProcessResult    messageProcessResult;
+
+    RefRecId                        stagingRecIdToProcess;
 
 }
 ]]></Declaration>
@@ -85,6 +87,17 @@ abstract public class DEVIntegProcessMessageBase
     public void initParameters(DEVIntegMessageTypeInbound   _messageTypeTable)
     {
         messageTypeTable = _messageTypeTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmStagingRecIdToProcess</Name>
+				<Source><![CDATA[
+    public RefRecId parmStagingRecIdToProcess(RefRecId _stagingRecIdToProcess = stagingRecIdToProcess)
+    {
+        stagingRecIdToProcess = _stagingRecIdToProcess;
+        return stagingRecIdToProcess;
     }
 
 ]]></Source>

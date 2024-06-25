@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEVIntegMappingOurCode</Name>
+	<HelpText>External integration mapping our code</HelpText>
+	<Label>Our code</Label>
+	<ArrayElements />
+	<Relations />
+	<TableReferences />
+	<StringSize>60</StringSize>
+</AxEdt>

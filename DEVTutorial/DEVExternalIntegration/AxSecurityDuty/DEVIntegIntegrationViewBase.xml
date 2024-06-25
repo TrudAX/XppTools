@@ -12,5 +12,8 @@
 		<AxSecurityPrivilegeReference>
 			<Name>DEVIntegWorkspaceMaintain</Name>
 		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegMappingView</Name>
+		</AxSecurityPrivilegeReference>
 	</Privileges>
 </AxSecurityDuty>

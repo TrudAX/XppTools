@@ -14,9 +14,22 @@ public class DEVIntegMessageProcessResult
     DEVIntegMessageStatus       messageStatusExternal;
     boolean                     isMessageStatusSet;
 
+    str         messageBodyStr;
+
 }
 ]]></Declaration>
 		<Methods>
+			<Method>
+				<Name>parmMessageBodyStr</Name>
+				<Source><![CDATA[
+    public str parmMessageBodyStr(str _messageBodyStr = messageBodyStr)
+    {
+        messageBodyStr = _messageBodyStr;
+        return messageBodyStr;
+    }
+
+]]></Source>
+			</Method>
 			<Method>
 				<Name>setMessageStatus</Name>
 				<Source><![CDATA[

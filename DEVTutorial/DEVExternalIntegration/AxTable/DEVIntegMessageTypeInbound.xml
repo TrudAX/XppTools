@@ -340,6 +340,9 @@ public class DEVIntegMessageTypeInbound extends common
 				<AxTableFieldGroupField>
 					<DataField>ThreadsCount</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReadNumberOfDays</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -514,6 +517,12 @@ public class DEVIntegMessageTypeInbound extends common
 			<ExtendedDataType>Seconds</ExtendedDataType>
 			<HelpText>Max duration for load operation(sec)</HelpText>
 			<Label>Duration limit(sec)</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ReadNumberOfDays</Name>
+			<ExtendedDataType>NumberOfDays</ExtendedDataType>
+			<Label>Number of days</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
