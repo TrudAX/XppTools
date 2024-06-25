@@ -639,6 +639,19 @@ class DEV
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>validateDeleteRecordCheck</Name>
+				<Source><![CDATA[
+    public static void validateDeleteRecordCheck(Common _record)
+    {
+        if (! _record.validateDelete())
+        {
+            throw error(strFmt("Failed to delete %1 table", tableId2pname(_record.TableId)));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>systemdateget</Name>
 				<Source><![CDATA[
     public static TransDate systemdateget()
@@ -900,6 +913,37 @@ class DEV
 
 ]]></Source>
 			</Method>		
+			<Method>
+				<Name>checkNotIsNull</Name>
+				<Source><![CDATA[
+    public static Object checkNotIsNull(Object _obj, str _errorMessage)
+    {
+        if (! _obj)
+        {
+            throw error(_errorMessage);
+        }
+        return _obj;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>recordSetModeFast</Name>
+				<Source><![CDATA[
+    public static void recordSetModeFast(Common _common)
+    {
+        
+        _common.skipDatabaseLog  (true);
+        _common.skipDataMethods  (true);
+        _common.skipDeleteActions(true);
+        _common.skipDeleteMethod (true);
+        _common.skipBusinessEvents(true);
+        _common.skipEvents(true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 		</Methods>
 	</SourceCode>
 </AxClass>

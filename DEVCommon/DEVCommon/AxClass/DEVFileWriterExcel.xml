@@ -179,7 +179,7 @@ class DEVFileWriterExcel
                 break;
 
             case Types::Date :
-                formatStr = 'm/d/yyyy';
+                formatStr = "mm-dd-yy";//'m/d/yyyy'; this will use local date format
                 break;
             case Types::Enum :
                 formatStr = '@';
@@ -206,6 +206,26 @@ class DEVFileWriterExcel
             colStyle.Format = formatStr;
         }
 
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>excelSetColumnFormatCustom</Name>
+				<Source><![CDATA[
+    void excelSetColumnFormatCustom(int _column, str _formatString)
+    {
+        OfficeOpenXml.ExcelRange    rngCell;
+        System.String               rangestr;
+        
+        rangestr = System.String::Format('{0}:{0}', OfficeOpenXml.ExcelCellAddress::GetColumnLetter(_column));
+        rngCell = excelWorksheet.Cells.get_Item(rangestr);
+
+        var colStyle    = rngCell.Style.Numberformat;
+        if (_formatString)
+        {
+            colStyle.Format = _formatString;
+        }
     }
 
 ]]></Source>
@@ -269,6 +289,29 @@ class DEVFileWriterExcel
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>addLogo</Name>
+				<Source><![CDATA[
+    void addLogo(container _imageCon) 
+    {
+        Binary                              binary  = Binary::constructFromContainer(_imageCon);
+        System.IO.MemoryStream              mstream = binary.getMemoryStream();
+        System.Drawing.Image                image   = System.Drawing.Image::FromStream(mstream);
+        OfficeOpenXml.Drawing.ExcelPicture  picture = excelWorksheet.Drawings.AddPicture('1', image);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>strartNewWorkSheet</Name>
+				<Source><![CDATA[
+    void strartNewWorkSheet(str _name)
+    {
+        excelWorksheet  = package.Workbook.Worksheets.Add(_name);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>doExcelOutput</Name>
 				<Source><![CDATA[
     public void doExcelOutput(str _startFromBookmark = 'A1')
@@ -291,6 +334,9 @@ class DEVFileWriterExcel
             {
                 case Types::Date:
                 case Types::UtcDateTime:
+                    this.excelSetRangeFormat(currCell, typeOf(_value));
+                    break;
+                case Types::Real:
                     this.excelSetRangeFormat(currCell, typeOf(_value));
                     break;
             }
@@ -345,7 +391,7 @@ class DEVFileWriterExcel
 			<Method>
 				<Name>formatColumWidth</Name>
 				<Source><![CDATA[
-    private void formatColumWidth()
+    public void formatColumWidth()
     {
         OfficeOpenXml.ExcelRange                rngCell;
 

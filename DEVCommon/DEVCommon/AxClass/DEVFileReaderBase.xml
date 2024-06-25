@@ -412,7 +412,17 @@ class DEVFileReaderBase
                 {
                     if (dateFormatStr)
                     {
-                        res = System.DateTime::ParseExact(dataVal, dateFormatStr, System.Globalization.CultureInfo::get_InvariantCulture());
+                        boolean         parsingOK;
+                        System.DateTime resValue;
+
+                        parsingOK = System.DateTime::TryParseExact(dataVal, dateFormatStr, System.Globalization.CultureInfo::get_InvariantCulture(), System.Globalization.DateTimeStyles::None, byref resValue);
+                        if (! parsingOK)
+                        {
+                            throw error(strFmt("Failed to convert %1 to date in %2 column using %3 format", dataVal, _columnNum, dateFormatStr));
+                        }
+                        res = resValue;
+
+                        //res = System.DateTime::ParseExact(dataVal, dateFormatStr, System.Globalization.CultureInfo::get_InvariantCulture());
                     }
                     else
                     {
