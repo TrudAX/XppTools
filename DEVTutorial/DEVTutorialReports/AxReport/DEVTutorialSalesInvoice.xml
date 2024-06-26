@@ -5887,6 +5887,24 @@
 				<DefaultValue />
 				<Values />
 			</AxReportParameterBase>
+			<AxReportParameterBase xmlns=""
+				i:type="AxReportParameter">
+				<Name>DocumentTitle</Name>
+				<AllowBlank>true</AllowBlank>
+				<Nullable>true</Nullable>
+				<UserVisibility>Hidden</UserVisibility>
+				<DefaultValue />
+				<Values />
+			</AxReportParameterBase>
+			<AxReportParameterBase xmlns=""
+				i:type="AxReportParameter">
+				<Name>DocumentTitleSequel</Name>
+				<AllowBlank>true</AllowBlank>
+				<Nullable>true</Nullable>
+				<UserVisibility>Hidden</UserVisibility>
+				<DefaultValue />
+				<Values />
+			</AxReportParameterBase>
 		</ReportParameterBases>
 	</DefaultParameterGroup>
 	<Designs>

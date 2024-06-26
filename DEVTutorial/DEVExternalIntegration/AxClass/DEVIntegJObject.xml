@@ -126,7 +126,7 @@ class DEVIntegJObject
                 return 0;
             }
 
-            int res = jToken.Type == JTokenType::Null ? 0 : jToken;
+            int res = jToken.Type == JTokenType::Null ? 0 : any2Int(jToken);
 
             return res;
         }
@@ -152,7 +152,7 @@ class DEVIntegJObject
                 return 0;
             }
 
-            real res = jToken.Type == JTokenType::Null ? 0 : jToken;
+            real res = jToken.Type == JTokenType::Null ? 0 : any2Real(jToken);
 
             return res;
         }

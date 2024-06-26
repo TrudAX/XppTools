@@ -263,7 +263,12 @@ public class DEVIntegTutorialProcessPurchConfirmXML extends DEVIntegProcessMessa
             if (! HcmWorker::findByPerson(dirPerson.RecId))
             {
                 hcmPersonnelNumberId = NumberSeq::newGetNum(NumberSeqReference::findReference(extendedTypeNum(HcmPersonnelNumberId)), false).num();
-                workerRecId = HcmWorkerTransition::newCreateHcmWorker(dirPersonName, hcmPersonnelNumberId);
+                HcmCreateWorkerContract createWorkerParams = HcmCreateWorkerContract::construct();
+                createWorkerParams.parmDirPersonName(dirPersonName);
+                createWorkerParams.parmPersonnelNumber(hcmPersonnelNumberId);
+
+                workerRecId = HcmWorkerTransition::newCreateHcmWorkerV2(createWorkerParams);
+                    //newCreateHcmWorker(dirPersonName, hcmPersonnelNumberId);
             }
         }
         return workerRecId;

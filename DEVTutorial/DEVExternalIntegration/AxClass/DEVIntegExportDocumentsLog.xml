@@ -219,7 +219,7 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
 
                     exportDocumentLogUpd.ExportStatus           = DEVIntegExportStatus::Sent;
                     exportDocumentLogUpd.StatusChangeDate       = DateTimeUtil::utcNow();
-                    exportDocumentLogUpd.DurationInMilliseconds = stopwatch.get_ElapsedMilliseconds();
+                    exportDocumentLogUpd.DurationInMilliseconds = any2Int(stopwatch.get_ElapsedMilliseconds());
                     exportDocumentLogUpd.update();
 
                     if (_messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full)
