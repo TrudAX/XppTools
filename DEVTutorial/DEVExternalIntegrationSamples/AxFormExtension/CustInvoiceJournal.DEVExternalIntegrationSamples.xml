@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>CustInvoiceJournal.DEVExternalIntegrationSamples</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControldtosacwt1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>DEVTutorialEDI</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>DEVTutorialEDI_DEVTutorialIntegEDIIsSend</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>DEVTutorialIntegEDIIsSend</DataField>
+						<DataSource>CustInvoiceJour</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormDateTimeControl">
+						<Name>DEVTutorialEDI_DEVTutorialIntegEDISendDateTime</Name>
+						<Type>DateTime</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>DEVTutorialIntegEDISendDateTime</DataField>
+						<DataSource>CustInvoiceJour</DataSource>
+					</AxFormControl>
+				</Controls>
+				<DataGroup>DEVTutorialEDI</DataGroup>
+				<DataSource>CustInvoiceJour</DataSource>
+			</FormControl>
+			<Parent>Overview</Parent>
+			<PositionType>Begin</PositionType>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSourceModifications />
+	<DataSourceReferences />
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

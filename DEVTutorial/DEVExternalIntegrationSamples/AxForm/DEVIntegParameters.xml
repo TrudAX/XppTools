@@ -30,6 +30,7 @@ public class DEVIntegParameters extends FormRun
         super();
 
         DEVIntegParameters::find();
+        DEVIntegParametersPerCompany::find();
 
         this.numberSeqPostInit();
 
@@ -174,6 +175,21 @@ public class DEVIntegParameters extends FormRun
 			<Table>DEVIntegParameters</Table>
 			<Fields>
 				<AxFormDataSourceField>
+					<DataField>CreatedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Key</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>Partition</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -185,14 +201,72 @@ public class DEVIntegParameters extends FormRun
 				<AxFormDataSourceField>
 					<DataField>TaxItemGroup</DataField>
 				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>DEVIntegParametersPerCompany</Name>
+			<Table>DEVIntegParametersPerCompany</Table>
+			<Fields>
 				<AxFormDataSourceField>
-					<DataField>TenantID</DataField>
+					<DataField>CreatedBy</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
-					<DataField>VendorInputMethod</DataField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DataAreaId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EDICountryRegionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EDISalesOriginId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EDISalesPoolId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EDIWorker</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>InventDimId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsEnableEDIOrderChanges</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Key</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ProductExportCustomer</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReturnDefaultActionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
 				</AxFormDataSourceField>
 			</Fields>
 			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
 			<DataSourceLinks />
 			<DerivedDataSources />
 		</AxFormDataSource>
@@ -318,6 +392,9 @@ public class DEVIntegParameters extends FormRun
 							<DataField>DEL_RestartNum_CN</DataField>
 						</AxFormDataSourceField>
 						<AxFormDataSourceField>
+							<DataField>Extended</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
 							<DataField>FetchAhead</DataField>
 						</AxFormDataSourceField>
 						<AxFormDataSourceField>
@@ -330,6 +407,9 @@ public class DEVIntegParameters extends FormRun
 							<DataField>Highest</DataField>
 						</AxFormDataSourceField>
 						<AxFormDataSourceField>
+							<DataField>Highest64</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
 							<DataField>InUse</DataField>
 						</AxFormDataSourceField>
 						<AxFormDataSourceField>
@@ -339,6 +419,9 @@ public class DEVIntegParameters extends FormRun
 							<DataField>Lowest</DataField>
 						</AxFormDataSourceField>
 						<AxFormDataSourceField>
+							<DataField>Lowest64</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
 							<DataField>Manual</DataField>
 						</AxFormDataSourceField>
 						<AxFormDataSourceField>
@@ -346,6 +429,9 @@ public class DEVIntegParameters extends FormRun
 						</AxFormDataSourceField>
 						<AxFormDataSourceField>
 							<DataField>NextRec</DataField>
+						</AxFormDataSourceField>
+						<AxFormDataSourceField>
+							<DataField>NextRec64</DataField>
 						</AxFormDataSourceField>
 						<AxFormDataSourceField>
 							<DataField>NoIncrement</DataField>
@@ -396,10 +482,12 @@ public class DEVIntegParameters extends FormRun
 	</DataSources>
 	<Design>
 		<Caption xmlns="">Integration parameters</Caption>
-		<DataSource xmlns="">DEVIntegParameters</DataSource>
+		<DataSource xmlns="">DEVIntegParametersPerCompany</DataSource>
 		<Pattern xmlns="">TableOfContents</Pattern>
 		<PatternVersion xmlns="">1.1</PatternVersion>
 		<SetCompany xmlns="">No</SetCompany>
+		<ShowDeleteButton xmlns="">No</ShowDeleteButton>
+		<ShowNewButton xmlns="">No</ShowNewButton>
 		<Style xmlns="">TableOfContents</Style>
 		<Controls xmlns="">
 			<AxFormControl xmlns=""
@@ -507,6 +595,29 @@ public class DEVIntegParameters extends FormRun
 										<ColumnsMode>Fill</ColumnsMode>
 										<Caption>Tutotial purch import</Caption>
 										<Scrollbars>Auto</Scrollbars>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>ExportBulkTutorial</Name>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>DEVIntegParametersPerCompany_ProductExportCustomer</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ProductExportCustomer</DataField>
+												<DataSource>DEVIntegParametersPerCompany</DataSource>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>Tutorial Export</Caption>
+										<DataSource>DEVIntegParametersPerCompany</DataSource>
 									</AxFormControl>
 								</Controls>
 								<AlignChild>No</AlignChild>

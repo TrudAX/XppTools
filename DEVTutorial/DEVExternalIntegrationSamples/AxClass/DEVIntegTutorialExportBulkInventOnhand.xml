@@ -22,7 +22,7 @@ class DEVIntegTutorialExportBulkInventOnhand extends DEVIntegExportBulkBase
         this.writeHeaderLine(lineData);
 
         while select crosscompany sum(AvailPhysical), maxof(LastUpdDatePhysical) from inventSum
-            group by ItemId, InventLocationId
+            group by ItemId, InventLocationId, DataAreaId
             where inventSum.AvailPhysical 
         {
             lineData = [inventSum.DataAreaId, inventSum.ItemId, inventSum.InventLocationId, inventSum.LastUpdDatePhysical, inventSum.AvailPhysical];
@@ -30,7 +30,6 @@ class DEVIntegTutorialExportBulkInventOnhand extends DEVIntegExportBulkBase
         }
 
         this.sendFileToStorage();
-
     }
 
 ]]></Source>

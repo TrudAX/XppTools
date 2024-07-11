@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialExportBulkOnhandPricesQuery</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVIntegTutorialExportBulkOnhandPricesQuery extends DEVIntegExportBulkBase
+{
+    CustTable           custTable;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>exportQueryInit</Name>
+				<Source><![CDATA[
+    public Query exportQueryInit()
+    {
+        Query                 query;
+        QueryBuildDataSource  qBDS;
+
+        query   = new Query();
+        
+        qBDS = query.addDataSource(tablenum(InventTable));
+
+        qBDS = qBDS.addDataSource(tablenum(InventItemGroupItem));
+        qBDS.relations(true);
+        qBDS.addRange(FieldNum(InventItemGroupItem, ItemGroupId)).value('Audio');
+
+        return query;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeTableOutbound initDefaultParameters(DEVIntegMessageTypeTableOutbound    _messageTypeTableOutbound)
+    {
+        DEVIntegMessageTypeTableOutbound  tableOutbound = super(_messageTypeTableOutbound);
+        tableOutbound.FileNameParameterD   = 'yyyyMMdd_HHmm';
+        tableOutbound.FileName             = 'OnhandPrices_%d.csv';
+        tableOutbound.FileColumnDelimiter  = '|';
+
+        return tableOutbound;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExportDescription</Name>
+				<Source><![CDATA[
+    public str getExportDescription()
+    {
+        return "Tutorial export Onhand Prices to CSV";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportData</Name>
+				<Source><![CDATA[
+    public void exportData()
+    {
+        container               lineData;
+        InventTable             inventTable;
+        Query                   query;
+        QueryRun                qr;
+
+        //init parameters
+        DEVIntegParametersPerCompany integParametersPerCompany = DEVIntegParametersPerCompany::find();
+        DEV::validateCursorField(integParametersPerCompany, fieldNum(DEVIntegParametersPerCompany, ProductExportCustomer), true);
+
+        custTable = CustTable::find(integParametersPerCompany.ProductExportCustomer);
+
+        this.initCSVStream();
+        lineData = ['ItemId', 'InventLocationId', 'AvailPhysical', 'Price'];
+        this.writeHeaderLine(lineData);
+
+        query   = this.exportQueryGet();
+        qr = new QueryRun(query);
+        
+        while (qr.next())
+        {
+            inventTable = qr.get(TableNum(InventTable));
+            this.itemRecord(inventTable);
+        }
+
+        this.sendFileToStorage();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>itemRecord</Name>
+				<Source><![CDATA[
+    void itemRecord(InventTable _inventTable)
+    {
+        InventDim       inventDimFind;
+        Price           price;
+        InventSum       inventSum;
+        
+        inventDimFind = null;
+        inventDimFind.InventLocationId  =   custTable.InventLocation;
+        inventDimFind.InventSiteId      =   custTable.InventSiteId;
+        inventDimFind   =   inventDim::findOrCreate(inventDimFind);
+
+        PriceDiscParameters parameters = PriceDiscParameters::construct();
+        parameters.parmModuleType(ModuleInventPurchSales::Sales);
+        parameters.parmItemId(_inventtable.ItemId);
+        parameters.parmInventDim(inventDimFind);
+        parameters.parmUnitID(_inventtable.inventTableModuleSales().UnitId);
+        parameters.parmPriceDiscDate(DEV::systemdateget());
+        parameters.parmQty(1);
+        parameters.parmAccountNum(custTable.AccountNum);
+        parameters.parmCurrencyCode(custTable.Currency);
+        PriceDisc       priceDisc = PriceDisc::newFromPriceDiscParameters(parameters);
+
+        if (priceDisc.findPrice(custTable.PriceGroup))
+        {
+            price       = CurrencyExchangeHelper::amount(priceDisc.price());
+        }
+        else
+        {
+            if (exportBulkStatus != DEVIntegExportBulkStatus::Warning)
+            {
+                warning(strFmt("Price is not found for %1 Item", _inventtable.ItemId));
+                this.setExportStatus(DEVIntegExportBulkStatus::Warning);
+            }
+        }
+        select sum(AvailPhysical) from inventSum
+            where inventSum.ItemId           == _inventTable.ItemId &&
+                  inventSum.Closed           == false &&
+                  inventSum.InventSiteId     == custTable.InventSiteId &&
+                  inventSum.InventLocationId == custTable.InventLocation;
+        
+        this.writeDataLine([
+                _inventTable.ItemId,
+                custTable.InventLocation,
+                inventSum.AvailPhysical,
+                price ]);
+
+
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

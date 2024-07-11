@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialExportBulkCustInvEDIInc</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialExportBulkCustInvEDIInc  extends DEVIntegExportBulkBase
+{
+    DEVIntegParametersPerCompany    integParametersPerCompany;
+
+    DialogField             dfFromDate;
+    TransDate               fromDate;
+        
+    DialogField             dfToDate;
+    TransDate               toDate;
+
+    Range        invoiceIdRange;
+    DialogField  dlgInvoiceIdRange;
+
+    DEVIntegExportBulkIncrementalType  exportType;
+    DialogField                        dlgExportType;
+
+    DEVIntegTmpExportRecordsMark       tmpExportRecordsMark;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        exportType,
+        fromDate,
+        toDate
+    #endmacro
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>exportQueryInit</Name>
+				<Source><![CDATA[
+    public Query exportQueryInit()
+    {
+        Query               query;
+
+        QueryBuildDataSource    qBDS;
+
+        query   = new Query();
+        
+        qBDS = query.addDataSource(tablenum(CustInvoiceJour));
+        qBDS.addRange(FieldNum(CustInvoiceJour, InvoiceAccount)).value('US-005');
+        qBDS.addRange(FieldNum(CustInvoiceJour, SalesType)).value(SysQuery::value(SalesType::Sales));
+        
+        qBDS.addRange(FieldNum(CustInvoiceJour, InvoiceDate));
+        qBDS.addRange(FieldNum(CustInvoiceJour, InvoiceId));
+        
+        return query;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgInvoiceIdRange  = dialog.addFieldValue(extendedtypestr(Range), invoiceIdRange, "Invoice range");
+
+        dfFromDate      = dialog.addField(extendedTypeStr(FromDate));
+        dfToDate        = dialog.addField(extendedTypeStr(ToDate));
+
+        dlgExportType   = dialog.addFieldValue(enumstr(DEVIntegExportBulkIncrementalType), exportType);
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        fromDate    = dfFromDate.value();
+        toDate      = dfToDate.value();
+        exportType  = dlgExportType.value();
+
+        invoiceIdRange   = dlgInvoiceIdRange.value();
+
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList, super()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version     version = RunBase::getVersion(_packedClass);
+        container   base;
+        boolean     res;
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList, base] = _packedClass;
+                res = super(base);
+                break;
+            default:
+                return false;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportData</Name>
+				<Source><![CDATA[
+    public void exportData()
+    {
+        CustInvoiceJour         custInvoiceJour;
+        QueryBuildDataSource    qbds;
+        QueryRun                qr;
+        Query                   query;
+        QueryBuildRange         qbrInvoiceDate;
+        
+        integParametersPerCompany = DEVIntegParametersPerCompany::find();
+
+        this.initCSVStream();
+
+        query   = this.exportQueryGet();
+        qbds = query.dataSourceTable(tablenum(CustInvoiceJour));
+        
+        qbrInvoiceDate      = qbds.addRange(FieldNum(CustInvoiceJour, InvoiceDate));
+        
+        if (fromDate || toDate)
+        {
+            qbrInvoiceDate.value(SysQuery::range(fromDate, toDate));
+        }
+        if (invoiceIdRange)
+        {
+            qbds.addRange(FieldNum(CustInvoiceJour, InvoiceId)).value(invoiceIdRange);
+        }
+        if (exportType == DEVIntegExportBulkIncrementalType::Incremental)
+        {
+            qbds.addRange(FieldNum(CustInvoiceJour, DEVTutorialIntegEDIIsSend)).value(queryValue(NoYes::No));
+        }
+        qr = new QueryRun(query);
+        
+        while (qr.next())
+        {
+            custinvoicejour = qr.get(TableNum(CustInvoiceJour));
+
+            this.exportRecord(custInvoiceJour);
+
+            tmpExportRecordsMark.RefRecId = custInvoiceJour.RecId;
+            tmpExportRecordsMark.insert();
+        }
+        this.sendFileToStorageNotEmpty();
+
+        if (! isTestRun)
+        {
+            ttsbegin;                  
+            custInvoiceJour = null;
+            update_recordset custInvoiceJour
+                setting DEVTutorialIntegEDISendDateTime = exportStartDateTime,
+                        DEVTutorialIntegEDIIsSend = true
+            exists join tmpExportRecordsMark
+                where tmpExportRecordsMark.RefRecId == custInvoiceJour.RecId;
+            ttscommit;
+        }
+
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportRecord</Name>
+				<Source><![CDATA[
+    void exportRecord(CustInvoiceJour _custInvoiceJour)
+    {
+        CustInvoiceTrans        custinvoicetrans;
+        str                     invoiceDateStr;
+        int                     lineCounter;
+        real                    realPrice;
+        str                     realPriceStr;
+        CustTable               custTable;
+        SalesTable              salesTable;
+        Markuptrans             markuptrans;
+        real                    lastlinenum;
+        Qty                     totalQty;
+        str                     barCodeStr;
+        ;
+        
+        lineCounter         =   0;
+
+        custTable           =   CustTable::find(_custinvoicejour.OrderAccount);
+        salesTable          =   SalesTable::find(_custInvoiceJour.SalesId);
+
+
+        invoiceDateStr      =   date2str(_custinvoicejour.InvoiceDate,123,2,3,2,3,2);
+        invoiceDateStr      =   strReplace(invoiceDateStr, ".", "");
+        
+        container lineData = ["H",
+            "ContosoUSA",
+            _custInvoiceJour.invoiceAmount >= 0 ? "IN" : "CR",
+            "",
+            _custinvoicejour.InvoiceId,
+            invoiceDateStr,
+            _custinvoicejour.CurrencyCode == Ledger::accountingCurrency(CompanyInfo::current()) ? "" : _custinvoicejour.CurrencyCode];
+
+        this.writeDataLine(lineData);
+            
+        while select custinvoicetrans
+            order by LineNum, itemid   
+            where custinvoicetrans.InvoiceId == _custinvoicejour.InvoiceId &&
+                  custinvoicetrans.SalesId   == _custinvoicejour.SalesId
+        {
+            linecounter++;
+            totalQty +=  custinvoicetrans.Qty;
+            
+            InventDim       inventDim = custinvoicetrans.inventDim();
+        
+            if (custInvoiceTrans.SumLineDiscMST && custInvoiceTrans.Qty)
+            {
+                realPrice       =   decRound(custInvoiceTrans.SalesPrice - (custInvoiceTrans.SumLineDiscMST/custInvoiceTrans.Qty),4);
+                realPriceStr    =   num2str(realPrice,1,2,1,0);
+            }
+            else
+            {
+                realPriceStr   =   num2Str(custinvoicetrans.SalesPrice,1,2,1,0);
+            }
+            InventItemBarcode inventItemBarcode = inventItemBarcode::findItemId(custInvoiceTrans.ItemId, false, false, 'EAN-13');
+            barCodeStr = inventItemBarcode.ItemBarCode;
+            if(! barCodeStr)
+            {
+                barCodeStr  =  custinvoicetrans.ItemId + '-' + inventDim.InventColorId + '-' + inventDim.InventSizeId;
+            }
+            
+            lastlinenum = custinvoicetrans.LineNum;
+        
+            this.writeDataLine(["D",
+                num2str(custinvoicetrans.LineNum,1,0,0,0),
+                salesTable.PurchOrderFormNum,
+                barCodeStr,
+                custinvoicetrans.itemName(),
+                num2str(custinvoicetrans.Qty,1,2,1,0),
+                custinvoicetrans.SalesUnit,
+                num2str(custInvoiceTrans.SalesPrice,1,2,1,0),
+                num2str(custInvoiceTrans.DiscPercent,1,2,1,0),
+                realPriceStr,
+                _custInvoiceJour.InclTax ? "Y" : "",
+                num2str(custinvoicetrans.Qty * custInvoiceTrans.SalesPrice,1,2,1,0),
+                num2str(custInvoiceTrans.SumLineDisc,1,2,1,0),
+                num2str(custInvoiceTrans.LineAmount,1,2,1,0),
+                num2str(custInvoiceTrans.TaxAmount,1,2,1,0),
+                custInvoiceTrans.TaxAmount ? num2str(decRound(custinvoicetrans.LineAmount/custInvoiceTrans.TaxAmount, 0) * 100,1,0,0,0) : num2str(0.0,1,0,0,0)]);
+        }
+
+        while select markuptrans
+            where   markuptrans.TransRecId      == _custinvoicejour.RecId &&
+                    markuptrans.TransTableId    == _custinvoicejour.TableId
+        {
+            lastLineNum++;
+
+            linecounter++;
+
+            this.writeDataLine(["M",
+                num2str(lastLineNum,1,0,0,0),
+                salesTable.PurchOrderFormNum,
+                "EN",
+                "CHARGE",
+                markuptrans.MarkupCode,
+                num2str(markuptrans.Value,1,2,1,0),
+                num2str(markuptrans.CalculatedAmount +  markuptrans.TaxAmount,1,2,1,0),
+                num2str(markuptrans.TaxAmount,1,2,1,0),
+                markuptrans.TaxAmount ? num2str(decRound(markuptrans.CalculatedAmount/markuptrans.TaxAmount, 0) * 100,1,0,0,0) : num2str(0.0,1,0,0,0)]);
+        }
+
+        this.writeDataLine(["S",
+            num2str(linecounter,1,0,0,0),
+            num2str(_custInvoiceJour.InvoiceAmount,1,2,1,0),
+            num2str(totalQty,1,0,0,0),
+            num2str(_custInvoiceJour.SumTax,1,2,1,0)]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeTableOutbound initDefaultParameters(DEVIntegMessageTypeTableOutbound    _messageTypeTableOutbound)
+    {
+        DEVIntegMessageTypeTableOutbound  tableOutbound = super(_messageTypeTableOutbound);
+        tableOutbound.FileNameParameterD   = 'yyyyMMdd';
+        tableOutbound.FileName             = 'EDICustInvoices_%d_INV.CSV';
+        tableOutbound.FileColumnDelimiter  = ',';
+
+        return tableOutbound;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExportDescription</Name>
+				<Source><![CDATA[
+    public str getExportDescription()
+    {
+        return "Tutorial Export EDI Invoices(Incremental)";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
