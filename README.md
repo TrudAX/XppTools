@@ -89,9 +89,9 @@ Sub-model name: DEVListOfValuesToRange
 
 **[⬆ back to top](#XppTools)**
 
-### -Execute direct SQL in D365FO database
+### -Execute direct SQL in the D365FO database
 
-'Execute direct SQL' is a simple form that allows to write and execute direct SQL from the browser on D365FO database.
+'Execute direct SQL' is a simple form that allows one to write and execute direct SQL from the browser on the D365FO database.
 
 Full description: [Execute direct SQL in D365FO database](https://denistrunin.com/xpptools-sqlexecute/)
 Sub-model name: DEVSQLExecute
@@ -100,7 +100,7 @@ Sub-model name: DEVSQLExecute
 
 ### -SQL reports
 
-'SQL reports' functionality is a set of forms that allow to define and execute direct SQL reports in the D365FO database. There is a "SQL definition" table that defines the SQL text, a "SQL format" table that defines the output format(e.g. CSV, Excel, etc..) and SQL Report table where the user can run the report and output the result to the selected format.
+'SQL reports' functionality is a set of forms that allow to define and execute direct SQL reports in the D365FO database. There is a "SQL definition" table that defines the SQL text, a "SQL format" table that defines the output format(e.g. CSV, Excel, etc..) and an SQL Report table where the user can run the report and output the result to the selected format.
 
 Sub-model name: DEVSQLReports
 
@@ -200,20 +200,38 @@ A sample code to implement Azure Service Bus integration in D365FO using X++ (ht
 
 A sample approach how to implement XML based integration by importing purchase orders from Azure File Share in D365FO using X++ (https://denistrunin.com/xpptools-integfilesharexmlpurch/).
 
+### -XppInteg - Implement Periodic Data Export from D365FO to SFTP
+
+How to implement various scenarios for periodic data export from D365FO to a file and uploading it to SFTP server(https://denistrunin.com/integration-outboundsftp/).
+
 **[⬆ back to top](#XppTools)**
 
 ## Installation
 
-1. Download the Source code from this GitHub repo into the Temp directory on the DEV VM.
-2. Copy **DEVTools**(or DEVGlobal, DEVTutorial) folder to your package folder (C:\AOSService\PackagesLocalDirectory )
-3. Start Visual Studio and Run compile for the **DEVTools** folder (Dynamics 365 –Build models.. – Select DEVTools)
-4. Run database sync - **Invoke-D365DbSyncModule -Module "DEVTools"**
+Download the Source code from this GitHub repo into the Temp directory on the DEV VM.
+
+For **DEVTools,** I recommend creating a separate model:
+
+1. Copy **DEVTools** folder to your package folder (C:\AOSService\PackagesLocalDirectory )
+2. Start Visual Studio and Run compile for the **DEVTools** folder (Dynamics 365 –Build models.. – Select DEVTools)
+3. Run database sync - **Invoke-D365DbSyncModule -Module "DEVTools"**
 
 ![Copy to local folder](assets/CopyFolderToLocal.png)
 
-If you want to contribute - change the objects using Visual Studio in the **DEVTools** model, copy the changed elements(xml files) back into the Temp folder and create GitHub pull request from this Temp folder.
+For **External integration,** I recommend creating submodels in your main project model:
 
-If you want to rename elements prefix you can use this tool that can change multiple file names - **Bulk Rename Utility**. (From DEV to YourPrefix). Then run **Replace in files** in Notepad++ .
+1. In VS, go to Dynamics 365 - Model Management - Create model.
+2. Create 2 models **DEVCommon** and **DEVExternalIntegration,** for your main project package.
+
+![Submodel create](SubmodelCreate.png)
+
+3. Copy all content from the downloaded models. The project structure should be like this: 
+
+![Folder Structure For Integration](FolderStructureForIntegration.png)
+
+If you want to contribute - change the objects using Visual Studio in the **DEVTools** model, copy the changed elements(XML files) back into the Temp folder and create a GitHub pull request from this Temp folder. [Winmerge](https://winmerge.org/?lang=en) is a tool to compare folders.
+
+If you want to rename element prefix you can use this tool that can change multiple file names - **Bulk Rename Utility**. (From DEV to YourPrefix). Then run **Replace in files** in Notepad++ .
 
 ## Contribution
 
