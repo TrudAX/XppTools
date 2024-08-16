@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>SystemAdministration.DEVCommon</Name>
+	<Customizations />
+	<Elements>
+		<AxMenuExtensionElement xmlns="">
+			<MenuElement xmlns=""
+				i:type="AxMenuElementSubMenu">
+				<Name>DEVToolsSubmenuMain</Name>
+				<Label>DEV Tools</Label>
+				<Elements>
+					<AxMenuElement xmlns=""
+						i:type="AxMenuElementSubMenu">
+						<Name>DevToolsInquiriesSubmenu</Name>
+						<Label>@SYS333856</Label>
+						<Elements>
+							<AxMenuElement xmlns=""
+								i:type="AxMenuElementMenuItem">
+								<Name>DEVBenchmarkLog</Name>
+								<MenuItemName>DEVBenchmarkLog</MenuItemName>
+							</AxMenuElement>
+						</Elements>
+					</AxMenuElement>
+					<AxMenuElement xmlns=""
+						i:type="AxMenuElementSubMenu">
+						<Name>DevToolsPeriodicSubmenu</Name>
+						<Label>@SYS76406</Label>
+						<Elements />
+					</AxMenuElement>
+					<AxMenuElement xmlns=""
+						i:type="AxMenuElementSubMenu">
+						<Name>DevToolsSetupSubmenu</Name>
+						<Label>@SYS333869</Label>
+						<Elements>
+							<AxMenuElement xmlns=""
+								i:type="AxMenuElementMenuItem">
+								<Name>DEVCustomFeatures</Name>
+								<MenuItemName>DEVCustomFeatures</MenuItemName>
+							</AxMenuElement>
+						</Elements>
+					</AxMenuElement>
+				</Elements>
+			</MenuElement>
+		</AxMenuExtensionElement>
+	</Elements>
+	<MenuElementModifications />
+	<PropertyModifications />
+</AxMenuExtension>
