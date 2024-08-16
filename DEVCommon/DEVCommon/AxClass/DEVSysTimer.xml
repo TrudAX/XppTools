@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSysTimer</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEVSysTimer
+{
+    real sumTime[];
+    real start[];
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>clear</Name>
+				<Source><![CDATA[
+    void  clear(int clockNum)
+    {
+        if (clockNum > 0)
+        {
+            sumTime[clockNum]   = 0;
+            start[clockNum]     = 0;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>start</Name>
+				<Source><![CDATA[
+    void start(int clockNum)
+    {
+        if (clockNum > 0)
+        {
+            start[clockNum] = DEVSysTimer::getTickCount();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stop</Name>
+				<Source><![CDATA[
+    void stop(int clockNum)
+    {
+        if (clockNum > 0 && start[clockNum])
+        {
+            sumTime[clockNum]   = sumTime[clockNum] + (DEVSysTimer::getTickCount() - start[clockNum]);
+            start[clockNum]     = 0;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>time</Name>
+				<Source><![CDATA[
+    real time(int clockNum)
+    {
+        if (clockNum > 0)
+        {
+            return sumTime[clockNum];
+        }
+        return 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTickCount</Name>
+				<Source><![CDATA[
+    static  int getTickCount()
+    {
+        int ticks;
+        ;
+        try
+        {
+            new InteropPermission(InteropKind::ClrInterop).assert();
+    
+            ticks = System.Environment::get_TickCount();
+            CodeAccessPermission::revertAssert();
+    
+        }
+        catch(Exception::CLRError)
+        {
+            CodeAccessPermission::revertAssert();
+        }
+    
+        return ticks;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

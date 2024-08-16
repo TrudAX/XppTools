@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVBMLogOperation</Name>
+	<Help>Operation</Help>
+	<Label>Operation type</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>ImportWebSales</Name>
+			<Label>ImportWebSales</Label>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

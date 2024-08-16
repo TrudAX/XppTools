@@ -49,6 +49,8 @@ class DEVFileReaderBase
     str  inFieldDelimiter;
     int  workShetNo;
 
+    boolean  isIgnoreCSVQuotes;
+
     System.Diagnostics.Stopwatch stopwatch;
 
 }
@@ -645,6 +647,17 @@ class DEVFileReaderBase
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>parmIsIgnoreCSVQuotes</Name>
+				<Source><![CDATA[
+    public boolean parmIsIgnoreCSVQuotes(boolean _isIgnoreCSVQuotes = isIgnoreCSVQuotes)
+    {
+        isIgnoreCSVQuotes = _isIgnoreCSVQuotes;
+        return isIgnoreCSVQuotes;
+    }
+
+]]></Source>
+			</Method>			
 			<Method>
 				<Name>getCurRowData</Name>
 				<Source><![CDATA[

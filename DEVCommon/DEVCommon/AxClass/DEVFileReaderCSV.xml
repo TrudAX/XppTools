@@ -36,7 +36,7 @@ class DEVFileReaderCSV extends DEVFileReaderBase
         }
         TextFieldParser parser = new TextFieldParser(_stream);
         parser.SetDelimiters(inFieldDelimiter ? inFieldDelimiter : ',');
-        parser.set_HasFieldsEnclosedInQuotes(true);
+        parser.set_HasFieldsEnclosedInQuotes(isIgnoreCSVQuotes ? false : true);
         parser.TextFieldType  = Microsoft.VisualBasic.FileIO.FieldType::Delimited;
         parser.TrimWhiteSpace = false;
 

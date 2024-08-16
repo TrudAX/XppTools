@@ -203,9 +203,10 @@ class DEV
         int                     rangeId;
         QueryBuildRange         qbr;
         str                     ret;
+        int                     rangeCount = _sourceDS.rangeCount();
         ;
     
-        for (rangeId = 1; rangeId <= _sourceDS.rangeCount(); rangeId ++)
+        for (rangeId = 1; rangeId <= rangeCount; rangeId ++)
         {
             qbr = _sourceDS.range(rangeId);
     

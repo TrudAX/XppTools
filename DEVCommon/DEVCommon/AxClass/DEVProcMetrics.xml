@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVProcMetrics</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/*
+    DEVProcMetrics     procMetrics = DEVProcMetrics::construct();
+    ;
+
+    procMetrics.beginTrace();
+
+    // operation exec;
+    // can use procMetrics.incLineCount();
+
+    procMetrics.endTrace(DEVBMLogOperation::SalesInvoicePost,
+                             int642int(salesParmLineLocal.RecId), // or procMetrics.getLineCounter()
+                             "document ref");
+
+*/
+class DEVProcMetrics
+{
+    UtcDateTime     dateTimeBegin;
+    UtcDateTime     dateTimeEnd;
+    UtcDateTime     dateTimeCurrent;
+
+    boolean         tracePaused;
+
+    int64           totalTimePeriod;
+
+    Integer         lineCount;
+
+    DEVSysTimer           machineTimer;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>beginTrace</Name>
+				<Source><![CDATA[
+    public DEVProcMetrics  beginTrace(
+                    UtcDateTIme _dateTimeBegin = DateTimeUtil::getSystemDateTime()
+                    )
+    {
+        ;
+        dateTimeBegin           = _dateTimeBegin;
+        dateTimeEnd             = dateTimeBegin;
+        dateTimeCurrent         = dateTimeBegin;
+        totalTimePeriod         = 0;
+        tracePaused             = false;
+        lineCount               = 0;
+        machineTimer            = null;
+
+        return this;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dateTimeBegin</Name>
+				<Source><![CDATA[
+    UtcDateTime dateTimeBegin(UtcDateTime _dateTimeBegin = dateTimeBegin)
+    {
+        ;
+        dateTimeBegin = _dateTimeBegin;
+        return dateTimeBegin;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dateTimeEnd</Name>
+				<Source><![CDATA[
+    UtcDateTime dateTimeEnd(UtcDateTime _dateTimeEnd = dateTimeEnd)
+    {
+        ;
+        dateTimeEnd = _dateTimeEnd;
+        return dateTimeEnd;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>endTrace</Name>
+				<Source><![CDATA[
+    public void endTrace(DEVBMLogOperation     _metricsType,
+                  Integer               _lineCount          = lineCount,
+                  str                   _descriptionString  = '')
+    {
+        DEVBenchmarkLog     procMetrics;
+        ;
+    
+        procMetrics.initValue();
+        procMetrics.Operation   = _metricsType;
+        procMetrics.StartDateTime = dateTimeBegin;
+        procMetrics.EndDateTime   = DateTimeUtil::getSystemDateTime();
+        procMetrics.Details       = _descriptionString;
+        procMetrics.UserId        = curuserid();
+        procMetrics.CompanyId     = curext();
+    
+        procMetrics.Duration      = procMetrics.durationDisp();
+        if (! this.isLogEnabled(_metricsType, procMetrics.Duration))
+        {
+            return;
+        }
+    
+        procMetrics.LineCount = _lineCount;
+    
+        procMetrics.insert();
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLineCounter</Name>
+				<Source><![CDATA[
+    Integer getLineCounter()
+    {
+        return lineCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSecondsInPeriod</Name>
+				<Source><![CDATA[
+    int64 getSecondsInPeriod(UtcDateTime _dtEnd, UtcDateTime _dtBegin)
+    {
+        ;
+        return DateTimeUtil::getDifference(_dtEnd, _dtBegin);
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>incLineCount</Name>
+				<Source><![CDATA[
+    void incLineCount()
+    {
+        lineCount++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isLogEnabled</Name>
+				<Source><![CDATA[
+    boolean isLogEnabled(DEVBMLogOperation     _metricsType,
+                      Integer               _duration)
+    {
+        DEVBenchmarkLogParameters   logParameters;
+        boolean                     res = true;
+        ;
+    
+        logParameters = DEVBenchmarkLogParameters::find(_metricsType);
+    
+        if (! logParameters.RecId || ! logParameters.IsLogEnabled || logParameters.MinTimeToLog > _duration)
+        {
+            res = false;
+        }
+    
+        return res;
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runTrace</Name>
+				<Source><![CDATA[
+    void runTrace()
+    {
+        ;
+        tracePaused     = false;
+        dateTimeCurrent = DateTimeUtil::getSystemDateTime();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startMachineTime</Name>
+				<Source><![CDATA[
+    void startMachineTime()
+    {
+        ;
+        if (! machineTimer)
+        {
+            machineTimer = new DEVSysTimer();
+        }
+        machineTimer.start(1);
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stopMachineTime</Name>
+				<Source><![CDATA[
+    void stopMachineTime()
+    {
+        ;
+        if (machineTimer)
+        {
+            machineTimer.stop(1);
+        }
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stopTrace</Name>
+				<Source><![CDATA[
+    void stopTrace()
+    {
+        UtcDateTime    tmpDateTime = DateTimeUtil::getSystemDateTime();
+        ;
+    
+        dateTimeEnd = tmpDateTime;
+    
+        if (!tracePaused)
+        {
+            totalTimePeriod += this.getSecondsInPeriod(tmpDateTime, dateTimeCurrent);
+        }
+    
+        tracePaused = false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>timePeriod</Name>
+				<Source><![CDATA[
+    int64 timePeriod()
+    {
+        ;
+        return totalTimePeriod;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    static DEVProcMetrics construct()
+    {
+        DEVProcMetrics procMetrics;
+        ;
+        procMetrics = new DEVProcMetrics();
+        return procMetrics;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
