@@ -515,15 +515,17 @@ class DEVFileReaderBase
 			<Method>
 				<Name>readHeaderRow</Name>
 				<Source><![CDATA[
-    public boolean readHeaderRow()
+    public boolean readHeaderRow(boolean _readAsNextRow = true)
     {
         boolean     res;
         int         columnNum;
 
         str         columnName;
 
+        if (_readAsNextRow)
+        {
         this.readNextRow();
-
+        }
         headerNamesMap = new Map(Types::String, Types::Integer);
         
         
