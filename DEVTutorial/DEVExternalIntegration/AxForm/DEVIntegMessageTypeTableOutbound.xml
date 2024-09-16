@@ -270,10 +270,12 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 						<Source><![CDATA[
         public void clicked()
         {
-            super();
 
-            DEVIntegMessageTypeTableOutbound.querySetDefault();
-
+            if (Box::okCancel(strFmt("Set default query for message %1", DEVIntegMessageTypeTableOutbound.MessageTypeIdOutbound), 
+                    DialogButton::Cancel) == DialogButton::Ok)
+            {
+                DEVIntegMessageTypeTableOutbound.querySetDefault();
+            }
             DEV::dsRefresh(DEVIntegMessageTypeTableOutbound);
         }
 
