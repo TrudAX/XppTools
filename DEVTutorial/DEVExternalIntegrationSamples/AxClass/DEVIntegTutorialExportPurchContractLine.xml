@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialExportPurchContractLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class DEVIntegTutorialExportPurchContractLine
+{
+    // Private variables
+    PurchId     purchId;
+    ItemId      itemId;
+    Qty         quantity;
+    AmountMST   lineAmount;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmPurchId</Name>
+				<Source><![CDATA[
+    // Data member for PurchId
+    [DataMemberAttribute('PurchId')]
+    public PurchId parmPurchId(PurchId _purchId = purchId)
+    {
+        purchId = _purchId;
+        return purchId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmItemId</Name>
+				<Source><![CDATA[
+    // Data member for ItemId
+    [DataMemberAttribute('ItemId')]
+    public ItemId parmItemId(ItemId _itemId = itemId)
+    {
+        itemId = _itemId;
+        return itemId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQuantity</Name>
+				<Source><![CDATA[
+    // Data member for Quantity
+    [DataMemberAttribute('Quantity')]
+    public Qty parmQuantity(Qty _quantity = quantity)
+    {
+        quantity = _quantity;
+        return quantity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLineAmount</Name>
+				<Source><![CDATA[
+    // Data member for LineAmount
+    [DataMemberAttribute('LineAmount')]
+    public AmountMST parmLineAmount(AmountMST _lineAmount = lineAmount)
+    {
+        lineAmount = _lineAmount;
+        return lineAmount;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

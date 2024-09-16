@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialExportPurchOrder</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialExportPurchOrder  extends DEVIntegExportMessageBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>isNeedToCreateLog</Name>
+				<Source><![CDATA[
+    boolean isNeedToCreateLog(PurchTable  _purchTable)
+    {
+        boolean                             res;
+        DEVIntegParametersPerCompany        integParametersPerCompany = DEVIntegParametersPerCompany::find();
+        ;
+        if (this.isMessageTypeEnabled() &&
+            _purchTable.DocumentState == VersioningDocumentState::Confirmed  &&
+            _purchTable.PurchaseType == PurchaseType::Purch &&
+            integParametersPerCompany.POExportOnConfirm != DEVIntegTutorialExportOnConfirm::None &&
+            _purchTable.vendTable_OrderAccount().VendGroup == integParametersPerCompany.VendGroupId
+            )
+        {
+            res = true;
+            if (DEVIntegExportDocumentLog::sentRecordExists(_purchTable, messageTypeTableOutbound.ClassName))  //already marked to send
+            {
+                res = false;
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertFromPurchTable</Name>
+				<Source><![CDATA[
+    public boolean insertFromPurchTable(PurchTable  _purchTable)
+    {
+        boolean  res;
+        ;
+        if(this.isNeedToCreateLog(_purchTable))
+        {
+            this.createLogFromCommon(_purchTable, _purchTable.PurchId);
+            res = true;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>PurchTable_onUpdated</Name>
+				<Source><![CDATA[
+    [DataEventHandler(tableStr(PurchTable), DataEventType::Updated)]
+    public static void PurchTable_onUpdated(Common sender, DataEventArgs e)
+    {
+        PurchTable purchTable = sender as PurchTable;
+        if (purchTable.DocumentState == VersioningDocumentState::Confirmed  &&               
+            purchTable.orig().DocumentState != purchTable.DocumentState )
+        {
+            DEVIntegTutorialExportPurchOrder  exportMessage = DEVIntegTutorialExportPurchOrder::construct();
+            exportMessage.insertFromPurchTable(purchTable);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FormletterService_Post_postPurchaseOrderConfirmation</Name>
+				<Source><![CDATA[
+    [PostHandlerFor(classStr(FormletterService), methodStr(FormletterService, postPurchaseOrderConfirmation))]
+    public static void FormletterService_Post_postPurchaseOrderConfirmation(XppPrePostArgs args)
+    {
+        if (DEVIntegParametersPerCompany::find().POExportOnConfirm != DEVIntegTutorialExportOnConfirm::OnConfirm)
+        {
+            return;
+        }
+
+        PurchFormLetterPurchOrderContract contract = args.getArg('_contract') as PurchFormLetterPurchOrderContract;
+        if (contract)
+        {
+            PurchParmUpdate purchParmUpdate = contract.parmParmUpdate();
+            PurchParmTable  purchParmTable;
+            PurchTable      purchTable;
+            DEVIntegExportDocumentLog  integExportDocumentLog;
+            ClassName       exportClass = classStr(DEVIntegTutorialExportPurchOrder);
+            DEVIntegExportRecordList  exportRecordList;
+
+            //or if one record - DEVIntegExportRecordList::constructFromRecord()
+            while select ParmId from purchParmTable
+                where purchParmTable.ParmId == purchParmUpdate.ParmId
+            join PurchId from purchTable
+                where purchTable.PurchId        == purchParmTable.PurchId 
+            join integExportDocumentLog
+                where integExportDocumentLog.RefTableId == purchTable.TableId
+                    && integExportDocumentLog.RefRecId == purchTable.RecId
+                    && integExportDocumentLog.ClassName == exportClass
+            {
+                if (! exportRecordList)
+                {
+                    exportRecordList = new DEVIntegExportRecordList();
+                }    
+                exportRecordList.addExportLog(integExportDocumentLog.recId);
+            }
+            if (exportRecordList)
+            {
+                DEVIntegExportDocumentsLog::exportRecordList(exportRecordList);
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegTutorialExportPurchOrder construct()
+    {
+        return new DEVIntegTutorialExportPurchOrder();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportAllData</Name>
+				<Source><![CDATA[
+    public void exportAllData()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qBDS;
+        PurchTable              purchTable;
+        int                     processedCounter, insertCounter;
+
+        qBDS = query.addDataSource(tableNum(PurchTable));
+        qBDS.addRange(fieldNum(PurchTable, DocumentState)).value(SysQuery::value(VersioningDocumentState::Confirmed));
+        qBDS = qBDS.addDataSource(tableNum(VendTable));
+        qBDS.joinMode(JoinMode::InnerJoin);
+        qBDS.relations(false);
+        qBDS.addLink(fieldnum(PurchTable, OrderAccount), fieldNum(VendTable, AccountNum));
+        qBDS.addRange(fieldNum(VendTable, VendGroup)).value(SysQuery::value(DEVIntegParametersPerCompany::find().VendGroupId));
+  
+        QueryRun     queryRun;
+        queryRun = new QueryRun(query);
+        if (queryRun.prompt())
+        {
+            while (queryRun.next())
+            {
+                purchTable = queryRun.get(tableNum(PurchTable));
+                if (this.insertFromPurchTable(purchTable))
+                {
+                    insertCounter++;
+                }
+                processedCounter++;
+            }
+            info(strfmt("%1 record(s) processed, %2 marked to export", processedCounter, insertCounter));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exportWebMessage</Name>
+				<Source><![CDATA[
+    public void exportWebMessage(DEVIntegExportDocumentLog    _exportDocumentLog, DEVIntegMessagesLoadBaseType     _loadFileStorageCache)
+    {
+        PurchTable purchTable = PurchTable::findRecId(_exportDocumentLog.RefRecId);
+
+        DEVIntegTutorialExportPurchLoad  exportPurchLoad = _loadFileStorageCache as DEVIntegTutorialExportPurchLoad;
+        
+        exportPurchLoad.initConnection();
+        
+        DEVIntegTutorialExportPurchContractHeader  contractData = new DEVIntegTutorialExportPurchContractHeader();
+        contractData.initFromPurchOrder(purchTable);
+
+        str sJSON = FormJSONSerializer::serializeClass(contractData);
+
+        Num  externalId = exportPurchLoad.postContract(sJSON, _exportDocumentLog.DocumentId);
+
+        /*
+        ttsbegin;
+        purchTable = PurchTable::findRecId(_exportDocumentLog.RefRecId, true);
+        purchTable.DEVTutorialWebID          = externalId;
+        purchTable.update();
+        ttscommit;
+        */
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setManualTestButton</Name>
+				<Source><![CDATA[
+    public void setManualTestButton(FormFunctionButtonControl  _manualTestButtonControl)
+    {
+        _manualTestButtonControl.visible(true);
+        _manualTestButtonControl.menuItemName(menuItemDisplayStr(DEVIntegTutorialTestWebCall));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>viewDocumentButtonClicked</Name>
+				<Source><![CDATA[
+    public void viewDocumentButtonClicked(DEVIntegExportDocumentLog _exportDocumentLog)
+    {
+        FormUtility::openMenuItemForm(menuItemDisplayStr(PurchTable), PurchTable::findRecId(_exportDocumentLog.RefRecId), this);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "Tutorial - Export confirmed Purch order";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCustomLoadType</Name>
+				<Source><![CDATA[
+    public DEVIntegMessagesLoadBaseType getCustomLoadType(DEVIntegMessageTypeTableOutbound   _messageTypeTableOutbound)
+    {
+        return new DEVIntegTutorialExportPurchLoad();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVIntegTutorialTestWebCall</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVIntegTutorialTestWebCall extends FormRun
+{
+    DEVIntegMessageTypeTableOutbound  messageTypeTableOutbound;
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+
+        if (element.args() && element.args().record().TableId == tableNum(DEVIntegMessageTypeTableOutbound))
+        {
+            messageTypeTableOutbound = element.args().record();
+        }
+        else
+        {
+            select firstonly messageTypeTableOutbound
+                order by IsEnabled desc
+                where messageTypeTableOutbound.ClassName == classStr(DEVIntegTutorialExportPurchOrder);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>InitFromContract</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            PurchTable purchTable = PurchTable::find(DocumentIdString.text());
+
+            DEVIntegTutorialExportPurchContractHeader  reply = new DEVIntegTutorialExportPurchContractHeader();
+            reply.initFromPurchOrder(purchTable);
+
+            str sJSON = FormJSONSerializer::serializeClass(reply);
+
+            CallToWebServiceText.text(sJSON);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DoCall</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            ResultTextWebService.text('');
+
+            PurchTable purchTable = PurchTable::find(DocumentIdString.text());
+
+            DEVIntegTutorialExportPurchLoad  exportMessageLoad = DEVIntegMessagesLoadBaseType::constructFromMessageTypeOutbound(messageTypeTableOutbound) as DEVIntegTutorialExportPurchLoad;
+        
+            exportMessageLoad.initConnection();
+
+            str sJSON = CallToWebServiceText.text();
+        
+            Num  externalId = exportMessageLoad.postContract(sJSON, purchTable.PurchId);
+
+            ResultTextWebService.text(externalId);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources />
+	<Design>
+		<Caption xmlns="">Test webservice</Caption>
+		<Pattern xmlns="">Custom</Pattern>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPaneControl</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVIntegTutorialExportPerfTest</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>DEVIntegTutorialExportPerfTest</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>CreateContractGroup</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>DocumentIdString</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<ExtendedDataType>PurchId</ExtendedDataType>
+						<LookupButton>Always</LookupButton>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>FormButtonGroupControl1</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>InitFromContract</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Init from document</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>DoCall</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Call Create</Text>
+							</AxFormControl>
+						</Controls>
+						<Columns>3</Columns>
+						<FrameType>None</FrameType>
+					</AxFormControl>
+				</Controls>
+				<Caption>Document functions</Caption>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>InputDataGroup</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>CallToWebServiceText</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<Width>500</Width>
+						<WidthMode>Manual</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<DisplayHeight>10</DisplayHeight>
+						<DisplayHeightMode>Fixed</DisplayHeightMode>
+						<Label>WebServiceCall</Label>
+						<MultiLine>Yes</MultiLine>
+					</AxFormControl>
+				</Controls>
+				<Caption>Input data</Caption>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>ResultsDataGroup</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>ResultTextWebService</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Type>String</Type>
+						<Width>500</Width>
+						<WidthMode>Manual</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<DisplayHeight>10</DisplayHeight>
+						<DisplayHeightMode>Fixed</DisplayHeightMode>
+						<Label>Result</Label>
+						<MultiLine>Yes</MultiLine>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

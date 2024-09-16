@@ -398,6 +398,8 @@ public class DEVIntegConnectionType extends FormRun
 											i:nil="true" />
 										<DataField>FTPHostName</DataField>
 										<DataSource>DEVIntegConnectionType</DataSource>
+										<DisplayLength>80</DisplayLength>
+										<DisplayLengthMode>Fixed</DisplayLengthMode>
 									</AxFormControl>
 									<AxFormControl xmlns=""
 										i:type="AxFormIntegerControl">

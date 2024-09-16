@@ -252,6 +252,9 @@ public class DEVIntegParameters extends FormRun
 					<DataField>Partition</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>POExportOnConfirm</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>ProductExportCustomer</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -262,6 +265,9 @@ public class DEVIntegParameters extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>VendGroupId</DataField>
 				</AxFormDataSourceField>
 			</Fields>
 			<ReferencedDataSources />
@@ -612,6 +618,36 @@ public class DEVIntegParameters extends FormRun
 												<FormControlExtension
 													i:nil="true" />
 												<DataField>ProductExportCustomer</DataField>
+												<DataSource>DEVIntegParametersPerCompany</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>POExportToWebService</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>POExportToWebService_VendGroupId</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>VendGroupId</DataField>
+														<DataSource>DEVIntegParametersPerCompany</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormComboBoxControl">
+														<Name>POExportToWebService_POExportOnConfirm</Name>
+														<Type>ComboBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>POExportOnConfirm</DataField>
+														<DataSource>DEVIntegParametersPerCompany</DataSource>
+														<Items />
+													</AxFormControl>
+												</Controls>
+												<DataGroup>POExportToWebService</DataGroup>
 												<DataSource>DEVIntegParametersPerCompany</DataSource>
 											</AxFormControl>
 										</Controls>

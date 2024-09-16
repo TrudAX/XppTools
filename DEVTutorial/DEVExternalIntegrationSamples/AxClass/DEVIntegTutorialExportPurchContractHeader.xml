@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialExportPurchContractHeader</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class DEVIntegTutorialExportPurchContractHeader
+{
+    // Private variables
+    PurchId         purchId;
+    AccountNum      orderAccount;
+    List            lines;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmPurchId</Name>
+				<Source><![CDATA[
+    // Data member for PurchId
+    [DataMemberAttribute('PurchId')]
+    public PurchId parmPurchId(PurchId _purchId = purchId)
+    {
+        purchId = _purchId;
+        return purchId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmOrderAccount</Name>
+				<Source><![CDATA[
+    // Data member for OrderAccount
+    [DataMemberAttribute('OrderAccount')]
+    public AccountNum parmOrderAccount(AccountNum _orderAccount = orderAccount)
+    {
+        orderAccount = _orderAccount;
+        return orderAccount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLines</Name>
+				<Source><![CDATA[
+    // Data member for lines
+    [DataMemberAttribute('Lines'),
+        DataCollectionAttribute(Types::Class, classStr(DEVIntegTutorialExportPurchContractLine))]
+    public List parmLines(List _lines = lines)
+    {
+        lines = _lines;
+        return lines;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromPurchOrder</Name>
+				<Source><![CDATA[
+    public void initFromPurchOrder(PurchTable purchTable)
+    {
+        // Initialize header values
+        purchId = purchTable.PurchId;
+        orderAccount = purchTable.OrderAccount;
+        lines = new List(Types::Class);
+
+        // Query PurchLine related to the PurchTable (Purchase Order)
+        PurchLine purchLine;
+        while select purchLine
+            where purchLine.PurchId     == purchTable.PurchId &&
+                  purchLine.IsDeleted   == false
+        {
+            DEVIntegTutorialExportPurchContractLine lineContract = new DEVIntegTutorialExportPurchContractLine();
+
+            // Initialize line contract
+            lineContract.parmPurchId(purchLine.PurchId);
+            lineContract.parmItemId(purchLine.ItemId);
+            lineContract.parmQuantity(purchLine.QtyOrdered);
+            lineContract.parmLineAmount(purchLine.LineAmount);
+
+            // Add line contract to the list
+            lines.addEnd(lineContract);
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

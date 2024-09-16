@@ -353,8 +353,9 @@ public class DEVIntegConnectionType extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>FTPHostName</Name>
-			<ExtendedDataType>Name</ExtendedDataType>
+			<ExtendedDataType>DEVIntegAzureConnectionString</ExtendedDataType>
 			<HelpText>FTP Host name</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Label>Host name</Label>
 		</AxTableField>
 		<AxTableField xmlns=""

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialExportPurchLoad</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Net.Http;
+using System.Net.Http.Headers;
+
+public class DEVIntegTutorialExportPurchLoad extends DEVIntegMessagesLoadBaseType
+{
+    public str              requestUrl;
+    DEVIntegExternalServiceHttpClient       externalServiceHttpClient;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>testOutboundConnection</Name>
+				<Source><![CDATA[
+    void testOutboundConnection(DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
+    {
+        this.initConnection();
+
+        info(strFmt("Connection %1 is OK", _messageTypeTableOutbound.MessageTypeIdOutbound));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initConnection</Name>
+				<Source><![CDATA[
+    public void initConnection()
+    {
+        if (! externalServiceHttpClient)
+        {
+            externalServiceHttpClient = DEVIntegExternalServiceHttpClient::construct().withTimeoutInSec(messageTypeTableOutbound.RecId ? messageTypeTableOutbound.connectionType().TimeoutInSec : 10);
+
+            //this.getHttpToken();
+        }
+        externalServiceHttpClient.parmProcessResults(processResults);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>postContract</Name>
+				<Source><![CDATA[
+    public Num postContract(str _contractJson, Num _purchId)
+    {
+        str externalId;
+        DEVIntegConnectionType connectionType = DEVIntegConnectionType::find(messageTypeTableOutbound.RecId ? messageTypeTableOutbound.ConnectionTypeId : messageTypeTable.ConnectionTypeId);
+        requestUrl = connectionType.FTPHostName;  //or getHttpToken()
+
+        var   body       = externalServiceHttpClient.invokeOperationSimple(requestUrl, HttpMethod::Post, _contractJson);
+        DEVIntegJObject values     = DEVIntegJObject::Parse(body);
+
+        externalId = values.GetValueString('id');
+        if (! externalId)
+        {
+            throw error(strFmt("Failed to get id from the WebService response. Purch %1. Result %2", _purchId, body));
+        }
+        info(strFmt("Purch order %1 was exported to WebService. ID %2", _purchId, externalId));
+
+        return externalId;
+        
+    }
+    /*
+    //Sample implementation of Get token connection
+    public str getHttpToken()
+    {
+        DEVIntegConnectionType connectionType = DEVIntegConnectionType::find(messageTypeTableOutbound.RecId ? messageTypeTableOutbound.ConnectionTypeId : messageTypeTable.ConnectionTypeId);
+        str              authUrl;
+        str              tokenValue;
+        str              userName;
+        str              userPassword;
+        str              json;
+
+        authUrl      = strFmt('%1/profiles/login', connectionType.FTPHostName);
+        requestUrl   = strFmt('%1/contracts/external/', connectionType.FTPHostName);
+        userName     = connectionType.FTPUserName;
+        userPassword = connectionType.getFTPPassword();
+        
+        json =  DEVIntegExternalServiceHttpClient::getNameValueJson(['username', userName, 'password', userPassword]);
+        
+        externalServiceHttpClient.requestHeaderClear();
+        str body = externalServiceHttpClient.invokeOperationSimple(authUrl, HttpMethod::Post, json);
+
+        DEVIntegJObject values     = DEVIntegJObject::Parse(body);
+        tokenValue = values.GetValueString('token');
+        
+        if (! tokenValue)
+        {
+            throw error(strFmt("Failed to update a token from %1. Error: %2", authUrl, body));
+        }
+        externalServiceHttpClient.requestHeaderAdd('Authorization', strFmt('Token %1', tokenValue));
+        
+        return tokenValue;
+    }
+    */
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

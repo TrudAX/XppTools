@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialExportPerfTest</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialExportPerfTest extends RunBaseBatch implements BatchRetryable
+{
+    Seconds      durationSec;
+    Integer      useCache;
+    
+    DialogField  dlgDurationSec;
+    DialogField  dlgUseCache;
+    
+    QueryRun       queryRun;
+    
+    DEVIntegMessageTypeTableOutbound callerDEVIntegMessageTypeTableOutbound;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        durationSec,
+        useCache
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgDurationSec  = dialog.addFieldValue(extendedtypestr(Seconds), durationSec, "Duration(sec)");
+        dlgDurationSec.mandatory_RU(true);
+        dlgUseCache     = dialog.addFieldValue(extendedtypestr(Integer), useCache, "Cache connection", "Cache web connection");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        durationSec   = dlgDurationSec.value();
+        useCache      = dlgUseCache.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDurationSec</Name>
+				<Source><![CDATA[
+    public Seconds parmDurationSec(Seconds _durationSec = durationSec)
+    {
+        durationSec = _durationSec;
+        return durationSec;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUseCache</Name>
+				<Source><![CDATA[
+    public Integer parmUseCache(Integer _useCache = useCache)
+    {
+        useCache = _useCache;
+        return useCache;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCallerDEVIntegMessageTypeTableOutbound</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeTableOutbound parmCallerDEVIntegMessageTypeTableOutbound(DEVIntegMessageTypeTableOutbound _callerDEVIntegMessageTypeTableOutbound = callerDEVIntegMessageTypeTableOutbound)
+    {
+        callerDEVIntegMessageTypeTableOutbound = _callerDEVIntegMessageTypeTableOutbound;
+        return callerDEVIntegMessageTypeTableOutbound;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        this.initQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initQuery</Name>
+				<Source><![CDATA[
+    public void initQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEVIntegExportDocumentLog));
+        QueryBuildRange         qBR;
+        ;
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegExportDocumentLog, MessageTypeIdOutbound));
+        
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        container  queryCon;
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList, queryCon] = _packedClass;
+                if (SysQuery::isPackedOk(queryCon))
+                {
+                    queryRun = new QueryRun(queryCon);
+                }
+                else
+                {
+                    this.initQuery();
+                }
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        int                          processedCounter;
+        DEVIntegExportDocumentLog    exportDocumentLog;
+        DEVIntegExportDocumentsLog   integExportDocumentLog = DEVIntegExportDocumentsLog::construct();
+
+        int curDuration;
+
+        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+
+        while (true)
+        {
+            queryRun.reset();
+            while (queryRun.next())
+            {
+                exportDocumentLog = queryRun.get(tablenum(DEVIntegExportDocumentLog));
+
+                if (useCache == 0)
+                {
+                    integExportDocumentLog = DEVIntegExportDocumentsLog::construct();
+                    integExportDocumentLog.processExportDocumentLog(exportDocumentLog, exportDocumentLog.messageTypeTableOutbound());
+                }
+                else if (useCache == 1)
+                {
+                    integExportDocumentLog.processExportDocumentLog(exportDocumentLog, exportDocumentLog.messageTypeTableOutbound());
+                }
+            
+                processedCounter++;
+
+                curDuration = stopwatch.get_ElapsedMilliseconds() / 1000;
+                if (curDuration >= durationSec)
+                {
+                    break;
+                }
+            }
+            curDuration = stopwatch.get_ElapsedMilliseconds() / 1000;
+            if (curDuration >= durationSec)
+            {
+                break;
+            }
+        }
+        info(strfmt(" %1 record(s) processed for %2 seconds", processedCounter, curDuration));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegTutorialExportPerfTest construct()
+    {
+        return new DEVIntegTutorialExportPerfTest();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Performance test for web call";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegTutorialExportPerfTest    runObject = DEVIntegTutorialExportPerfTest::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

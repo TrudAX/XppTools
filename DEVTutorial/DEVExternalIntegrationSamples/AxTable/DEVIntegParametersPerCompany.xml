@@ -153,24 +153,16 @@ public class DEVIntegParametersPerCompany extends common
 			<Fields />
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
-			<Name>WesfarmersEDI</Name>
-			<Label>Wesfarmers EDI</Label>
+			<Name>POExportToWebService</Name>
+			<Label>Export Purch orders </Label>
 			<Fields>
 				<AxTableFieldGroupField>
-					<DataField>EDIWorker</DataField>
+					<DataField>VendGroupId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>EDISalesOriginId</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>EDISalesPoolId</DataField>
+					<DataField>POExportOnConfirm</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
-		</AxTableFieldGroup>
-		<AxTableFieldGroup>
-			<Name>RSEA</Name>
-			<Label>RSEA</Label>
-			<Fields />
 		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
@@ -225,6 +217,16 @@ public class DEVIntegParametersPerCompany extends common
 			<ExtendedDataType>NoYesId</ExtendedDataType>
 			<Label>Enable EDI order changes</Label>
 			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>VendGroupId</Name>
+			<ExtendedDataType>VendGroupId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>POExportOnConfirm</Name>
+			<EnumType>DEVIntegTutorialExportOnConfirm</EnumType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
@@ -364,6 +366,24 @@ public class DEVIntegParametersPerCompany extends common
 					<SourceEDT>LogisticsAddressCountryRegionId</SourceEDT>
 					<Field>EDICountryRegionId</Field>
 					<RelatedField>CountryRegionId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>VendGroup</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>VendGroup</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>VendGroupId</Name>
+					<SourceEDT>VendGroupId</SourceEDT>
+					<Field>VendGroupId</Field>
+					<RelatedField>VendGroup</RelatedField>
 				</AxTableRelationConstraint>
 			</Constraints>
 		</AxTableRelation>
