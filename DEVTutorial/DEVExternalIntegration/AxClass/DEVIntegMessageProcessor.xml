@@ -29,7 +29,6 @@ public class DEVIntegMessageProcessor
     void createMessageClass()
     {
         processMessageBase = messageTypeTable.getActionClass();
-        processMessageBase.initParameters(messageTypeTable);
     }
 
 ]]></Source>

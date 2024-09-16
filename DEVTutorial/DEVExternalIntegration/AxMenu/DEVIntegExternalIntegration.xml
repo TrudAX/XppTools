@@ -18,6 +18,18 @@
 					<Name>DEVIntegMessageTable</Name>
 					<MenuItemName>DEVIntegMessageTable</MenuItemName>
 				</AxMenuElement>
+			</Elements>
+		</AxMenuElement>
+		<AxMenuElement xmlns=""
+			i:type="AxMenuElementSubMenu">
+			<Name>Inquiries</Name>
+			<Label>Inquiries</Label>
+			<Elements>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegExportBulkLog</Name>
+					<MenuItemName>DEVIntegExportBulkLog</MenuItemName>
+				</AxMenuElement>
 				<AxMenuElement xmlns=""
 					i:type="AxMenuElementMenuItem">
 					<Name>DEVIntegExportDocumentLog</Name>
@@ -25,16 +37,10 @@
 				</AxMenuElement>
 				<AxMenuElement xmlns=""
 					i:type="AxMenuElementMenuItem">
-					<Name>DEVIntegExportBulkLog</Name>
-					<MenuItemName>DEVIntegExportBulkLog</MenuItemName>
+					<Name>DEVIntegServiceExportLog</Name>
+					<MenuItemName>DEVIntegServiceExportLog</MenuItemName>
 				</AxMenuElement>
 			</Elements>
-		</AxMenuElement>
-		<AxMenuElement xmlns=""
-			i:type="AxMenuElementSubMenu">
-			<Name>Inquiries</Name>
-			<Label>Inquiries</Label>
-			<Elements />
 		</AxMenuElement>
 		<AxMenuElement xmlns=""
 			i:type="AxMenuElementSubMenu">
@@ -80,6 +86,11 @@
 					i:type="AxMenuElementMenuItem">
 					<Name>DEVIntegMessageTypeInbound</Name>
 					<MenuItemName>DEVIntegMessageTypeInbound</MenuItemName>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
+					i:type="AxMenuElementMenuItem">
+					<Name>DEVIntegMessageTypeService</Name>
+					<MenuItemName>DEVIntegMessageTypeService</MenuItemName>
 				</AxMenuElement>
 				<AxMenuElement xmlns=""
 					i:type="AxMenuElementMenuItem">

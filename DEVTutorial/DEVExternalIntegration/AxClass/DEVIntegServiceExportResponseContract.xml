@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegServiceExportResponseContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[
+DataContractAttribute
+]
+public class DEVIntegServiceExportResponseContract
+{
+    RefRecId  logTableRecId;
+    Notes     messageData;
+    boolean   isSuccess;
+    str       errorMessage;
+
+    System.Data.DataSet mainDataSet;
+    
+}
+
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmLogTableRecId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(LogTableRecId))]
+    public RefRecId parmLogTableRecId(RefRecId _logTableRecId = logTableRecId)
+    {
+        logTableRecId = _logTableRecId;
+        return logTableRecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageDataSet</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(MessageDataSet))]
+    public System.Data.DataSet parmMessageDataSet(System.Data.DataSet _mainDataSet = mainDataSet)
+    {
+        mainDataSet = _mainDataSet;
+        return mainDataSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageData</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(MessageData))]
+    public Notes parmMessageData(Notes _messageData = messageData)
+    {
+        messageData = _messageData;
+        return messageData;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsSuccess</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(IsSuccess))]
+    public boolean parmIsSuccess(boolean _isSuccess = isSuccess)
+    {
+        isSuccess = _isSuccess;
+        return isSuccess;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmErrorMessage</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(ErrorMessage))]
+    public str parmErrorMessage(str _errorMessage = errorMessage)
+    {
+        errorMessage = _errorMessage;
+        return errorMessage;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

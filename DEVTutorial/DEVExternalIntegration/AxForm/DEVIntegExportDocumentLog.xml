@@ -244,7 +244,7 @@ public class DEVIntegExportDocumentLog extends FormRun
 		</AxFormDataSource>
 	</DataSources>
 	<Design>
-		<Caption xmlns="">Export Log</Caption>
+		<Caption xmlns="">Export documents log</Caption>
 		<DataSource xmlns="">DEVIntegExportDocumentLog</DataSource>
 		<HeightMode xmlns="">Column</HeightMode>
 		<Pattern xmlns="">Task</Pattern>

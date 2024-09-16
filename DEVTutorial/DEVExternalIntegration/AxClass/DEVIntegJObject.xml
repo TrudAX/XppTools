@@ -63,8 +63,9 @@ class DEVIntegJObject
             JToken jToken = this.body.GetValue(_propertyName);
             
             if (jToken == null)
-                 return "";
-            
+            {
+                return "";
+            }
             str res = jToken.Type == JTokenType::Null ? "" : jToken.ToString();
 
             return res;
@@ -73,11 +74,6 @@ class DEVIntegJObject
         {
             return "";
         }
-        catch (Exception::Internal)
-        {
-            return "";
-        }
-
         catch
         {
             return "";
@@ -95,12 +91,12 @@ class DEVIntegJObject
         {
             JToken jToken = this.body.GetValue(_propertyName);
 
-            if (jToken == null)
+            if (jToken == null || jToken.Type == JTokenType::Null)
             {
                 return 0;
             }
 
-            int64 res = jToken.Type == JTokenType::Null ? 0 : jToken;
+            int64 res =  System.Convert::ToInt64(jToken);
 
             return res;
         }
@@ -121,12 +117,12 @@ class DEVIntegJObject
         {
             JToken jToken = this.body.GetValue(_propertyName);
 
-            if (jToken == null)
+            if (jToken == null || jToken.Type == JTokenType::Null)
             {
                 return 0;
             }
 
-            int res = jToken.Type == JTokenType::Null ? 0 : any2Int(jToken);
+            int res =  System.Convert::ToInt32(jToken);
 
             return res;
         }
@@ -147,12 +143,12 @@ class DEVIntegJObject
         {
             JToken jToken = this.body.GetValue(_propertyName);
 
-            if (jToken == null)
+            if (jToken == null || jToken.Type == JTokenType::Null)
             {
                 return 0;
             }
 
-            real res = jToken.Type == JTokenType::Null ? 0 : any2Real(jToken);
+            real res = System.Convert::ToDouble(jToken);
 
             return res;
         }
@@ -193,33 +189,28 @@ class DEVIntegJObject
 			<Method>
 				<Name>GetValueDateTime</Name>
 				<Source><![CDATA[
-    public date GetValueDateTime(str _propertyName)
+    public TransDateTime GetValueDateTime(str _propertyName)
     {
+        TransDateTime res = utcDateTimeNull();
+
         try
         {
             JToken jToken = this.body.GetValue(_propertyName);
 
-            if (jToken == null)
+            if (jToken != null)
             {
-                return dateNull();
-            }
-            else
-            {
-                if (jToken.Type == JTokenType::Date)
+                str  sDate = jToken.ToString();
+                if (sDate)
                 {
-                    str  sDate = jToken.ToString();
-                    date res   = str2Date(sDate, 123);
-                    
-                    return res;
+                    res   = System.DateTime::Parse(sDate);
                 }
             }
-
-            return dateNull();
         }
         catch
         {
-            return dateNull();
+            exceptionTextFallThrough();
         }
+        return res;
     }
 
 ]]></Source>

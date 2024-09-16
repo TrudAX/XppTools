@@ -102,6 +102,28 @@ abstract public class DEVIntegProcessMessageBase
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>getCustomLoadType</Name>
+				<Source><![CDATA[
+    public DEVIntegMessagesLoadBaseType getCustomLoadType()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getVisibleInboundMessageFields</Name>
+				<Source><![CDATA[
+    public container getVisibleInboundMessageFields()
+    {
+        container c = connull();
+
+        return c;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 </AxClass>

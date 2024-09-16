@@ -160,6 +160,9 @@ public class DEVIntegErrorLog extends common
 				<AxTableFieldGroupField>
 					<DataField>MessageRefRecId</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MessageTableId</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -267,6 +270,28 @@ public class DEVIntegErrorLog extends common
 			<Cardinality>ZeroOne</Cardinality>
 			<OnDelete>Cascade</OnDelete>
 			<RelatedTable>DEVIntegExportBulkLog</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageRefRecId</Name>
+					<Field>MessageRefRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageTableId</Name>
+					<Field>MessageTableId</Field>
+					<RelatedField>TableId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>DEVIntegServiceExportLog</Name>
+			<Cardinality>ZeroOne</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DEVIntegServiceExportLog</RelatedTable>
 			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
 			<RelationshipType>Association</RelationshipType>
 			<Constraints>

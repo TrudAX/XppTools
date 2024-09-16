@@ -129,7 +129,9 @@ public class DEVIntegMessageTypeInbound extends common
             SysDictClass dc = new SysDictClass(className2Id(this.ClassName));
             if (dc)
             {
-                return dc.makeObject();
+                DEVIntegProcessMessageBase  res = dc.makeObject();
+                res.initParameters(this);
+                return res;
             }
         }
         return null;
@@ -182,6 +184,25 @@ public class DEVIntegMessageTypeInbound extends common
 
         return res;
 
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastLoadGetTime</Name>
+				<Source><![CDATA[
+    public TransDateTime lastLoadGetTime()
+    {
+        TransDateTime   res = this.LastLoadDateTime;
+        if (! res)
+        {
+            res = DateTimeUtil::addMonths(DateTimeUtil::utcNow(), -1);
+        }
+        if (this.LastLoadOverlapSec)
+        {
+            res = DateTimeUtil::addSeconds(res, -1 * this.LastLoadOverlapSec) ;
+        }
+        return res;
     }
 
 ]]></Source>
@@ -340,9 +361,6 @@ public class DEVIntegMessageTypeInbound extends common
 				<AxTableFieldGroupField>
 					<DataField>ThreadsCount</DataField>
 				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>ReadNumberOfDays</DataField>
-				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -396,6 +414,21 @@ public class DEVIntegMessageTypeInbound extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>ArchiveLocation</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>TimestampLoad</Name>
+			<Label>Incremental load</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LastLoadDateTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LastLoadOverlapSec</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReadNumberOfDays</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -523,6 +556,19 @@ public class DEVIntegMessageTypeInbound extends common
 			<Name>ReadNumberOfDays</Name>
 			<ExtendedDataType>NumberOfDays</ExtendedDataType>
 			<Label>Number of days</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>LastLoadDateTime</Name>
+			<ExtendedDataType>TransDateTime</ExtendedDataType>
+			<Label>Last date time</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LastLoadOverlapSec</Name>
+			<ExtendedDataType>Seconds</ExtendedDataType>
+			<HelpText>Number of seconds to substruct from the last load date</HelpText>
+			<Label>Overlap(seconds)</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

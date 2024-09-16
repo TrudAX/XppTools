@@ -15,5 +15,8 @@
 		<AxSecurityPrivilegeReference>
 			<Name>DEVIntegMappingView</Name>
 		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegMessageTypeServiceView</Name>
+		</AxSecurityPrivilegeReference>
 	</Privileges>
 </AxSecurityDuty>

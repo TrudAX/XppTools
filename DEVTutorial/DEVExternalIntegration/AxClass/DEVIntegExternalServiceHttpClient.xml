@@ -120,8 +120,10 @@ public class DEVIntegExternalServiceHttpClient
 
         request.Method     = _method;
         request.RequestUri = new System.Uri(_url);
-        request.Content = new StringContent(_content, System.Text.Encoding::UTF8, "application/json");
-
+        if (_content)
+        {
+            request.Content = new StringContent(_content, System.Text.Encoding::UTF8, "application/json");
+        }
         HttpRequestHeaders  reqHeaders = request.Headers;
         for (i = 1; i <= conLen(requestHeadersCon); i+=2)
         {

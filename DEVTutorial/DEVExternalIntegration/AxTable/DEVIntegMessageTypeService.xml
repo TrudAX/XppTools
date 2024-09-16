@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageTypeService</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegMessageTypeService extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEVIntegMessageTypeService find(DEVIntegMessageTypeServiceId  _messageTypeId,
+                                                  boolean                       _forUpdate = false)
+    {
+        DEVIntegMessageTypeService integMessageTypeService;
+        ;
+        if (_messageTypeId)
+        {
+            integMessageTypeService.selectForUpdate(_forUpdate);
+            
+            select firstonly integMessageTypeService
+                where integMessageTypeService.MessageTypeId  == _messageTypeId;
+        }
+        
+        return integMessageTypeService;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getClassDescription</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethod(true)]
+    public display Description getClassDescription()
+    {
+        Description  res = '<NOT DEFINED>';
+
+        if (this.ClassName)
+        {
+            DEVIntegServiceExportBase  serviceExportBase = this.getActionClass();
+            if (serviceExportBase)
+            {
+                res = serviceExportBase.getDescription();
+            }
+        }
+        else
+        {
+            res = '';
+        }
+
+        return res;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getActionClass</Name>
+				<Source><![CDATA[
+    DEVIntegServiceExportBase getActionClass()
+    {
+        if (this.ClassName)
+        {
+            SysDictClass dc = new SysDictClass(className2Id(this.ClassName));
+            if (dc)
+            {
+                DEVIntegServiceExportBase  res = dc.makeObject();
+                //res.initParameters(this);
+                return res;
+            }
+        }
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findByClassName</Name>
+				<Source><![CDATA[
+    public static DEVIntegMessageTypeService findByClassName(Name     _className,
+                                                             boolean  _forUpdate = false)
+    {
+        DEVIntegMessageTypeService integMessageTypeService;
+        ;
+        integMessageTypeService.selectForUpdate(_forUpdate);
+        
+        select firstonly integMessageTypeService
+            where integMessageTypeService.ClassName  == _className;
+        
+        return integMessageTypeService;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<FormRef>DEVIntegMessageTypeService</FormRef>
+	<Label>Service message types</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Group</TableGroup>
+	<TitleField1>MessageTypeId</TitleField1>
+	<TitleField2>ClassName</TitleField2>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>MessageTypeIdIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>MessageTypeIdIdx</PrimaryIndex>
+	<ReplacementKey>MessageTypeIdIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<IsManuallyUpdated>Yes</IsManuallyUpdated>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>EntiryGroup</Name>
+			<Label>Processing</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>getClassDescription</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DetailsHeaderGroup</Name>
+			<Label>Details header</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>LogGroup</Name>
+			<Label>Log</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LogType</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>MessageTypeId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegMessageTypeServiceId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<HelpText>Name of the processing class</HelpText>
+			<Label>Class name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Enabled</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Interface is enabled</HelpText>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>LogType</Name>
+			<EnumType>DEVIntegServiceExportLogType</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MessageTypeIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MessageTypeId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>ClassNameIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ClassName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

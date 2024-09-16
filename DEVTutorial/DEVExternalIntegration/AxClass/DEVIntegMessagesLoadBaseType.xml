@@ -135,17 +135,11 @@ class DEVIntegMessagesLoadBaseType
     static  DEVIntegMessagesLoadBaseType constructFromMessageType(DEVIntegMessageTypeInbound   _messageTypeTable)
     {
         DEVIntegMessagesLoadBaseType  shareClass;
-        EventHandlerResult            eventHandlerResult = new EventHandlerResult();
-        DEVIntegMessagesLoadBaseType  delegeteCall       = new DEVIntegMessagesLoadBaseType();
-        ClassName                     className;
+        DEVIntegProcessMessageBase baseClass = _messageTypeTable.getActionClass();
 
-        delegeteCall.constructCustomLoadDelegate(_messageTypeTable, eventHandlerResult);
-
-        className = conPeek(eventHandlerResult.result(), 1);
-       
-        if (className)
+        if (baseClass)
         {
-            shareClass = DictClass::createObject(className);
+            shareClass = baseClass.getCustomLoadType();
         }
 
         if (! shareClass)

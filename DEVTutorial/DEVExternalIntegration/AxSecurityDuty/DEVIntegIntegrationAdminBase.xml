@@ -18,5 +18,14 @@
 		<AxSecurityPrivilegeReference>
 			<Name>DEVIntegMappingMaintain</Name>
 		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegMessageTypeServiceMaintain</Name>
+		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegServiceExportLogMaintain</Name>
+		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegServiceTestMaintain</Name>
+		</AxSecurityPrivilegeReference>
 	</Privileges>
 </AxSecurityDuty>

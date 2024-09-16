@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegServiceExportBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegServiceExportBase
+{
+    DEVIntegDataTableHelper  dataTableHelper;
+
+    DEVIntegMessageTypeService      integMessageTypeService;
+
+    DEVIntegServiceExportLog                integServiceExportLog;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processEndLog</Name>
+				<Source><![CDATA[
+    public void processEndLog(DEVIntegServiceExportLogStatus _status, str _methodName, DEVIntegServiceExportResponseContract  _response, int _durationMS)
+    {
+        ttsbegin;
+
+        if (integMessageTypeService.LogType == DEVIntegServiceExportLogType::Statistics && 
+            _status                         != DEVIntegServiceExportLogStatus::Error)
+        {
+            TransDateTime curDate = DEV::date2DateTime(DEV::systemdateget());  //take the current date
+              
+            int tmpRec = integServiceExportLog.RecordsProcessed;
+            integServiceExportLog.clear();
+            select forupdate integServiceExportLog
+                    where integServiceExportLog.CompanyId            == curExt() &&
+                          integServiceExportLog.MessageTypeServiceId ==  integMessageTypeService.MessageTypeId &&
+                          integServiceExportLog.MethodName           == _methodName &&
+                          integServiceExportLog.StartDateTime        == curDate;
+            if (! integServiceExportLog.RecId)
+            {
+                integServiceExportLog.CompanyId            = curExt();
+                integServiceExportLog.MessageTypeServiceId =  integMessageTypeService.MessageTypeId;
+                integServiceExportLog.MethodName           = _methodName;
+                integServiceExportLog.StartDateTime        = curDate;
+            }
+            integServiceExportLog.RecordsProcessed += tmpRec;
+                
+        }
+        if (integServiceExportLog.RecId || integMessageTypeService.LogType == DEVIntegServiceExportLogType::Statistics ||
+                integMessageTypeService.LogType == DEVIntegServiceExportLogType::ErrorsOnly) //full or request
+        {
+            integServiceExportLog.skipTTSCheck(true);
+            integServiceExportLog.EndDateTime   = DateTimeUtil::utcNow();
+            integServiceExportLog.Status        = _status;//DEVIntegServiceExportLogStatus::Done;
+            integServiceExportLog.Duration     += _durationMS;//any2Int(stopwatch.get_ElapsedMilliseconds());
+            integServiceExportLog.NumOfCalls++;
+
+            if (integMessageTypeService.LogType == DEVIntegServiceExportLogType::Full)
+            {
+                integServiceExportLog.ResponseData = DEVIntegServiceExportBase::serialiseXppObject(_response);
+            }
+            integServiceExportLog.write();
+        }
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>serialiseXppObject</Name>
+				<Source><![CDATA[
+    public static str serialiseXppObject(Object _obj)
+    {
+        Newtonsoft.Json.Serialization.DefaultContractResolver resolver = new Newtonsoft.Json.Serialization.DefaultContractResolver();
+        resolver.SerializeCompilerGeneratedMembers = true;
+
+        Newtonsoft.Json.JsonSerializerSettings settings = new Newtonsoft.Json.JsonSerializerSettings();
+        settings.ContractResolver = resolver;
+        settings.Formatting = Newtonsoft.Json.Formatting::Indented;
+
+        return Newtonsoft.Json.JsonConvert::SerializeObject(_obj, settings);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>serviceCallProcess</Name>
+				<Source><![CDATA[
+    public DEVIntegServiceExportResponseContract serviceCallProcess(str _methodName, Object _contractClass)
+    {
+        boolean                                 isErrorCaught;
+        DEVIntegServiceExportResponseContract   response = new DEVIntegServiceExportResponseContract();
+
+        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+
+        int infoCnt = infologLine();
+
+        try
+        {
+
+            DictClass builderClass = new DictClass(classIdGet(this));
+
+            integMessageTypeService = DEVIntegMessageTypeService::findByClassName(builderClass.name());
+            if (! integMessageTypeService.RecId)
+            {
+                throw error(strFmt("External Integration - Service message type is not setup for %1 class", builderClass.name()));
+            }
+
+            if (integMessageTypeService.LogType == DEVIntegServiceExportLogType::Full ||
+                integMessageTypeService.LogType == DEVIntegServiceExportLogType::Request ||
+                integMessageTypeService.LogType == DEVIntegServiceExportLogType::ErrorsOnly ||
+                integMessageTypeService.LogType == DEVIntegServiceExportLogType::Statistics)
+            {
+                integServiceExportLog.MessageTypeServiceId  = integMessageTypeService.MessageTypeId;
+                integServiceExportLog.CompanyId             = curExt();
+                integServiceExportLog.Status                = DEVIntegServiceExportLogStatus::InProgress;
+                integServiceExportLog.StartDateTime         = DateTimeUtil::utcNow();
+                integServiceExportLog.MethodName            = _methodName;
+                
+                
+                if (integMessageTypeService.LogType == DEVIntegServiceExportLogType::Full ||
+                    integMessageTypeService.LogType == DEVIntegServiceExportLogType::Request )
+                {
+                    integServiceExportLog.ContractData          = FormJsonSerializer::serializeClass(_contractClass);
+                    integServiceExportLog.insert();
+
+                    response.parmLogTableRecId(integServiceExportLog.RecId);
+                }
+            }
+            if (! integMessageTypeService.Enabled)
+            {
+                throw error(strFmt("Service message %1 is not enabled", integMessageTypeService.MessageTypeId));
+            }
+            
+            builderClass.callObject(_methodName, this, _contractClass, response);
+
+            
+            if (integMessageTypeService.LogType != DEVIntegServiceExportLogType::None)
+            {
+                stopwatch.Stop();
+                this.processEndLog(DEVIntegServiceExportLogStatus::Done, _methodName, response, any2Int(stopwatch.get_ElapsedMilliseconds()));
+            }
+            
+
+        }
+        catch (Exception::CLRError)
+        {
+            System.Exception interopException = CLRInterop::getLastException();
+
+            response.parmErrorMessage(interopException.ToString());
+            isErrorCaught = true;
+        }
+        catch (Exception::Error)
+        {
+            isErrorCaught = true; 
+        }
+
+        if (isErrorCaught)
+        {
+            stopwatch.Stop();
+            response.parmIsSuccess(false);
+
+            container taskInfolog;
+            str       logTxt;
+            if (infologLine() > infoCnt)
+            {
+                taskInfolog = infolog.copy(infoCnt + 1, infologLine());
+
+                if (taskInfolog != conNull())
+                {
+                    logTxt        = info::infoCon2Str(taskInfolog);
+
+                    response.parmErrorMessage((response.parmErrorMessage() ? '\n' : '')  + logTxt);
+                }
+            }
+            if (integMessageTypeService.LogType != DEVIntegServiceExportLogType::None)
+            {
+                integServiceExportLog.ContractData          = FormJsonSerializer::serializeClass(_contractClass);
+
+                this.processEndLog(DEVIntegServiceExportLogStatus::Error, _methodName, response, any2Int(stopwatch.get_ElapsedMilliseconds()));
+
+                if (integServiceExportLog.RecId)
+                {
+                    DEVIntegErrorLog::insertErrorByMessage(integServiceExportLog, infoCnt, Exception::Error);
+                }
+
+            }
+        }
+        response.parmLogTableRecId(integServiceExportLog.RecId);
+
+        return response;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDataTableHelper</Name>
+				<Source><![CDATA[
+    public void initDataTableHelper()
+    {
+        if (! dataTableHelper)
+        {
+            dataTableHelper = new DEVIntegDataTableHelper();
+            dataTableHelper.createDataSet('ServiceExportDataSet');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDataTableHelperToResponse</Name>
+				<Source><![CDATA[
+    public void addDataTableHelperToResponse(DEVIntegServiceExportResponseContract _response)
+    {
+        //str packedData;
+        //packedData = Newtonsoft.Json.JsonConvert::SerializeObject(dataTableHelper.getDataSet());
+        //_response.parmMessageData(packedData);
+        _response.parmMessageDataSet(dataTableHelper.getDataSet());
+        _response.parmIsSuccess(true);
+
+        integServiceExportLog.RecordsProcessed += dataTableHelper.getNumOfLinesAdded();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

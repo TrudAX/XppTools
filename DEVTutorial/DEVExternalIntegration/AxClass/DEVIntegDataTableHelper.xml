@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegDataTableHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Data;
+
+public class DEVIntegDataTableHelper
+{
+    DataSet mainDataSet;
+
+    int    numOfLinesAdded;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getNumOfLinesAdded</Name>
+				<Source><![CDATA[
+    public int getNumOfLinesAdded()   
+    {
+        return numOfLinesAdded;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDataSet</Name>
+				<Source><![CDATA[
+    public DataSet getDataSet()
+    {
+        return mainDataSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDataSet</Name>
+				<Source><![CDATA[
+    public DataSet createDataSet(str _dataSetName)
+    {
+        mainDataSet = new DataSet(_dataSetName);
+
+        return mainDataSet;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDataTable</Name>
+				<Source><![CDATA[
+    public DataTable createDataTable(str _tableName)
+    {
+        DataTable dt = new DataTable(_tableName);
+        if (mainDataSet)
+        {
+            mainDataSet.get_Tables().Add(dt);
+        }
+        return dt;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDataTableWithColumns</Name>
+				<Source><![CDATA[
+    public DataTable createDataTableWithColumns(str _tableName, container _columnData)
+    {
+        DataTable dt = this.createDataTable(_tableName);
+
+        this.addColumns(dt, _columnData);
+        return dt;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addColumns</Name>
+				<Source><![CDATA[
+    public void addColumns(DataTable _dt, container _columnData)
+    {
+        int     i;
+        str     name, typeNameNet;
+        Types   type;
+        
+        System.Data.DataColumnCollection columns = _dt.Columns;
+
+        for (i = 1; i <= conLen(_columnData); i++)
+        {
+            typeNameNet = '';
+            [name, type] = conpeek(_columnData, i);
+            switch (type)
+            {
+                case Types::String:
+                    typeNameNet = 'System.String';
+                    break;
+                case Types::UtcDateTime:
+                    typeNameNet = 'System.DateTime';
+                    break;
+                case Types::Date:
+                    typeNameNet = 'System.DateTime';
+                    break;
+                case Types::Integer:
+                    typeNameNet = 'System.Int32';
+                    break;
+                case Types::Int64:
+                    typeNameNet = 'System.Int64';
+                    break;
+                case Types::Enum:
+                    typeNameNet = 'System.Int32';
+                    break;
+                case Types::Real:
+                    typeNameNet = 'System.Double';
+                    break;
+                default:
+                    throw Error(strFmt("Type %1 is not defined", type));
+            }
+            columns.Add(name, System.Type::GetType(typeNameNet));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addTmpTable</Name>
+				<Source><![CDATA[
+    public void addTmpTable(str _tableName, Common _tmpTable, container _fieldIds)
+    {
+        DataTable   dt = this.createDataTable(_tableName);
+        container   columnData;
+        int         i;
+        Map         fieldName2ID = new Map(Types::String, Types::Integer);
+
+        System.Data.DataRow dataRow1;
+
+        for (i = 1; i <= conLen(_fieldIds); i++)
+        {
+            DictField  df = new DictField(_tmpTable.tableId, conPeek(_fieldIds, i));
+            str fName =  df.name();
+
+            columnData += [[fName, df.baseType()]];
+            fieldName2ID.insert(fName, df.id());
+        }
+        this.addColumns(dt, columnData);
+
+        _tmpTable.clear();
+        MapEnumerator       mapEnumerator = fieldName2ID.getEnumerator();
+
+        while select _tmpTable
+        {
+            dataRow1 = dt.NewRow();
+
+            mapEnumerator.reset();
+            while (mapEnumerator.moveNext())
+            {
+                str fName = mapEnumerator.currentKey();
+                dataRow1.set_Item(fName,   _tmpTable.(mapEnumerator.currentValue()));
+            }
+
+            dt.get_Rows().Add(dataRow1);
+
+            numOfLinesAdded++;
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

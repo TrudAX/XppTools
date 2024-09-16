@@ -26,7 +26,7 @@ public class DEVIntegMessageTypeInbound extends FormRun
 			<Method>
 				<Name>enableDSFields</Name>
 				<Source><![CDATA[
-    void enableDSFields()
+    public void enableDSFields()
     {
         LedgerImportParms.visible(DEVIntegMessageTypeInbound.ClassName == identifierStr(DEVIntegTutorialImportLedgerJournal));
         FileFormatGroup.visible(DEVIntegMessageTypeInbound.ClassName == identifierStr(DEVIntegTutorialImportLedgerJournal));
@@ -44,6 +44,27 @@ public class DEVIntegMessageTypeInbound extends FormRun
         DEVIntegManualFileImport.visible(isFileBasedConnection);
 
         AdvSettingsFile.visible(isFileBasedConnection);
+
+        DEVIntegMessageTypeInbound_ds.object(fieldNum(DEVIntegMessageTypeInbound, LastLoadDateTime)).visible(false);
+        DEVIntegMessageTypeInbound_ds.object(fieldNum(DEVIntegMessageTypeInbound, LastLoadOverlapSec)).visible(false);
+        DEVIntegMessageTypeInbound_ds.object(fieldNum(DEVIntegMessageTypeInbound, ReadNumberOfDays)).visible(false);
+
+        DEVIntegProcessMessageBase  baseClass = DEVIntegMessageTypeInbound.getActionClass();
+        if (baseClass)
+        {
+            container c = baseClass.getVisibleInboundMessageFields();
+            int i;
+            for (i = 1; i <= conLen(c); i++)
+            {
+                FormDataObject fdo = DEVIntegMessageTypeInbound_ds.object(conPeek(c, i));
+                if (fdo)
+                {
+                    fdo.visible(true);
+                }
+
+            }
+        }
+
     }
 
 ]]></Source>
@@ -200,6 +221,12 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>IsAutoPostJournal</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LasLoadOverlapSec</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LastLoadDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>LedgerJournalNameId</DataField>
@@ -859,6 +886,37 @@ public class DEVIntegMessageTypeInbound extends FormRun
 									</AxFormControl>
 								</Controls>
 								<DataGroup>Limits</DataGroup>
+								<DataSource>DEVIntegMessageTypeInbound</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>TimestampLoad</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateTimeControl">
+										<Name>TimestampLoad_LastLoadDateTime</Name>
+										<Type>DateTime</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>LastLoadDateTime</DataField>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>TimestampLoad_LastLoadOverlapSec</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>LastLoadOverlapSec</DataField>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>TimestampLoad</DataGroup>
 								<DataSource>DEVIntegMessageTypeInbound</DataSource>
 							</AxFormControl>
 						</Controls>

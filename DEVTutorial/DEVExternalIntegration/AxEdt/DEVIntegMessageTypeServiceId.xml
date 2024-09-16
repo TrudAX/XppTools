@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEVIntegMessageTypeServiceId</Name>
+	<Extends>Num</Extends>
+	<HelpText>Identification of the service message</HelpText>
+	<Label>Service message</Label>
+	<ReferenceTable>DEVIntegMessageTypeService</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>MessageTypeId</RelatedField>
+			<Table>DEVIntegMessageTypeService</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+</AxEdt>
