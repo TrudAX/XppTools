@@ -18,6 +18,8 @@ public class DEVIntegExternalServiceHttpClient
 
     container  requestHeadersCon;
     DEVIntegMessageProcessResult     processResults;
+
+    HttpClient httpClientGlobal;
     
 }
 ]]></Declaration>
@@ -160,6 +162,50 @@ public class DEVIntegExternalServiceHttpClient
     {
         HttpClient httpClient = this.createHttpClient();
 
+        
+        var task = httpClient.SendAsync(_requestMessage, System.Threading.CancellationToken::None);
+        task.Wait();
+        
+        if (task.IsCanceled)
+        {
+            throw error(strFmt("@WAX:ExternalServiceMaximumDurationTimeout", httpClient.Timeout.ToString('c')));
+        }
+        else if (task.IsFaulted)
+        {
+            str exceptionMessage = '';
+
+            if (task.Exception)
+            {
+                System.Exception exception = task.Exception;
+                exceptionMessage = exception.Message;
+                
+                while (exception.InnerException)
+                {
+                    exception = exception.InnerException;
+                    exceptionMessage = exception.Message;
+                }
+            }
+
+            throw error(exceptionMessage);
+        }
+
+        HttpResponseMessage responseMessage = task.get_Result() as HttpResponseMessage;
+
+        return responseMessage;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createHttpClient</Name>
+				<Source><![CDATA[
+    /*
+    public HttpResponseMessage invokeOperation(HttpRequestMessage _requestMessage)
+    {
+        HttpClient httpClient = this.createHttpClient();
+
+        httpClient.s
+
         // Invoke the httpClient using the async pattern and use WaitAny to keep any exception wrapped in the Task object
         // This way, we don't need to worry about X++ aborting the transaction in case of survivable failures
         System.Threading.Tasks.Task[] taskArray = new System.Threading.Tasks.Task[1]();
@@ -195,18 +241,17 @@ public class DEVIntegExternalServiceHttpClient
 
         return responseMessage;
     }
+    */
 
-]]></Source>
-			</Method>
-			<Method>
-				<Name>createHttpClient</Name>
-				<Source><![CDATA[
     private HttpClient createHttpClient()
     {
-        HttpClient newHttpClient = new System.Net.Http.HttpClient();//pClientFactory.CreateClient();
-        newHttpClient.Timeout = new System.TimeSpan(0, 0, 0, 0, timeoutInMs);
+        if (! httpClientGlobal)
+        {
+            httpClientGlobal = new System.Net.Http.HttpClient();//pClientFactory.CreateClient();
+            httpClientGlobal.Timeout = new System.TimeSpan(0, 0, 0, 0, timeoutInMs);
+        }
 
-        return newHttpClient;
+        return httpClientGlobal;
     }
 
 ]]></Source>

@@ -193,6 +193,17 @@ public class DEVIntegConnectionType extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>initValue</Name>
+				<Source><![CDATA[
+    public void initValue()
+    {
+        super();
+        this.TimeoutInSec = 10;
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
 	<Label>Connection Types</Label>
@@ -388,7 +399,7 @@ public class DEVIntegConnectionType extends common
 			i:type="AxTableFieldString">
 			<Name>FTPPassword</Name>
 			<ExtendedDataType>DEVIntegAzureConnectionString</ExtendedDataType>
-			<HelpText>FTP Password</HelpText>
+			<HelpText>Resource Password</HelpText>
 			<Label>Password</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
