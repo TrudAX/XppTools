@@ -23,8 +23,9 @@ public class DEVIntegConnectionType extends FormRun
         DEVIntegConnectionType_ds.object(fieldNum(DEVIntegConnectionType,KeyVaultName)).visible(
             DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::KeyVault);
 
-        SFTPGroup.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP ||
-                          DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::Web  );
+        SFTPGroup.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP);
+
+        WebGroup.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::Web);
 
         ConnectionDetail.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
                                  DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
@@ -33,6 +34,8 @@ public class DEVIntegConnectionType extends FormRun
             DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::ManualEntry);
 
         SFTPGroup_FTPPasswordSecretEdit.visible(DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::Encrypted);
+        Web_FTPPasswordSecretEdit.visible(DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::Encrypted);
+
         ConnectionDetail_connectionStringSecretEdit.visible(DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::Encrypted);
     }
 
@@ -176,8 +179,7 @@ public class DEVIntegConnectionType extends FormRun
 	<Design>
 		<Caption xmlns="">Connections</Caption>
 		<DataSource xmlns="">DEVIntegConnectionType</DataSource>
-		<Pattern xmlns="">SimpleListDetails-Grid</Pattern>
-		<PatternVersion xmlns="">1.4</PatternVersion>
+		<Pattern xmlns="">Custom</Pattern>
 		<Style xmlns="">SimpleListDetails</Style>
 		<TitleDataSource xmlns="">DEVIntegConnectionType</TitleDataSource>
 		<Controls xmlns="">
@@ -457,6 +459,7 @@ public class DEVIntegConnectionType extends FormRun
 											i:nil="true" />
 										<DataMethod>FTPPasswordSecretEdit</DataMethod>
 										<DataSource>DEVIntegConnectionType</DataSource>
+										<Label>Encrypted password</Label>
 										<PasswordStyle>Yes</PasswordStyle>
 									</AxFormControl>
 								</Controls>
@@ -464,6 +467,89 @@ public class DEVIntegConnectionType extends FormRun
 								<DataGroup>SFTP</DataGroup>
 								<DataSource>DEVIntegConnectionType</DataSource>
 								<FrameType>None</FrameType>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>WebGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Web_FTPHostName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FTPHostName</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<DisplayLength>100</DisplayLength>
+										<DisplayLengthMode>Fixed</DisplayLengthMode>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Web_FTPUserName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FTPUserName</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>Web_ConnectionStringSource</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ConnectionStringSource</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Web_FTPPassword</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FTPPassword</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<PasswordStyle>Yes</PasswordStyle>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Web_KeyVaultName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>KeyVaultName</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Web_FTPPasswordSecretEdit</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>FTPPasswordSecretEdit</DataMethod>
+										<DataSource>DEVIntegConnectionType</DataSource>
+										<Label>Encrypted password</Label>
+										<PasswordStyle>Yes</PasswordStyle>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>Web_TimeoutInSec</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>TimeoutInSec</DataField>
+										<DataSource>DEVIntegConnectionType</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>Web</DataGroup>
+								<DataSource>DEVIntegConnectionType</DataSource>
 							</AxFormControl>
 						</Controls>
 						<ColumnsMode>Fill</ColumnsMode>

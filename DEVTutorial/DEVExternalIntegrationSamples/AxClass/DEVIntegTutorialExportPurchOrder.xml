@@ -180,13 +180,11 @@ public class DEVIntegTutorialExportPurchOrder  extends DEVIntegExportMessageBase
 
         Num  externalId = exportPurchLoad.postContract(sJSON, _exportDocumentLog.DocumentId);
 
-        /*
         ttsbegin;
         purchTable = PurchTable::findRecId(_exportDocumentLog.RefRecId, true);
-        purchTable.DEVTutorialWebID          = externalId;
+        purchTable.VendorRef   = externalId;
         purchTable.update();
         ttscommit;
-        */
     }
 
 ]]></Source>
