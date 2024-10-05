@@ -113,11 +113,11 @@ public class DEVIntegTutorialTestWebCall extends FormRun
 						<Controls>
 							<AxFormControl xmlns=""
 								i:type="AxFormMenuFunctionButtonControl">
-								<Name>DEVIntegTutorialExportPerfTest</Name>
+								<Name>DEVIntegExportDocumentPerfTest</Name>
 								<Type>MenuFunctionButton</Type>
 								<FormControlExtension
 									i:nil="true" />
-								<MenuItemName>DEVIntegTutorialExportPerfTest</MenuItemName>
+								<MenuItemName>DEVIntegExportDocumentPerfTest</MenuItemName>
 								<MenuItemType>Action</MenuItemType>
 							</AxFormControl>
 						</Controls>

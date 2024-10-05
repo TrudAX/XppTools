@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-	<Name>DEVIntegTutorialExportPerfTest</Name>
+	<Name>DEVIntegExportDocumentPerfTest</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-public class DEVIntegTutorialExportPerfTest extends RunBaseBatch implements BatchRetryable
+public class DEVIntegExportDocumentPerfTest extends RunBaseBatch implements BatchRetryable
 {
     Seconds      durationSec;
     Integer      useCache;
@@ -33,7 +33,7 @@ public class DEVIntegTutorialExportPerfTest extends RunBaseBatch implements Batc
         ;
         dlgDurationSec  = dialog.addFieldValue(extendedtypestr(Seconds), durationSec, "Duration(sec)");
         dlgDurationSec.mandatory_RU(true);
-        dlgUseCache     = dialog.addFieldValue(extendedtypestr(Integer), useCache, "Cache connection", "Cache web connection");
+        dlgUseCache     = dialog.addFieldValue(extendedtypestr(Integer), useCache, "Cache type", "0 - No cache, 1 - Use HTTP cache");
         
         return dialog;
     }
@@ -194,13 +194,13 @@ public class DEVIntegTutorialExportPerfTest extends RunBaseBatch implements Batc
             
                 processedCounter++;
 
-                curDuration = stopwatch.get_ElapsedMilliseconds() / 1000;
+                curDuration = any2Int(stopwatch.get_ElapsedMilliseconds() / 1000);
                 if (curDuration >= durationSec)
                 {
                     break;
                 }
             }
-            curDuration = stopwatch.get_ElapsedMilliseconds() / 1000;
+            curDuration = any2Int(stopwatch.get_ElapsedMilliseconds() / 1000);
             if (curDuration >= durationSec)
             {
                 break;
@@ -254,9 +254,9 @@ public class DEVIntegTutorialExportPerfTest extends RunBaseBatch implements Batc
 			<Method>
 				<Name>construct</Name>
 				<Source><![CDATA[
-    public static DEVIntegTutorialExportPerfTest construct()
+    public static DEVIntegExportDocumentPerfTest construct()
     {
-        return new DEVIntegTutorialExportPerfTest();
+        return new DEVIntegExportDocumentPerfTest();
     }
 
 ]]></Source>
@@ -276,7 +276,7 @@ public class DEVIntegTutorialExportPerfTest extends RunBaseBatch implements Batc
 				<Source><![CDATA[
     public static void main(Args _args)
     {
-        DEVIntegTutorialExportPerfTest    runObject = DEVIntegTutorialExportPerfTest::construct();
+        DEVIntegExportDocumentPerfTest    runObject = DEVIntegExportDocumentPerfTest::construct();
         ;
         if (runObject.prompt())
         {

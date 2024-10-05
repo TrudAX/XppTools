@@ -458,7 +458,7 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
     {
         ;
     
-        return "Export messages from log";
+        return "Export documents from log";
     }
 
 ]]></Source>

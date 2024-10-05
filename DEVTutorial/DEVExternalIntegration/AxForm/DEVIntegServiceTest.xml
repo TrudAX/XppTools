@@ -247,7 +247,7 @@ public class DEVIntegServiceTest extends FormRun
 								<Type>Button</Type>
 								<FormControlExtension
 									i:nil="true" />
-								<Text>Get contract</Text>
+								<Text>Show contract</Text>
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormButtonControl">

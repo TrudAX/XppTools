@@ -183,7 +183,7 @@ public class DEVIntegTutorialExportPurchOrder  extends DEVIntegExportMessageBase
         ttsbegin;
         purchTable = PurchTable::findRecId(_exportDocumentLog.RefRecId, true);
         purchTable.VendorRef   = externalId;
-        purchTable.update();
+        purchTable.doupdate();
         ttscommit;
     }
 

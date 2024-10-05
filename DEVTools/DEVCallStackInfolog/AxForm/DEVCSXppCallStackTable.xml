@@ -160,6 +160,7 @@ public class DEVCSXppCallStackTable extends FormRun
                 callStackUserSetup.UserId     = curUserId();
                 callStackUserSetup.IsEnabled  = true;
                 callStackUserSetup.SysInfologLevel = SysInfologLevel::All;
+                callStackUserSetup.TraceRunbaseCalls = true;
                 callStackUserSetup.insert();
                 info(strFmt("User %1 added", callStackUserSetup.UserId));
             }
