@@ -213,7 +213,7 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
     
                 refRecIf = _exportDocumentLog.recVersion;
                 exportDocumentLogUpd = DEVIntegExportDocumentLog::findRecId(_exportDocumentLog.RecId, true);
-                if (exportDocumentLogUpd.RecId && exportDocumentLogUpd.recVersion == refRecIf)
+                if (exportDocumentLogUpd.RecId && exportDocumentLogUpd.StatusChangeDate == _exportDocumentLog.StatusChangeDate)
                 {
                     stopwatch.Stop();
 
@@ -278,6 +278,14 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
 
                 ttsbegin;
                 DEVIntegMessageDataOutbound::insertLog(_exportDocumentLog, exception, processResults, infoCnt);
+
+                exportDocumentLogUpd = DEVIntegExportDocumentLog::findRecId(_exportDocumentLog.RecId, true);
+                if (exportDocumentLogUpd.RecId)
+                {
+                    exportDocumentLogUpd.ProcessingAttempts++;
+                    exportDocumentLogUpd.update();
+                }
+
                 ttscommit;
 
                 if (exportMessageBase && ! exportMessageBase.failOnFirstError())

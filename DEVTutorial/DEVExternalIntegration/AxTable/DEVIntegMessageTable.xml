@@ -300,9 +300,59 @@ public class DEVIntegMessageTable extends common
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>getParentMessageTable</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTable getParentMessageTable()
+    {
+        DEVIntegMessageTable    messageTableParent;
+        if (this.ParentMessageId)
+        {
+            messageTableParent = DEVIntegMessageTable::findRecId(this.ParentMessageId);
+        }
+        return messageTableParent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParentOrThisTable</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTable getParentOrThisTable()
+    {
+        DEVIntegMessageTable    messageTableParent;
+        if (this.ParentMessageId)
+        {
+            messageTableParent = DEVIntegMessageTable::findRecId(this.ParentMessageId);
+        }
+        else
+        {
+            messageTableParent = this;
+        }
+        return messageTableParent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>downloadFileAction</Name>
+				<Source><![CDATA[
+    public void downloadFileAction()
+    {
+        DEVIntegMessageTable messageToDownload = this.getParentOrThisTable();
+        Filename fileName = messageToDownload.Name;
+        if (fileName)
+        {
+            File::SendFileToUser(messageToDownload.getFileStream(), messageToDownload.getFileNameForDownload());
+                
+        }
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 	</SourceCode>
-	<Label>File messages</Label>
+	<Label>Integration messages</Label>
 	<SubscriberAccessLevel>
 		<Read>Allow</Read>
 	</SubscriberAccessLevel>
@@ -407,6 +457,9 @@ public class DEVIntegMessageTable extends common
 				<AxTableFieldGroupField>
 					<DataField>isSessionActive</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParentMessageId</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -478,60 +531,79 @@ public class DEVIntegMessageTable extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SystemGroup</Name>
+			<Label>System</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ParentMessageId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>CompanyId</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>CompanyId</ExtendedDataType>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>Name</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>Filename</ExtendedDataType>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>Path</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>FilePath</ExtendedDataType>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldEnum">
 			<Name>Status</Name>
+			<AllowEdit>No</AllowEdit>
 			<EnumType>DEVIntegMessageStatus</EnumType>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt">
 			<Name>SessionId</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>SessionId</ExtendedDataType>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldUtcDateTime">
 			<Name>SessionLoginDateTime</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>SessionLoginDateTime</ExtendedDataType>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldUtcDateTime">
 			<Name>ProcessingStartDateTime</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>TransDateTime</ExtendedDataType>
 			<Label>Processing start</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldUtcDateTime">
 			<Name>ProcessingEndDateTime</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>TransDateTime</ExtendedDataType>
 			<Label>Processing end</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt">
 			<Name>RecordsProcessed</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<Label>Processed items</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt">
 			<Name>RecordsWithErrors</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<Label>Items with error</Label>
 		</AxTableField>
@@ -544,12 +616,14 @@ public class DEVIntegMessageTable extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt">
 			<Name>RecordsSkipped</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<Label>Skipped items</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldEnum">
 			<Name>IsParsed</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>NoYesId</ExtendedDataType>
 			<HelpText>Staging data created</HelpText>
 			<Label>Staging</Label>
@@ -558,6 +632,7 @@ public class DEVIntegMessageTable extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>MessageTypeId</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>DEVIntegMessageTypeIdInbound</ExtendedDataType>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
@@ -590,9 +665,18 @@ public class DEVIntegMessageTable extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt">
 			<Name>Duration</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>Seconds</ExtendedDataType>
 			<HelpText>Processing duration</HelpText>
 			<Label>Duration(sec)</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>ParentMessageId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegMessageRefRecId</ExtendedDataType>
+			<HelpText>Parent message ID</HelpText>
+			<Label>Parent message</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
@@ -654,6 +738,15 @@ public class DEVIntegMessageTable extends common
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>
+		<AxTableIndex>
+			<Name>ParentMessageIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ParentMessageId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
 	</Indexes>
 	<Mappings />
 	<Relations>
@@ -686,6 +779,24 @@ public class DEVIntegMessageTable extends common
 					i:type="AxTableRelationConstraintField">
 					<Name>RecId</Name>
 					<Field>RecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegMessageTable_ParentMessageId</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DEVIntegMessageTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ParentMessageId</Name>
+					<SourceEDT>DEVIntegMessageRefRecId</SourceEDT>
+					<Field>ParentMessageId</Field>
 					<RelatedField>RecId</RelatedField>
 				</AxTableRelationConstraint>
 			</Constraints>

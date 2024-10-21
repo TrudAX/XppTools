@@ -228,6 +228,54 @@ public class DEVIntegMessageProcessor
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>processMessageFromForm</Name>
+				<Source><![CDATA[
+    static void processMessageFromForm(DEVIntegMessageTable   _messageTable)
+    {
+        DEVIntegMessageTable        integMessageTableLocal, integMessageTableUpd;
+        FormDataSource              DEVIntegMessageTable_ds;
+        int                         numOfMessages;
+        ;
+        DEVIntegMessageTable_ds = FormDataUtil::getFormDataSource(_messageTable);
+        if (DEVIntegMessageTable_ds)
+        {
+            try
+            {
+                for(integMessageTableLocal = DEVIntegMessageTable_ds.getFirst(true) ? DEVIntegMessageTable_ds.getFirst(true) : DEVIntegMessageTable_ds.cursor();
+                integMessageTableLocal.RecId;
+                integMessageTableLocal = DEVIntegMessageTable_ds.getNext())
+                {
+                    integMessageTableUpd = DEVIntegMessageTable::findRecId(integMessageTableLocal.RecId);
+
+                    DEVIntegMessageProcessor messageProcessor = DEVIntegMessageProcessor::construct(integMessageTableUpd.messageTypeTable());
+                    messageProcessor.processMessage(integMessageTableUpd);
+
+                    numOfMessages++;
+                    //integMessageTableLocal.reread();
+                    //DEVIntegMessageTable_ds.re
+                    //DEV::dsRefresh(integMessageTableLocal);
+                    //DEVIntegMessageTable_ds.reread();
+                    //DEVIntegMessageTable_ds.refresh();
+                }
+            }
+            finally
+            {
+                if (numOfMessages > 1)
+                {
+                    DEV::dsResearch(_messageTable);
+                }
+                else
+                {
+                    DEV::dsRefresh(_messageTable);
+                }
+            }
+
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>processSingleLine</Name>
 				<Source><![CDATA[
     public void processSingleLine(DEVIntegMessageTable   _messageTable, RefRecId   _stagingRecIdToProcess)

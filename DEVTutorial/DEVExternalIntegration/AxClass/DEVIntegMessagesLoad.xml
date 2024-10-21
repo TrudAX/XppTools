@@ -14,7 +14,8 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryab
 
     DEVIntegMessageTypeInbound      integMessageTypeInboundExt;
 
-
+    boolean         isProcessOnlyNewRecords;
+    TransDateTime   lastLoadDateTime;
 
     #define.CurrentVersion(1)
     #localmacro.CurrentList
@@ -51,6 +52,17 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryab
         messageTypeId        = dlgMessageTypeId.value();
         runProcessAfterLoad  = dlgRunProcessAfterLoad.value();
         return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsProcessOnlyNewRecords</Name>
+				<Source><![CDATA[
+    public boolean parmIsProcessOnlyNewRecords(boolean _isProcessOnlyNewRecords = isProcessOnlyNewRecords)
+    {
+        isProcessOnlyNewRecords = _isProcessOnlyNewRecords;
+        return isProcessOnlyNewRecords;
     }
 
 ]]></Source>
@@ -162,6 +174,8 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryab
         {
             batchHeader = BatchHeader::construct(this.parmCurrentBatch().BatchJobId);
             batchHeader.addRuntimeTask(messagesProcess, this.parmCurrentBatch().ReciD);
+            //batchHeader.addTask(messagesProcess); it should be runtime task, normal task will be duplicated
+            
             if (this.isInBatch() && batchHeader)
             {
                 batchHeader.save();
@@ -169,6 +183,10 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryab
         }
         else
         {
+            if (isProcessOnlyNewRecords)
+            {
+                messagesProcess.parmLastLoadStartFromDateTime(lastLoadDateTime);
+            }
             messagesProcess.runOperation();
         }
     }
@@ -216,6 +234,7 @@ public class DEVIntegMessagesLoad  extends RunBaseBatch  implements BatchRetryab
     
             try
             {
+                lastLoadDateTime = DateTimeUtil::utcNow();
                 processedCounter = this.loadMessageType(messageTypeTable);
             }
             catch(Exception::Error)

@@ -313,18 +313,6 @@ public class DEVIntegMessageTypeInbound extends common
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
-			<Name>LedgerImportParms</Name>
-			<Label>Ledger import parameters</Label>
-			<Fields>
-				<AxTableFieldGroupField>
-					<DataField>LedgerJournalNameId</DataField>
-				</AxTableFieldGroupField>
-				<AxTableFieldGroupField>
-					<DataField>IsAutoPostJournal</DataField>
-				</AxTableFieldGroupField>
-			</Fields>
-		</AxTableFieldGroup>
-		<AxTableFieldGroup>
 			<Name>SourceGroupFileShare</Name>
 			<Label>Source files</Label>
 			<Fields>
@@ -430,6 +418,9 @@ public class DEVIntegMessageTypeInbound extends common
 				<AxTableFieldGroupField>
 					<DataField>ReadNumberOfDays</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsIgnoreFirstMessageProcessOnLoad</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 	</FieldGroups>
@@ -460,19 +451,6 @@ public class DEVIntegMessageTypeInbound extends common
 			<ExtendedDataType>Name</ExtendedDataType>
 			<HelpText>Name of the processing class</HelpText>
 			<Label>Class name</Label>
-		</AxTableField>
-		<AxTableField xmlns=""
-			i:type="AxTableFieldString">
-			<Name>LedgerJournalNameId</Name>
-			<ExtendedDataType>LedgerJournalNameIdDaily</ExtendedDataType>
-		</AxTableField>
-		<AxTableField xmlns=""
-			i:type="AxTableFieldEnum">
-			<Name>IsAutoPostJournal</Name>
-			<ExtendedDataType>NoYesId</ExtendedDataType>
-			<HelpText>Post journal after import</HelpText>
-			<Label>Post journal</Label>
-			<EnumType>NoYes</EnumType>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
@@ -570,6 +548,14 @@ public class DEVIntegMessageTypeInbound extends common
 			<HelpText>Number of seconds to substruct from the last load date</HelpText>
 			<Label>Overlap(seconds)</Label>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsIgnoreFirstMessageProcessOnLoad</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Do not process first message during load stage</HelpText>
+			<Label>Do not process on load</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>
@@ -585,30 +571,6 @@ public class DEVIntegMessageTypeInbound extends common
 	</Indexes>
 	<Mappings />
 	<Relations>
-		<AxTableRelation xmlns=""
-			i:type="AxTableRelationForeignKey">
-			<Name>LedgerJournalName</Name>
-			<Cardinality>ZeroMore</Cardinality>
-			<OnDelete>Restricted</OnDelete>
-			<RelatedTable>LedgerJournalName</RelatedTable>
-			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
-			<RelationshipType>Association</RelationshipType>
-			<Constraints>
-				<AxTableRelationConstraint xmlns=""
-					i:type="AxTableRelationConstraintField">
-					<Name>LedgerJournalNameId</Name>
-					<SourceEDT>LedgerJournalNameIdDaily</SourceEDT>
-					<Field>LedgerJournalNameId</Field>
-					<RelatedField>JournalName</RelatedField>
-				</AxTableRelationConstraint>
-				<AxTableRelationConstraint xmlns=""
-					i:type="AxTableRelationConstraintRelatedFixed">
-					<Name>JournalType</Name>
-					<RelatedField>JournalType</RelatedField>
-					<ValueStr>LedgerJournalType::Daily</ValueStr>
-				</AxTableRelationConstraint>
-			</Constraints>
-		</AxTableRelation>
 		<AxTableRelation xmlns=""
 			i:type="AxTableRelationForeignKey">
 			<Name>DEVIntegConnectionType</Name>

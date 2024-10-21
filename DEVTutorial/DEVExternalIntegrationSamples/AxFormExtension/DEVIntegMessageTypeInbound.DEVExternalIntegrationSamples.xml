@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxFormExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVIntegMessageTypeInbound.DEVExternalIntegrationSamples</Name>
+	<ControlModifications />
+	<Controls>
+		<AxFormExtensionControl xmlns="">
+			<Name>FormExtensionControlzcdafzlj1</Name>
+			<FormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>LedgerImportParms</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>LedgerImportParms_LedgerJournalNameId</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>LedgerJournalNameId</DataField>
+						<DataSource>DEVIntegMessageTypeInbound</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>LedgerImportParms_IsAutoPostJournal</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>IsAutoPostJournal</DataField>
+						<DataSource>DEVIntegMessageTypeInbound</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormCheckBoxControl">
+						<Name>LedgerImportParms_IsGroupByDescription</Name>
+						<Type>CheckBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>IsGroupByDescription</DataField>
+						<DataSource>DEVIntegMessageTypeInbound</DataSource>
+					</AxFormControl>
+				</Controls>
+				<Breakable>No</Breakable>
+				<DataGroup>LedgerImportParms</DataGroup>
+				<DataSource>DEVIntegMessageTypeInbound</DataSource>
+			</FormControl>
+			<Parent>ParametersTabPage</Parent>
+		</AxFormExtensionControl>
+	</Controls>
+	<DataSourceModifications />
+	<DataSourceReferences />
+	<DataSources />
+	<Parts />
+	<PropertyModifications />
+</AxFormExtension>

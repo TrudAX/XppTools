@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
 	<Name>DEVIntegMessageTypeInbound.DEVExternalIntegrationSamples</Name>
-	<FieldGroupExtensions>
-		<AxTableFieldGroupExtension>
+	<FieldGroupExtensions />
+	<FieldGroups>
+		<AxTableFieldGroup>
 			<Name>LedgerImportParms</Name>
+			<Label>Ledger import parameters</Label>
 			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LedgerJournalNameId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsAutoPostJournal</DataField>
+				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>IsGroupByDescription</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
-		</AxTableFieldGroupExtension>
-	</FieldGroupExtensions>
-	<FieldGroups />
+		</AxTableFieldGroup>
+	</FieldGroups>
 	<FieldModifications />
 	<Fields>
 		<AxTableField xmlns=""
@@ -21,6 +28,19 @@
 			<HelpText>Group By Description during processin</HelpText>
 			<Label>Group By Description</Label>
 			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsAutoPostJournal</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Post journal after import</HelpText>
+			<Label>Post journal</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>LedgerJournalNameId</Name>
+			<ExtendedDataType>LedgerJournalNameIdDaily</ExtendedDataType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

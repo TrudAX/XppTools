@@ -171,6 +171,9 @@ public class DEVIntegExportDocumentLog extends FormRun
 					<DataField>Partition</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>ProcessingAttempts</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>RecId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -567,6 +570,15 @@ public class DEVIntegExportDocumentLog extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>DurationInMilliseconds</DataField>
+										<DataSource>DEVIntegExportDocumentLog</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>DetailsTime_ProcessingAttempts</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ProcessingAttempts</DataField>
 										<DataSource>DEVIntegExportDocumentLog</DataSource>
 									</AxFormControl>
 								</Controls>

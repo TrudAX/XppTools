@@ -60,6 +60,16 @@ public class DEVIntegTmpFiles extends common
 			<ExtendedDataType>RecIdCount</ExtendedDataType>
 			<Label>Size</Label>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParameterTypeName</Name>
+			<ExtendedDataType>Filename</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParameterName</Name>
+			<ExtendedDataType>Filename</ExtendedDataType>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>

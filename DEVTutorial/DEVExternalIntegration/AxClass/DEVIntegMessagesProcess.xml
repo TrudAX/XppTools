@@ -12,6 +12,8 @@ public class DEVIntegMessagesProcess extends RunBaseBatch  implements BatchRetry
     
     Range                       batchIdentifier;
     BatchHeader                 batchHeader;
+
+    TransDateTime   lastLoadStartFromDateTime;
     
     #define.CurrentVersion(1)
     #localmacro.CurrentList
@@ -45,6 +47,17 @@ public class DEVIntegMessagesProcess extends RunBaseBatch  implements BatchRetry
         messageTypeId          = dlgMessageTypeId.value();
         
         return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmLastLoadStartFromDateTime</Name>
+				<Source><![CDATA[
+    public TransDateTime parmLastLoadStartFromDateTime(TransDateTime _lastLoadStartFromDateTime = lastLoadStartFromDateTime)
+    {
+        lastLoadStartFromDateTime = _lastLoadStartFromDateTime;
+        return lastLoadStartFromDateTime;
     }
 
 ]]></Source>
@@ -98,7 +111,7 @@ public class DEVIntegMessagesProcess extends RunBaseBatch  implements BatchRetry
         qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTable, IsManualUpload));
         qBR.value(SysQuery::value(NoYes::No));
         //qBR.status(RangeStatus::Locked);
-        
+
         queryRun = new QueryRun(query);
     }
 
@@ -160,6 +173,7 @@ public class DEVIntegMessagesProcess extends RunBaseBatch  implements BatchRetry
         QueryBuildDataSource    qBDS;
         container               typesCon;
         int                     i;
+        QueryBuildRange         qBR;
         
         if (batchIdentifier) //child task
         {
@@ -172,6 +186,15 @@ public class DEVIntegMessagesProcess extends RunBaseBatch  implements BatchRetry
             {
                 SysQuery::findOrCreateRange(qBDS, fieldnum(DEVIntegMessageTable, MessageTypeId)).value(queryValue(messageTypeId));
             }
+            if (lastLoadStartFromDateTime)
+            {
+                qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTable, CreatedDateTime));
+                qBR.value(SysQuery::range(lastLoadStartFromDateTime, ''));
+
+                qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTable, IsManualUpload));
+                qBR.value('');
+            }
+
             typesCon = this.getSelectedTypes();
             for (i = 1; i <= conLen(typesCon); i++)
             {

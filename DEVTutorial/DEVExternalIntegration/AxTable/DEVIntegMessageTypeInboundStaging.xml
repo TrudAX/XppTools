@@ -125,21 +125,6 @@
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
-			<Name>LedgerJournalNameId</Name>
-			<ExtendedDataType>LedgerJournalNameIdDaily</ExtendedDataType>
-			<IsSystemGenerated>Yes</IsSystemGenerated>
-		</AxTableField>
-		<AxTableField xmlns=""
-			i:type="AxTableFieldEnum">
-			<Name>IsAutoPostJournal</Name>
-			<ExtendedDataType>NoYesId</ExtendedDataType>
-			<HelpText>Post journal after import</HelpText>
-			<IsSystemGenerated>Yes</IsSystemGenerated>
-			<Label>Post journal</Label>
-			<EnumType>NoYes</EnumType>
-		</AxTableField>
-		<AxTableField xmlns=""
-			i:type="AxTableFieldString">
 			<Name>ReadLocation</Name>
 			<ExtendedDataType>FolderName</ExtendedDataType>
 			<HelpText>Read location folder(e.g. ParentDir\ChildDir)</HelpText>
@@ -226,22 +211,6 @@
 			<IsSystemGenerated>Yes</IsSystemGenerated>
 			<Label>Number of days</Label>
 		</AxTableField>
-		<AxTableField xmlns=""
-			i:type="AxTableFieldString">
-			<Name>DMFDefinitionGroupEntity_DefinitionGroup</Name>
-			<AllowEdit>No</AllowEdit>
-			<ExtendedDataType>DMFDefinitionGroupName</ExtendedDataType>
-			<IsSystemGenerated>Yes</IsSystemGenerated>
-			<Mandatory>Yes</Mandatory>
-		</AxTableField>
-		<AxTableField xmlns=""
-			i:type="AxTableFieldString">
-			<Name>DMFDefinitionGroupEntity_Entity</Name>
-			<AllowEdit>No</AllowEdit>
-			<ExtendedDataType>DMFEntityName</ExtendedDataType>
-			<IsSystemGenerated>Yes</IsSystemGenerated>
-			<Mandatory>Yes</Mandatory>
-		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>
@@ -264,28 +233,6 @@
 	</Indexes>
 	<Mappings />
 	<Relations>
-		<AxTableRelation>
-			<Name>DMFDefinitionGroupEntity</Name>
-			<Cardinality>ZeroOne</Cardinality>
-			<IsSystemGenerated>Yes</IsSystemGenerated>
-			<RelatedTable>DMFDefinitionGroupEntity</RelatedTable>
-			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
-			<RelationshipType>Association</RelationshipType>
-			<Constraints>
-				<AxTableRelationConstraint xmlns=""
-					i:type="AxTableRelationConstraintField">
-					<Name>DefinitionGroup</Name>
-					<Field>DMFDefinitionGroupEntity_DefinitionGroup</Field>
-					<RelatedField>DefinitionGroup</RelatedField>
-				</AxTableRelationConstraint>
-				<AxTableRelationConstraint xmlns=""
-					i:type="AxTableRelationConstraintField">
-					<Name>Entity</Name>
-					<Field>DMFDefinitionGroupEntity_Entity</Field>
-					<RelatedField>Entity</RelatedField>
-				</AxTableRelationConstraint>
-			</Constraints>
-		</AxTableRelation>
 		<AxTableRelation xmlns=""
 			i:type="AxTableRelationForeignKey">
 			<Name>DataEntity</Name>

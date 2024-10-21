@@ -64,6 +64,7 @@ public class DEVIntegExportDocumentLog extends common
         this.ExportStatus     = DEVIntegExportStatus::ToSend;
         this.StatusChangeDate = DateTimeUtil::utcNow();
         this.SendMessageID    = '';
+        this.ProcessingAttempts = 0;
     }
 
 ]]></Source>
@@ -198,6 +199,7 @@ public class DEVIntegExportDocumentLog extends common
 			</Method>
 		</Methods>
 	</SourceCode>
+	<FormRef>DEVIntegExportDocumentLog</FormRef>
 	<Label>Document Log</Label>
 	<TableGroup>Group</TableGroup>
 	<TitleField1>DocumentId</TitleField1>
@@ -397,6 +399,9 @@ public class DEVIntegExportDocumentLog extends common
 				<AxTableFieldGroupField>
 					<DataField>DurationInMilliseconds</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ProcessingAttempts</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 	</FieldGroups>
@@ -505,6 +510,13 @@ public class DEVIntegExportDocumentLog extends common
 			<HelpText>Duration of the last call(ms)</HelpText>
 			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Label>Duration(ms)</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ProcessingAttempts</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Number of processing attempts</HelpText>
+			<Label>Processing attempts</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

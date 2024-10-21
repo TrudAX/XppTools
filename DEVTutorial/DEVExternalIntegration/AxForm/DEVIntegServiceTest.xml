@@ -9,7 +9,7 @@
 [Form]
 public class DEVIntegServiceTest extends FormRun
 {
-    TmpHelpIndex       tmpClassMethods;
+    DEVIntegTmpFiles       tmpClassMethods;
 
 
 }
@@ -35,12 +35,13 @@ public class DEVIntegServiceTest extends FormRun
             dictMethod = dictClass.objectMethodObject(i);
             if (dictMethod.returnTypeName() == classStr(DEVIntegServiceExportResponseContract) && dictMethod.parameterCnt() == 1)
             {
-                tmpClassMethods.Name = dictMethod.name();
-                tmpClassMethods.URL  = dictMethod.parameterTypeName(1);
+                tmpClassMethods.FileName = dictMethod.name();
+                tmpClassMethods.ParameterTypeName  = dictMethod.parameterTypeName(1);
+                tmpClassMethods.ParameterName      = dictMethod.parameterName(1);
                 tmpClassMethods.insert();
             }
         }
-        MethodNameStringControl.text(tmpClassMethods.Name);
+        MethodNameStringControl.text(tmpClassMethods.FileName);
 
     }
 
@@ -59,23 +60,26 @@ public class DEVIntegServiceTest extends FormRun
         public void clicked()
         {
             ContractStringControl.text("");
+            ContractVarText.text("");
 
             tmpClassMethods.clear();
 
             select tmpClassMethods
-                where tmpClassMethods.Name == MethodNameStringControl.text();
+                where tmpClassMethods.FileName == MethodNameStringControl.text();
             if (! tmpClassMethods.RecId)
             {
                 return;
             }
 
-            DictClass dictClassContract = new DictClass(className2Id(tmpClassMethods.URL));
+            DictClass dictClassContract = new DictClass(className2Id(tmpClassMethods.ParameterTypeName));
             if (dictClassContract)
             {
                 Object objContract = dictClassContract.makeObject();
 
                 ContractStringControl.text(DEVIntegServiceExportBase::serialiseXppObject(objContract));
             }
+
+            ContractVarText.text(strFmt('{"%1": %% }', tmpClassMethods.ParameterName));
         }
 
 ]]></Source>
@@ -143,19 +147,19 @@ public class DEVIntegServiceTest extends FormRun
 						<Source><![CDATA[
         public void lookup()
         {
-            SysTableLookup          sysTableLookup  = SysTableLookup::newParameters(tablenum(TmpHelpIndex), this);
+            SysTableLookup          sysTableLookup  = SysTableLookup::newParameters(tablenum(DEVIntegTmpFiles), this);
             Query                   query           = new Query();
             QueryBuildDataSource    qbds;
 
             ;
 
-            sysTableLookup.addLookupfield(fieldnum(TmpHelpIndex, Name));
+            sysTableLookup.addLookupfield(fieldnum(DEVIntegTmpFiles, FileName));
             sysTableLookup.setLabel("Method"); 
-            sysTableLookup.addLookupfield(fieldnum(TmpHelpIndex, URL));
+            sysTableLookup.addLookupfield(fieldnum(DEVIntegTmpFiles, ParameterTypeName));
             sysTableLookup.setLabel("Contract class"); 
 
             sysTableLookup.parmTmpBuffer(tmpClassMethods);
-            qbds = query.addDataSource(tablenum(TmpHelpIndex));
+            qbds = query.addDataSource(tablenum(DEVIntegTmpFiles));
             sysTableLookup.parmQuery(query);
 
             sysTableLookup.performFormLookup();
@@ -314,13 +318,23 @@ public class DEVIntegServiceTest extends FormRun
 					<AxFormControl xmlns=""
 						i:type="AxFormTabPageControl">
 						<Name>ContractTabPageControl</Name>
-						<Pattern>FillText</Pattern>
-						<PatternVersion>UX7 1.0</PatternVersion>
+						<Pattern>Custom</Pattern>
 						<Type>TabPage</Type>
 						<WidthMode>SizeToAvailable</WidthMode>
 						<FormControlExtension
 							i:nil="true" />
 						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>ContractVarText</Name>
+								<AllowEdit>No</AllowEdit>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DisplayLength>60</DisplayLength>
+							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormStringControl">
 								<Name>ContractStringControl</Name>

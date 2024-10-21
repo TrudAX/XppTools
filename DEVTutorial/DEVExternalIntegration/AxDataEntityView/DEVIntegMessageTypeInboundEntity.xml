@@ -71,18 +71,6 @@ public class DEVIntegMessageTypeInboundEntity extends common
 		</AxDataEntityViewField>
 		<AxDataEntityViewField xmlns=""
 			i:type="AxDataEntityViewMappedField">
-			<Name>LedgerJournalNameId</Name>
-			<DataField>LedgerJournalNameId</DataField>
-			<DataSource>DEVIntegMessageTypeInbound</DataSource>
-		</AxDataEntityViewField>
-		<AxDataEntityViewField xmlns=""
-			i:type="AxDataEntityViewMappedField">
-			<Name>IsAutoPostJournal</Name>
-			<DataField>IsAutoPostJournal</DataField>
-			<DataSource>DEVIntegMessageTypeInbound</DataSource>
-		</AxDataEntityViewField>
-		<AxDataEntityViewField xmlns=""
-			i:type="AxDataEntityViewMappedField">
 			<Name>ReadLocation</Name>
 			<DataField>ReadLocation</DataField>
 			<DataSource>DEVIntegMessageTypeInbound</DataSource>
@@ -159,18 +147,6 @@ public class DEVIntegMessageTypeInboundEntity extends common
 			<Name>ReadNumberOfDays</Name>
 			<DataField>ReadNumberOfDays</DataField>
 			<DataSource>DEVIntegMessageTypeInbound</DataSource>
-		</AxDataEntityViewField>
-		<AxDataEntityViewField xmlns=""
-			i:type="AxDataEntityViewMappedField">
-			<Name>DMFDefinitionGroupEntity_DefinitionGroup</Name>
-			<DataField>DefinitionGroup</DataField>
-			<DataSource>DMFDefinitionGroupEntity</DataSource>
-		</AxDataEntityViewField>
-		<AxDataEntityViewField xmlns=""
-			i:type="AxDataEntityViewMappedField">
-			<Name>DMFDefinitionGroupEntity_Entity</Name>
-			<DataField>Entity</DataField>
-			<DataSource>DMFDefinitionGroupEntity</DataSource>
 		</AxDataEntityViewField>
 	</Fields>
 	<Keys>
