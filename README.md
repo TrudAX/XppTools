@@ -5,6 +5,11 @@ Useful X++ code samples
 This repository contains 3 D365FO models:
 
 - [XppTools](#xpptools)
+  
+  [TOC]
+  
+  
+  
   - [DEVTools model](#devtools-model)
     - [-Fields list](#-fields-list)
     - [-Display system field name in the query filter](#-display-system-field-name-in-the-query-filter)
