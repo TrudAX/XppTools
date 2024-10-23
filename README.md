@@ -5,18 +5,13 @@ Useful X++ code samples
 This repository contains 3 D365FO models:
 
 - [XppTools](#xpptools)
-  
-  [TOC]
-  
-  
-  
   - [DEVTools model](#devtools-model)
     - [-Fields list](#-fields-list)
     - [-Display system field name in the query filter](#-display-system-field-name-in-the-query-filter)
     - [-Display table relation fields](#-display-table-relation-fields)
     - [-Editable table browser](#-editable-table-browser)
     - [-List of Values to Range](#-list-of-values-to-range)
-    - [-Execute direct SQL in D365FO database](#-execute-direct-sql-in-d365fo-database)
+    - [-Execute direct SQL in the D365FO database](#-execute-direct-sql-in-the-d365fo-database)
     - [-SQL reports](#-sql-reports)
     - [-D365FO Infolog call stack](#-d365fo-infolog-call-stack)
     - [-D365FO DFM Tools](#-d365fo-dfm-tools)
@@ -36,6 +31,8 @@ This repository contains 3 D365FO models:
     - [-Multicompany DMF integration in Dynamics 365 FinOps using X++](#-multicompany-dmf-integration-in-dynamics-365-finops-using-x)
     - [-XppInteg - Azure Service Bus integration solution for Dynamics 365 FinOps](#-xppinteg---azure-service-bus-integration-solution-for-dynamics-365-finops)
     - [-XppInteg - Import purchase orders from XML files into D365FO](#-xppinteg---import-purchase-orders-from-xml-files-into-d365fo)
+    - [-Implement Periodic Data Export from D365FO to SFTP](#-implement-periodic-data-export-from-d365fo-to-sftp)
+    - [-D365FO Integration: Event-Based Exports to External Web Services](#-d365fo-integration-event-based-exports-to-external-web-services)
   - [Installation](#installation)
   - [Contribution](#contribution)
 
@@ -205,9 +202,13 @@ A sample code to implement Azure Service Bus integration in D365FO using X++ (ht
 
 A sample approach how to implement XML based integration by importing purchase orders from Azure File Share in D365FO using X++ (https://denistrunin.com/xpptools-integfilesharexmlpurch/).
 
-### -XppInteg - Implement Periodic Data Export from D365FO to SFTP
+### -Implement Periodic Data Export from D365FO to SFTP
 
-How to implement various scenarios for periodic data export from D365FO to a file and uploading it to SFTP server(https://denistrunin.com/integration-outboundsftp/).
+How to implement various scenarios for periodic data export from D365FO to a file and uploading it to SFTP server (https://denistrunin.com/integration-outboundsftp/).
+
+### -D365FO Integration: Event-Based Exports to External Web Services
+
+How to implement robust, efficient integrations between Dynamics 365 Finance and Operations and external Web Services. (https://denistrunin.com/integration-outboundweb/).
 
 **[⬆ back to top](#XppTools)**
 
