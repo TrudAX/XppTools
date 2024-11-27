@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVIntegLastLoadCallLog</Name>
+	<HelpText>Display Integ Web service call log</HelpText>
+	<Label>Web service call log</Label>
+	<Object>DEVIntegLastLoadCallLog</Object>
+</AxMenuItemDisplay>

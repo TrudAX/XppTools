@@ -48,7 +48,8 @@ public class DEVIntegMessageTypeInbound extends FormRun
         DEVIntegMessageTypeInbound_ds.object(fieldNum(DEVIntegMessageTypeInbound, LastLoadDateTime)).visible(false);
         DEVIntegMessageTypeInbound_ds.object(fieldNum(DEVIntegMessageTypeInbound, LastLoadOverlapSec)).visible(false);
         DEVIntegMessageTypeInbound_ds.object(fieldNum(DEVIntegMessageTypeInbound, ReadNumberOfDays)).visible(false);
-
+        DEVIntegMessageTypeInbound_ds.object(fieldNum(DEVIntegMessageTypeInbound, LastLoadOffset)).visible(false);
+        DEVIntegMessageTypeInbound_ds.object(fieldNum(DEVIntegMessageTypeInbound, LastLoadLimit)).visible(false);
         int i;
         for (i = 1; i <= conLen(initialNotVisibleFields); i++)
         {
@@ -252,6 +253,12 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>LastLoadDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LastLoadLimit</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LastLoadOffset</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>LastLoadOverlapSec</DataField>
@@ -891,6 +898,24 @@ public class DEVIntegMessageTypeInbound extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>LastLoadDateTime</DataField>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>TimestampLoad_LastLoadOffset</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>LastLoadOffset</DataField>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>TimestampLoad_LastLoadLimit</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>LastLoadLimit</DataField>
 										<DataSource>DEVIntegMessageTypeInbound</DataSource>
 									</AxFormControl>
 									<AxFormControl xmlns=""

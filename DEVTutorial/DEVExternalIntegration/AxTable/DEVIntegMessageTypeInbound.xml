@@ -413,6 +413,12 @@ public class DEVIntegMessageTypeInbound extends common
 					<DataField>LastLoadDateTime</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
+					<DataField>LastLoadOffset</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LastLoadLimit</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>LastLoadOverlapSec</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
@@ -555,6 +561,22 @@ public class DEVIntegMessageTypeInbound extends common
 			<HelpText>Do not process first message during load stage</HelpText>
 			<Label>Do not process on load</Label>
 			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LastLoadOffset</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Offset parameter for the current date</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Offset</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LastLoadLimit</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Limit parameter for web service call</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Limit</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
