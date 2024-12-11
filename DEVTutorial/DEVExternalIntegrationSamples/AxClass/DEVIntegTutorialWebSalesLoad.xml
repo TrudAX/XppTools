@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialWebSalesLoad</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
+
+public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
+{
+    public str              requestUrl;
+    public CTMContractId    contractId;
+
+    DEVIntegExternalServiceHttpClient       externalServiceHttpClient;
+
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>testConnection</Name>
+				<Source><![CDATA[
+    void testConnection()
+    {
+        this.initConnection();
+
+        info(strFmt("Connection %1 is OK", messageTypeTable.MessageTypeId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLoadData</Name>
+				<Source><![CDATA[
+    public str getLoadData(str _timeStampValue)
+    {
+        DEVIntegConnectionType connectionType = DEVIntegConnectionType::find(messageTypeTable.ConnectionTypeId);
+        
+        str requestUrlGetLoads   = strFmt('%1/contracts/inloads/?movement_statuses=void,completed&%2', connectionType.getWebHostNoSlash(), _timeStampValue);
+
+        str body = externalServiceHttpClient.invokeOperationSimple(requestUrlGetLoads, HttpMethod::Get, "");
+
+        return body;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>loadMessageType</Name>
+				<Source><![CDATA[
+    public int loadMessageType()
+    {
+        TransDateTime   curLoadTime = DateTimeUtil::utcNow();
+        System.DateTime lastLoadTime = messageTypeTable.lastLoadGetTime();
+        str             fromStrLastDate = lastLoadTime.ToString('yyyyMMddHHmmss');
+        str             fromStr;
+        int             recordCount;
+
+        DEVIntegLastLoadCallLog        lastLoadCallLog;
+
+        this.initConnection();
+        int currentLoop = 1;
+        int lastCount;
+        boolean     isLastLoop = true;
+        do
+        {
+
+            //we are in the paging mode
+            if (messageTypeTable.LastLoadLimit)
+            {
+                fromStr = strFmt('from=%1&offset=%2&limit=%3', fromStrLastDate, int2Str(messageTypeTable.LastLoadOffset), int2Str(messageTypeTable.LastLoadLimit));
+            }
+            else
+            {
+                fromStr = strFmt('from=%1', fromStrLastDate);
+            }
+            lastLoadCallLog.MessageTypeId = messageTypeTable.MessageTypeId;
+            lastLoadCallLog.CallText = fromStr;
+            lastLoadCallLog.CurLoadTime = curLoadTime;
+            lastLoadCallLog.insert();
+
+            str dataStr = this.getLoadData(fromStr);
+
+            if (messageTypeTable.LastLoadLimit)
+            {
+                JArray  loads = JArray::Parse(dataStr);
+                lastCount = loads.Count;
+            }
+
+            ttsbegin;
+
+            if (dataStr == '[]')
+            {
+                if (currentLoop == 1)
+                {
+                    info(strFmt("%1 call with %2 doesn't return any data", messageTypeTable.MessageTypeId, fromStr));
+                }
+            }
+            else
+            {
+                DEVIntegMessageCreator messageCreator = DEVIntegMessageCreator::construct();
+                messageCreator.initFromStringData(strFmt('%1.txt', fromStr), 'inloads', dataStr);
+
+
+                if (messageTypeTable.IsIgnoreFirstMessageProcessOnLoad)
+                {
+                    messageCreator.createMessage(messageTypeTable);
+                    recordCount++;
+                }
+                else
+                {
+                    DEVIntegMessageProcessor        messageProcessor;
+                    DEVIntegMessageTable            messageTable;
+
+                    ttsbegin;
+                    messageTable = messageCreator.createMessage(messageTypeTable);
+
+                    //process main message
+                    messageProcessor = DEVIntegMessageProcessor::construct(messageTypeTable);
+                    messageProcessor.processMessage(messageTable);
+
+                    ttscommit;
+                    messageTable.reread();
+                    recordCount = messageTable.RecordsProcessed;
+                }
+            
+            }
+
+            messageTypeTable.skipTTSCheck(true);
+            if (messageTypeTable.LastLoadLimit && lastCount == messageTypeTable.LastLoadLimit) //in paging mode
+            {
+                messageTypeTable.LastLoadOffset += lastCount;
+                messageTypeTable.update();
+                isLastLoop = false;
+            }
+            else
+            {
+                messageTypeTable.LastLoadOffset   = 0;
+                messageTypeTable.LastLoadDateTime = curLoadTime;
+                messageTypeTable.update();
+                isLastLoop = true;
+            }
+            ttscommit;
+
+            currentLoop++;
+
+            if (messageTypeTable.LastLoadLimit && ! isLastLoop)
+            {
+                //check wrong loop
+                if (! messageTypeTable.ReadLimitMessages) //put to 100 to avoid infinity loop
+                {
+                    messageTypeTable.ReadLimitMessages = 100;
+                }
+                if (this.checkMessageReadLimit())
+                {
+                    break;
+                }
+            }
+            else
+            {
+                //no paging
+                break;
+            }
+            
+
+        }while(true);
+
+        DEV::dsRefresh(messageTypeTable);
+
+        return recordCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initConnection</Name>
+				<Source><![CDATA[
+    public void initConnection()
+    {
+        if (! externalServiceHttpClient)
+        {
+            int timeoutValue;
+            if (messageTypeTableOutbound.RecId)
+            {
+                timeoutValue = messageTypeTableOutbound.connectionType().TimeoutInSec;
+            }
+            if (messageTypeTable.RecId)
+            {
+                timeoutValue = messageTypeTable.connectionType().TimeoutInSec;
+            }
+            externalServiceHttpClient = DEVIntegExternalServiceHttpClient::construct().withTimeoutInSec(timeoutValue);
+
+            this.getHttpToken();
+        }
+        externalServiceHttpClient.parmProcessResults(processResults);
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getHttpToken</Name>
+				<Source><![CDATA[
+    public str getHttpToken()
+    {
+        DEVIntegConnectionType connectionType = DEVIntegConnectionType::find(messageTypeTableOutbound.RecId ? messageTypeTableOutbound.ConnectionTypeId : messageTypeTable.ConnectionTypeId);
+        str              authUrl;
+        str              tokenValue;
+        str              userName;
+        str              userPassword;
+        str              json;
+
+        authUrl      = strFmt('%1/profiles/login', connectionType.FTPHostName);
+        requestUrl   = strFmt('%1/contracts/external/', connectionType.FTPHostName);
+        userName     = connectionType.FTPUserName;
+        userPassword = connectionType.getFTPPassword();
+        
+        json =  DEVIntegExternalServiceHttpClient::getNameValueJson(['username', userName, 'password', userPassword]);
+        
+        externalServiceHttpClient.requestHeaderClear();
+        str body = externalServiceHttpClient.invokeOperationSimple(authUrl, HttpMethod::Post, json);
+
+        DEVIntegJObject values     = DEVIntegJObject::Parse(body);
+        tokenValue = values.GetValueString('token');
+        
+        if (! tokenValue)
+        {
+            throw error(strFmt("Failed to update a token from %1. Error: %2", authUrl, body));
+        }
+        externalServiceHttpClient.requestHeaderAdd('Authorization', strFmt('Token %1', tokenValue));
+        
+        return tokenValue;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

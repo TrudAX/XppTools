@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuItemDisplay xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVIntegTutorialWebSalesTableStaging</Name>
+	<HelpText>View or maintain Web sales tutorial</HelpText>
+	<Label>Web sales tutorial</Label>
+	<Object>DEVIntegTutorialWebSalesTableStaging</Object>
+	<SubscriberAccessLevel>
+		<Read xmlns="">Allow</Read>
+	</SubscriberAccessLevel>
+</AxMenuItemDisplay>

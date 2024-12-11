@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialWebSalesProcessManual</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialWebSalesProcessManual  extends RunBaseBatch
+{
+    DEVIntegMessageTypeInbound      integMessageTypeInbound;
+    DEVIntegMessageTypeIdInbound    messageTypeId;
+    DialogField                     dlgMessageTypeId;
+    DialogRunbase                   dialog;
+    TransDateTime                   lastLoadDateTime;
+    DialogField                     dlgLastLoadDateTime;
+
+    NoYesId      runProcessAfterLoad;
+    DialogField  dlgRunProcessAfterLoad;
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmIntegMessageTypeInbound</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTypeInbound parmIntegMessageTypeInbound(DEVIntegMessageTypeInbound _integMessageTypeInbound = integMessageTypeInbound)
+    {
+        integMessageTypeInbound = _integMessageTypeInbound;
+        return integMessageTypeInbound;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        dialog = super();
+
+        dlgMessageTypeId = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeIdInbound), integMessageTypeInbound.MessageTypeId);
+        dlgMessageTypeId.allowEdit(false);
+       
+        dlgLastLoadDateTime = dialog.addFieldValue(extendedtypestr(TransDateTime), integMessageTypeInbound.LastLoadDateTime);
+        
+        runProcessAfterLoad = true;
+        dlgRunProcessAfterLoad  = dialog.addFieldValue(extendedtypestr(NoYesId), runProcessAfterLoad, "Run processing", "Execute files processing after load");
+       
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        messageTypeId    = dlgMessageTypeId.value();
+        lastLoadDateTime = dlgLastLoadDateTime.value();
+
+        runProcessAfterLoad  = dlgRunProcessAfterLoad.value();
+
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        if (lastLoadDateTime != integMessageTypeInbound.LastLoadDateTime)
+        {
+            ttsbegin;
+            integMessageTypeInbound.selectForUpdate(true);
+            integMessageTypeInbound.LastLoadDateTime = lastLoadDateTime;
+            integMessageTypeInbound.update();
+            ttscommit;
+        }
+
+        DEVIntegMessagesLoad integMessagesLoad = DEVIntegMessagesLoad::construct();
+
+        integMessagesLoad.initParmDefault();
+        integMessagesLoad.parmMessageTypeId(messageTypeId);
+        integMessagesLoad.parmIntegMessageTypeInboundExt(integMessageTypeInbound);
+        if (runProcessAfterLoad)
+        {
+            integMessagesLoad.parmRunProcessAfterLoad(NoYes::Yes);
+            integMessagesLoad.parmIsProcessOnlyNewRecords(true);
+        }
+        integMessagesLoad.run();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Web sales tutorial import";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegTutorialWebSalesProcessManual construct()
+    {
+        return new DEVIntegTutorialWebSalesProcessManual();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegTutorialWebSalesProcessManual       runObject = DEVIntegTutorialWebSalesProcessManual::construct();
+        DEVIntegMessageTypeInbound                  integMessageTypeInbound;
+
+        select integMessageTypeInbound
+            where integMessageTypeInbound.ClassName == classStr(DEVIntegTutorialWebSalesProcess)
+               && integMessageTypeInbound.Enabled   == NoYes::Yes;
+
+        runObject.parmIntegMessageTypeInbound(integMessageTypeInbound);
+
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+
+            FormDataSource  formDataSource = FormDataUtil::getFormDataSource(_args.record());
+
+            if (formDataSource)
+            {
+                formDataSource.research(false);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

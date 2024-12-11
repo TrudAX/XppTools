@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialWebSalesTableStaging</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialWebSalesTableStaging extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>salesTable</Name>
+				<Source><![CDATA[
+    public SalesTable salesTable(boolean    _forUpdate = false)
+    {
+        SalesTable salesTable;
+
+        if (this.CompanyId && this.SalesId)
+        {
+            changecompany(this.CompanyId)
+            {
+                salesTable =  SalesTable::find(this.SalesId, _forUpdate);
+            }
+        }
+        return salesTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>messageTable</Name>
+				<Source><![CDATA[
+    public DEVIntegMessageTable messageTable()
+    {
+        return DEVIntegMessageTable::findRecId(this.MessageId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isOverrideEditEnabled</Name>
+				<Source><![CDATA[
+    public boolean isOverrideEditEnabled()
+    {
+        return this.messageTable().isProcessEnabled();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>findRecId</Name>
+				<Source><![CDATA[
+    public static DEVIntegTutorialWebSalesTableStaging findRecId(RefRecId _recId,  boolean _forUpdate = false)
+    {
+        DEVIntegTutorialWebSalesTableStaging tutorialWebSalesTableStaging;
+        
+        if (_recId)
+        {
+            tutorialWebSalesTableStaging.selectForUpdate(_forUpdate);
+            
+            select firstonly tutorialWebSalesTableStaging
+                where tutorialWebSalesTableStaging.RecId == _recId;
+        }
+        
+        return tutorialWebSalesTableStaging;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getErrorLog</Name>
+				<Source><![CDATA[
+    DEVIntegErrorLog  getErrorLog()
+    {
+        DEVIntegErrorLog  errorLog;
+
+        select firstonly errorLog
+        order by CreatedDateTime desc
+            where errorLog.MessageRefRecId == this.RecId &&
+                  errorLog.MessageTableId  == this.TableId;
+        
+        return errorLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkNewerRecordExist</Name>
+				<Source><![CDATA[
+    public boolean checkNewerRecordExist(boolean _isInfolog = false)
+    {
+        DEVIntegTutorialWebSalesTableStaging      webSalesTableStagingProcessed;
+        boolean                                   res;
+
+        select firstonly webSalesTableStagingProcessed
+            where webSalesTableStagingProcessed.Identifier == this.Identifier
+               && webSalesTableStagingProcessed.UpdatedAt  >  this.UpdatedAt;
+
+        if (webSalesTableStagingProcessed.RecId)
+        {
+            if (_isInfolog)
+            {
+                warning(strFmt("Record with identified %1 already exists with a newer date %2(current %2). It will be skipped", 
+                        webSalesTableStagingProcessed.Identifier, webSalesTableStagingProcessed.UpdatedAt, this.UpdatedAt));
+            }
+            res = true;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Web Sales Orders Tutorial</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>Identifier</TitleField1>
+	<TitleField2>UpdatedAt</TitleField2>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Other</Name>
+			<Label>Other</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Identifier</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UpdatedAt</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UpdatedBy</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Identification</Name>
+			<Label>Identification</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Identifier</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Order</Name>
+			<Label>Order</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>UpdatedAt</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>UpdatedBy</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>MessageId</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>DEVIntegMessageRefRecId</ExtendedDataType>
+			<Label>Message recid</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CompanyId</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>CompanyId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Identifier</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegTutorialWebSalesID</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>UpdatedAt</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegTutorialWebUpdatedAt</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Updated at</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UpdatedBy</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<Label>Updated by</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>SalesId</Name>
+			<ExtendedDataType>SalesId</ExtendedDataType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MessageIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MessageId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>IdentifierIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>Identifier</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>UpdatedAt</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegMessageTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DEVIntegMessageTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageId</Name>
+					<SourceEDT>DEVIntegMessageRefRecId</SourceEDT>
+					<Field>MessageId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>SalesTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>SalesTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>SalesId</Name>
+					<SourceEDT>SalesId</SourceEDT>
+					<Field>SalesId</Field>
+					<RelatedField>SalesId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

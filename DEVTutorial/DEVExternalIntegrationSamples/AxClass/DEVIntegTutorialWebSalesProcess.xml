@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialWebSalesProcess</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Newtonsoft.Json.Linq;
+public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBase
+{
+    DEVIntegTutorialWebSalesTableStaging     linesStaging;
+    
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processMessage</Name>
+				<Source><![CDATA[
+    void  processMessage(DEVIntegMessageTable  _messageTable, DEVIntegMessageProcessResult _messageProcessResult)
+    {
+        
+        messageTable         =  _messageTable;
+        messageProcessResult =  _messageProcessResult; 
+ 
+        //this is a main message
+        if (! messageTable.ParentMessageId)
+        {
+            this.deleteChildMessages();
+
+            messageProcessResult.parmProcessPrefix("ReadFileToStaging");
+            this.readFileToStaging();
+        }
+        else
+        {
+            select forupdate linesStaging
+                where linesStaging.MessageId == _messageTable.RecId;
+
+            if (! linesStaging.RecId || ! messageTable.IsParsed)  
+            {
+                throw error(strFmt("No data attached to the child record, reprocess the main message %1", messageTable.ParentMessageId));
+                
+            }
+            ttsbegin;
+            messageProcessResult.parmProcessPrefix("ValidateDataFromStaging");
+            this.validateDataFromStaging();
+            ttscommit;
+        
+            messageProcessResult.parmProcessPrefix("CreateDataFromStaging");
+            this.createDataFromStaging();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "Tutorial Import Web Sales orders";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readFileToStaging</Name>
+				<Source><![CDATA[
+    [SuppressBPWarning('BPCheckInsertMethodInLoop', 'insert method should be called')]
+    void readFileToStaging()
+    {
+        JArray  loads = JArray::Parse(messageTable.getDataString());
+        
+        if (! loads)
+        {
+            throw error(strFmt("Message %1 is empty", messageTable.Name));
+        }
+        
+        ttsbegin;
+        
+        JToken load = loads.First;
+                    
+        if (load)
+        {
+            while (load)
+            {
+                DEVIntegJObject result = DEVIntegJObject::Parse(load.ToString());
+                
+                if (result && result.GetValueString('type') == 'inload')
+                {
+                    messageProcessResult.parmProcessPrefix(strFmt("Load %1", result.GetValueString('identifier')));
+
+                    linesStaging                      = null;
+                    linesStaging.CompanyId            = curExt();
+                    linesStaging.Identifier           = result.GetValueString('identifier');
+                    linesStaging.UpdatedBy            = result.GetValueString('updatedBy');
+                    
+                    if (! linesStaging.checkNewerRecordExist(true))
+                    {
+                        CTAPJObject specs = CTAPJObject::Parse(result.GetValueString('specs'));
+                    
+                        if (specs)
+                        {
+                            JToken spec = specs.body.First;
+                            int    i;
+
+                            while (spec)
+                            {
+                                JToken jToken = specs.body.GetValue(spec.Path);
+
+                                if (jToken.Type != JTokenType::Null)
+                                {
+                                    i++;
+
+                                    //linesStaging.(testResult) = specs.GetValueReal(spec.Path);
+                                }
+
+                                spec = spec.Next;
+                            }
+                        }
+                        linesStaging.MessageId  =  this.initChildMessage(true).RecId;
+                        linesStaging.insert();
+
+                        this.deleteErrorStaging();
+
+                        messageProcessResult.incProcessedCount();
+                    }
+                    else
+                    {
+                        messageProcessResult.incSkippedCount();
+                    }
+                }
+
+                load = load.Next;
+            }
+        }
+        
+        ttscommit;
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteErrorStaging</Name>
+				<Source><![CDATA[
+    void deleteErrorStaging()
+    {
+        DEVIntegTutorialWebSalesTableStaging linesStagingError;
+        DEVIntegMessageTable                 messageTableLocal;
+
+        while select forupdate messageTableLocal
+        exists join linesStagingError
+            where linesStagingError.Identifier == linesStaging.Identifier
+               && linesStagingError.UpdatedAt  <=  linesStaging.UpdatedAt
+               && linesStagingError.RecId      != linesStaging.RecId
+               && messageTableLocal.RecId == linesStagingError.MessageId
+        {
+            if (messageTableLocal.isProcessEnabled())
+            {
+                messageTableLocal.delete();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateDataFromStaging</Name>
+				<Source><![CDATA[
+    void validateDataFromStaging()
+    {
+        ttsbegin;
+        boolean              isValidationError;
+
+        if (isValidationError)
+        {
+            throw error("Validation failed");
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDataFromStagingLine</Name>
+				<Source><![CDATA[
+    boolean createDataFromStagingLine(DEVIntegTutorialWebSalesTableStaging _stagingLine)
+    {
+        boolean res = true;
+        ttsbegin;
+        
+        DEVIntegTutorialWebSalesTableStaging stagingLine  = DEVIntegTutorialWebSalesTableStaging::findRecId(_stagingLine.RecId, true);
+        SalesTable                           salesTable;
+        
+        /*
+        select firstonly salesTable;
+            where salesTable.DEVIntegTutorialWebSalesID == stagingLine.Identifier;
+
+        if (! salesTable.RecId)
+        {
+            this.addSalesTable(stagingLine);
+            
+        }
+        else
+        if (salesTable && salesTable.DEVIntegTutorialUpdatedAt < stagingLine.UpdatedAt)
+        {
+            this.deleteSales(contractLoad, stagingLine);
+            this.addSales(stagingLine);
+        }
+        else
+        {
+            res = false;
+            info(strFmt("There is already Sales order %1 with Web ID %2 that has a Updated date %3 more or equal than %4. Line will be skipped.",
+                   salesTable.LoadId, _stagingLine.Identifier, salesTable.CTAPAgrichainUpdatedAt, stagingLine.UpdatedAt));
+        }
+        */
+        ttscommit;
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDataFromStaging</Name>
+				<Source><![CDATA[
+    void createDataFromStaging()
+    {
+        ttsbegin;
+
+        while select linesStaging
+            where  linesStaging.MessageId == messageTable.RecId
+        {
+            if (this.createDataFromStagingLine(linesStaging))
+            {
+                messageProcessResult.incProcessedCount();
+            }
+            else
+            {
+                messageProcessResult.incSkippedCount();
+            }
+        }
+
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addSales</Name>
+				<Source><![CDATA[
+    protected SalesTable addSales(DEVIntegTutorialWebSalesTableStaging _stagingLine)
+    {
+        setPrefix(strFmt("Web sales ID '%1'", _stagingLine.Identifier));
+        SalesTable    salesTable;
+
+        /*
+        if (! _stagingLine.DeliverySiteCode)
+        {
+            throw error("Delivery Site Code is not specified");
+        }
+
+        
+        
+
+        salesTable.CTAPinitFromAgrichain(_stagingLine);
+        
+        salesTable.insert();
+       
+
+        _stagingLine.SalesId = salesTable.SalesId;
+        _stagingLine.update();
+         */
+        return salesTable;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteSales</Name>
+				<Source><![CDATA[
+    protected void deleteSales(SalesTable _salesTable, DEVIntegTutorialWebSalesTableStaging _stagingLine)
+    {
+        /*
+        if (_salesTable.Posted)
+        {
+           
+        }
+        else
+        {
+            this.cancelLoad(_contractLoad);
+            CTMContractLoads    contractLoad = CTMContractLoads::find(_contractLoad.LoadId, true);
+        
+             contractLoad.delete();
+        }
+        */
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setViewStagingButton</Name>
+				<Source><![CDATA[
+    public void setViewStagingButton(FormFunctionButtonControl  _viewStagingButtonControl, DEVIntegMessageTable  _messageTable)
+    {
+        _viewStagingButtonControl.visible(_messageTable.IsParsed);
+        _viewStagingButtonControl.menuItemName(menuItemDisplayStr(DEVIntegTutorialWebSalesTableStaging));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCustomLoadType</Name>
+				<Source><![CDATA[
+    public DEVIntegMessagesLoadBaseType getCustomLoadType()
+    {
+        return new DEVIntegTutorialWebSalesLoad();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getVisibleInboundMessageFields</Name>
+				<Source><![CDATA[
+    public container getVisibleInboundMessageFields()
+    {
+        container c = super();
+
+        c += [fieldNum(DEVIntegMessageTypeInbound, LastLoadDateTime), 
+              fieldNum(DEVIntegMessageTypeInbound, LastLoadOverlapSec),
+              fieldNum(DEVIntegMessageTypeInbound, IsIgnoreFirstMessageProcessOnLoad),
+              fieldNum(DEVIntegMessageTypeInbound, LastLoadOffset),
+              fieldNum(DEVIntegMessageTypeInbound, LastLoadLimit)
+
+            ];
+
+        return c;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
