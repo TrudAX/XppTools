@@ -325,6 +325,45 @@ class DEV
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>dsGetNotVisibleFields</Name>
+				<Source><![CDATA[
+    public static container dsGetNotVisibleFields(FormDataSource _formDataSource)
+    {
+        FormDataObject  fdo;
+        FormObjectSet   fos;
+        DictTable       dictTable = new DictTable(_formDataSource.table());
+        DictField       dictField;
+        int             fieldCount = dictTable.fieldCnt();
+        int             i;
+        container       res;
+        int             j;
+        ;
+    
+        fos = _formDataSource;
+    
+        for (i = 1; i <= fieldCount; i++)
+        {
+            dictField = new DictField(dictTable.id(), dictTable.fieldCnt2Id(i));
+            if (! dictField.isSystem() && dictField.allowEdit())
+            {
+                for (j = 1; j <= dictField.arraySize(); j++)
+                {
+                    fdo = fos.object(fieldId2ext(dictField.id(), j));
+                    if (! fdo.visible())
+                    {
+                        res += fieldId2ext(dictField.id(), j);
+                    }
+                }
+    
+    
+            }
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>dsRefresh</Name>
 				<Source><![CDATA[
     public static void dsRefresh(Common  _record)
