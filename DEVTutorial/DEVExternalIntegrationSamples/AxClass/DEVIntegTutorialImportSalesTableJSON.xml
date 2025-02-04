@@ -92,6 +92,8 @@ class DEVIntegTutorialImportSalesTableJSON extends DEVIntegProcessMessageBase
             salesTableStaging.selectForUpdate(true);
             salesTableStaging.SalesId = salesTable.SalesId;
             salesTableStaging.update();
+
+            this.updateDocumentDescription(salesTable.SalesId);
             info(strFmt("Sales order %1 created", salesTable.SalesId));
             
             ttscommit;
@@ -306,7 +308,21 @@ class DEVIntegTutorialImportSalesTableJSON extends DEVIntegProcessMessageBase
         DEVIntegTutorialSOHeaderLinesContract   tutorialSOHeaderLinesContract;
         
         str serializedJSONstr;
-        serializedJSONstr = messageTable.getDataString();
+        if (messageTable.messageTypeTable().isFileBasedConnection())
+        {
+            System.IO.MemoryStream  fileStream = messageTable.getFileStream();
+            if (! fileStream)
+            {
+                throw error(strFmt("File %1 is empty", messageTable.Name));
+            }
+            System.IO.StreamReader reader = new System.IO.StreamReader(fileStream);
+            serializedJSONstr = reader.ReadToEnd();
+
+        }
+        else
+        {
+            serializedJSONstr = messageTable.getDataString();
+        }
         if (! serializedJSONstr)
         {
             throw error(strFmt("Message %1 is empty", messageTable.Name));

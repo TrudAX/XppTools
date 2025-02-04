@@ -161,55 +161,79 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>GetValueDate</Name>
+				<Name>getValueDate</Name>
 				<Source><![CDATA[
-    public date GetValueDate(str _propertyName)
+    public date getValueDate(str _propertyName, str _formatString = '')
     {
-        try
-        {
-            JToken jToken = this.body.GetValue(_propertyName);
+        TransDate   res;
+        JToken      jToken = this.body.GetValue(_propertyName);
 
-            if (jToken == null)
+        if (jToken != null)
+        {
+            str  sDate = jToken.ToString();
+            if (sDate)
             {
-                return dateNull();
+                if (_formatString)
+                {
+                    boolean         parsingOK;
+                    System.DateTime resValue;
+
+                    parsingOK = System.DateTime::TryParseExact(sDate, _formatString, System.Globalization.CultureInfo::get_InvariantCulture(), System.Globalization.DateTimeStyles::None, byref resValue);
+                    if (! parsingOK)
+                    {
+                        throw error(strFmt("Failed to convert value %1 to a date for %2 JSON property using %3 format",
+                                        sDate, _propertyName, _formatString));
+                    }
+                    res = resValue;
+
+                }
+                else
+                {
+                    res   = System.Convert::ToDateTime(sDate);
+                }
             }
-
-            date res = jToken.Type == JTokenType::Null ? dateNull() : any2Date(jToken.ToString());
-
-            return res;
         }
-        catch
-        {
-            return dateNull();
-        }
+        return res;
+       
     }
 
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>GetValueDateTime</Name>
+				<Name>getValueDateTime</Name>
 				<Source><![CDATA[
-    public TransDateTime GetValueDateTime(str _propertyName)
+    public TransDateTime getValueDateTime(str _propertyName, str _formatString = '')
     {
         TransDateTime res = utcDateTimeNull();
 
-        try
-        {
-            JToken jToken = this.body.GetValue(_propertyName);
+        JToken jToken = this.body.GetValue(_propertyName);
 
-            if (jToken != null)
+        if (jToken != null)
+        {
+            str  sDate = jToken.ToString();
+            if (sDate)
             {
-                str  sDate = jToken.ToString();
-                if (sDate)
+                if (_formatString)
                 {
-                    res   = System.DateTime::Parse(sDate);
+                    boolean         parsingOK;
+                    System.DateTime resValue;
+
+                    parsingOK = System.DateTime::TryParseExact(sDate, _formatString, System.Globalization.CultureInfo::get_InvariantCulture(), System.Globalization.DateTimeStyles::None, byref resValue);
+                    if (! parsingOK)
+                    {
+                        throw error(strFmt("Failed to convert value %1 to a date for %2 JSON property using %3 format", 
+                                        sDate, _propertyName, _formatString));
+                    }
+                    res = resValue;
+
+                }
+                else
+                {
+                    res   = System.Convert::ToDateTime(sDate);
                 }
             }
         }
-        catch
-        {
-            exceptionTextFallThrough();
-        }
+       
         return res;
     }
 

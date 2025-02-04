@@ -3,14 +3,14 @@
 	<Name>DEVIntegAzureStorageConnectionHelper</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.File;
+using Azure.Storage.Files.Shares;
+using Azure.Storage.Files.Shares.Models;
 
 class DEVIntegAzureStorageConnectionHelper
 {
     Common                      messageTypeTableRef;
-    CloudFileShare              share;
-    CloudFileDirectory          rootDir;
+    ShareClient                 share;
+    ShareDirectoryClient        rootDir;
     DEVIntegTmpFiles            fileList;
 
     str                         folderLocation;
@@ -19,6 +19,8 @@ class DEVIntegAzureStorageConnectionHelper
     str                         messageTypeId;
     str                         azureShareReference;
 
+    System.Threading.CancellationToken  tokenNull;
+    System.Object                       objNull;
 }
 ]]></Declaration>
 		<Methods>
@@ -92,18 +94,21 @@ class DEVIntegAzureStorageConnectionHelper
         try
         {
             str                 connectionString  = this.getConnectionString();
-            CloudStorageAccount storageAccount    = CloudStorageAccount::Parse(connectionString);
-            CloudFileClient     fileClient        = storageAccount.CreateCloudFileClient();
 
-            share = fileClient.GetShareReference(azureShareReference);
-            if (! share.Exists(null, null))
+            share = new ShareClient(connectionString, azureShareReference);
+            boolean isExists;
+            isExists = share.Exists(tokenNull);
+            if (! isExists)
             {
-                throw error(strFmt("Share '%1' doesn't exists (Type %2)", azureShareReference, messageTypeId));
+                throw error(strFmt("Share '%1' doesn't exist (Type %2)", azureShareReference, messageTypeId));
             }
-            rootDir = share.GetRootDirectoryReference();
-            if (! rootDir.Exists(null, null))
+
+            // Get a reference to the root directory
+            rootDir = share.GetRootDirectoryClient();
+            isExists = rootDir.Exists(tokenNull);
+            if (! isExists)
             {
-                throw error(strFmt("Root directory '%1' doesn't exists (Type %2)", azureShareReference, messageTypeId));
+                throw error(strFmt("Root directory '%1' doesn't exist (Type %2)", azureShareReference, messageTypeId));
             }
         }
         catch( Exception::CLRError )
@@ -122,18 +127,22 @@ class DEVIntegAzureStorageConnectionHelper
     {
         try
         {
-            CloudFile           fileTo;
-            CloudFileDirectory  fileDirTo = rootDir.GetDirectoryReference(_archDir);
+            ShareDirectoryClient fileDirTo = rootDir.GetSubdirectoryClient(_archDir);      
 
-            if (! fileDirTo.Exists(null, null))
+            if (!fileDirTo.Exists(tokenNull))
             {
-                throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _archDir, messageTypeId));
+                throw error(strFmt("Directory '%1' doesn't exist (Type %2)", _archDir, messageTypeId));
             }
+            ShareFileClient fileTo = fileDirTo.GetFileClient(_fileName);
 
             _fileDataStream.Position = 0;
-            fileTo = fileDirTo.GetFileReference(_fileName);
-            fileTo.Create(_fileDataStream.Length + 1, null, null, null);
-            fileTo.UploadFromStream(_fileDataStream, null, null, null);
+            System.Int64 fileLength = _fileDataStream.Length;
+
+            fileTo.Create(fileLength, objNull, objNull, objNull, objNull,  tokenNull);
+
+            Azure.HttpRange range = new Azure.HttpRange(0, fileLength);
+
+            fileTo.UploadRange(range, _fileDataStream, objNull, tokenNull);
         }
         catch( Exception::CLRError )
         {
@@ -150,21 +159,11 @@ class DEVIntegAzureStorageConnectionHelper
     {
         try
         {
-            CloudFileDirectory fileDir = rootDir.GetDirectoryReference(_fileRef.FolderName);
-            CloudFileDirectory fileDirTo = rootDir.GetDirectoryReference(_archDir);
+            ShareDirectoryClient fileDir = rootDir.GetSubdirectoryClient(_fileRef.FolderName);
 
-            if (! fileDirTo.Exists(null, null))
-            {
-                throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _archDir, messageTypeId));
-            }
+            ShareFileClient sourceFile = fileDir.GetFileClient(_fileRef.FileName);
 
-            CloudFile file = fileDir.GetFileReference(_fileRef.FileName);
-            CloudFile fileTo;
-
-            _fileDataStream.Position = 0;
-
-            FileName  newFileName = _fileRef.FileName;
-
+            FileName newFileName = _fileRef.FileName;
             if (_appendTimeStamp)
             {
                 container entityFileData = Docu::splitFilename(newFileName);
@@ -173,20 +172,18 @@ class DEVIntegAzureStorageConnectionHelper
                 DMFDefaultExtension extension = conPeek(entityFileData, 2);
 
                 System.DateTime dt = System.DateTime::Now;
-    
                 str timeStamp = dt.ToString("yyyy'-'MM'-'dd'T'HHmmss");
 
                 entityName = entityName + '_' + timeStamp;
                 entityName = subStr(entityName, 1, 254);
 
-                newFileName = entityName + (extension ? strFmt('.%1', extension) : '');
+                newFileName = entityName + (extension ? strFmt(".%1", extension) : "");
             }
 
-            fileTo = fileDirTo.GetFileReference(newFileName);
-            fileTo.Create(_fileRef.FileSize, null, null, null);
-            fileTo.UploadFromStream(_fileDataStream, null, null, null);
+            str newPath = strFmt("%1/%2", _archDir, newFileName);
 
-            file.Delete(null, null, null);
+            sourceFile.Rename(newPath, objNull, tokenNull);
+
         }
         catch( Exception::CLRError )
         {
@@ -203,15 +200,18 @@ class DEVIntegAzureStorageConnectionHelper
     {
         System.IO.MemoryStream memoryStream;
 
-        CloudFileDirectory fileDir = rootDir.GetDirectoryReference(_fileRef.FolderName);
+        ShareDirectoryClient fileDir = rootDir.GetSubdirectoryClient(_fileRef.FolderName);
 
-        CloudFile file = fileDir.GetFileReference(_fileRef.FileName);
+        ShareFileClient file = fileDir.GetFileClient(_fileRef.FileName);
 
         // Ensure that the file exists.
-        if (file.Exists(null, null))
+        if (file.Exists(tokenNull))
         {
             memoryStream = new System.IO.MemoryStream();
-            file.DownloadToStream(memoryStream, null, null, null);
+            ShareFileDownloadInfo download = file.Download(objNull, tokenNull);
+            System.IO.Stream  downloadContent = download.Content; 
+
+            downloadContent.CopyTo(memoryStream);
             memoryStream.Position = 0;
         }
         else
@@ -227,11 +227,11 @@ class DEVIntegAzureStorageConnectionHelper
 			<Method>
 				<Name>getExistingDirectory</Name>
 				<Source><![CDATA[
-    CloudFileDirectory  getExistingDirectory(FolderName  _folderName)
+    ShareDirectoryClient  getExistingDirectory(FolderName  _folderName)
     {
-        CloudFileDirectory fileDir = rootDir.GetDirectoryReference(_folderName);
+        ShareDirectoryClient fileDir = rootDir.GetSubdirectoryClient(_folderName);
 
-        if (! fileDir || ! fileDir.Exists(null, null))
+        if (! fileDir || ! fileDir.Exists(tokenNull))
         {
             throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _folderName, messageTypeId));
         }
@@ -247,21 +247,27 @@ class DEVIntegAzureStorageConnectionHelper
     {
         fileList = null;
 
-        CloudFileDirectory fileDir = this.getExistingDirectory(_folderName);
+        ShareDirectoryClient fileDir = this.getExistingDirectory(_folderName);
 
-        var azureItems  = fileDir.ListFilesAndDirectories(null, null);
+        var azureItems  = fileDir.GetFilesAndDirectories(objNull, tokenNull);
         var enum1  = azureItems.GetEnumerator();
         
         while (enum1.MoveNext())
         {
-            CloudFile file = enum1.Current as CloudFile;
-                        
-            if (file != null && file.Exists(null, null))
+            ShareFileItem item = enum1.Current as ShareFileItem;
+
+            // If it's a file (not a directory)
+            if (item != null && !item.IsDirectory)
             {
-                fileList.FileName    = file.Name;
-                fileList.FolderName  = _folderName;
-                fileList.FileSize    = file.Properties.Length;
-                fileList.insert();                
+                ShareFileClient fileClient = fileDir.GetFileClient(item.Name);
+                        
+                if (fileClient.Exists(tokenNull))
+                {
+                    fileList.FileName    = fileClient.Name;
+                    fileList.FolderName  = _folderName;
+                    fileList.FileSize    = item.FileSize;// file.Properties.Length;
+                    fileList.insert();
+                }
             }
         }
         return fileList;
@@ -382,7 +388,8 @@ class DEVIntegAzureStorageConnectionHelper
     }
 
 ]]></Source>
-			</Method>			<Method>
+			</Method>
+			<Method>
 				<Name>getAzureEnvHostedServiceName</Name>
 				<Source><![CDATA[
     public static DEVIntegAzureEnvHostedServiceName getAzureEnvHostedServiceName()

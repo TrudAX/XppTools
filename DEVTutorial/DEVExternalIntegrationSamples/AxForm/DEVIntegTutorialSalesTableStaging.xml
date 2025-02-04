@@ -40,6 +40,46 @@ public class DEVIntegTutorialSalesTableStaging extends FormRun
 		</DataSources>
 		<DataControls xmlns="">
 			<Control>
+				<Name>LogButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            super();
+            if (DEVIntegMessageTable.hasLog())
+            {
+                infolog.import(DEVIntegMessageTable.getErrorLog().InfologData);
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DownloadButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            Filename fileName = DEVIntegMessageTable.Name;
+            if (fileName)
+            {                
+                File::SendFileToUser(DEVIntegMessageTable.getFileStream(), DEVIntegMessageTable.getFileNameForDownload());
+            }
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
 				<Name>OpenJournalButton</Name>
 				<Type>Button</Type>
 				<Methods>
@@ -317,6 +357,28 @@ public class DEVIntegTutorialSalesTableStaging extends FormRun
 						<Controls>
 							<AxFormControl xmlns=""
 								i:type="AxFormButtonControl">
+								<Name>LogButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1610612734</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>View log</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>DownloadButton</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Download file</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
 								<Name>OpenJournalButton</Name>
 								<AutoDeclaration>Yes</AutoDeclaration>
 								<Type>Button</Type>
@@ -435,6 +497,15 @@ public class DEVIntegTutorialSalesTableStaging extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>ProcessingEndDateTime</DataField>
+										<DataSource>DEVIntegMessageTable</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormInt64Control">
+										<Name>DEVIntegMessageTable_RecId</Name>
+										<Type>Int64</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>RecId</DataField>
 										<DataSource>DEVIntegMessageTable</DataSource>
 									</AxFormControl>
 								</Controls>
