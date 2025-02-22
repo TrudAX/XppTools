@@ -399,11 +399,60 @@ public class DEVIntegTutorialWebSalesTableStaging extends FormRun
 			<DataSourceLinks />
 			<DerivedDataSources />
 		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>DEVIntegTutorialWebSalesLineStaging</Name>
+			<Table>DEVIntegTutorialWebSalesLineStaging</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CreatedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemBarCode</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ItemId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MessageId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesPrice</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>SalesQty</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>DEVIntegMessageTable</JoinSource>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
 	</DataSources>
 	<Design>
 		<Caption xmlns="">Web sales tutorial lines</Caption>
 		<DataSource xmlns="">DEVIntegTutorialWebSalesTableStaging</DataSource>
-		<Pattern xmlns="">Task</Pattern>
+		<Pattern xmlns="">TaskParentChild</Pattern>
 		<PatternVersion xmlns="">1.2</PatternVersion>
 		<SetCompany xmlns="">No</SetCompany>
 		<Controls xmlns="">
@@ -556,6 +605,15 @@ public class DEVIntegTutorialWebSalesTableStaging extends FormRun
 										<Controls>
 											<AxFormControl xmlns=""
 												i:type="AxFormStringControl">
+												<Name>OverviewLines_CompanyId</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CompanyId</DataField>
+												<DataSource>DEVIntegTutorialWebSalesTableStaging</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
 												<Name>OverviewLines_Identifier</Name>
 												<Type>String</Type>
 												<FormControlExtension
@@ -574,11 +632,38 @@ public class DEVIntegTutorialWebSalesTableStaging extends FormRun
 											</AxFormControl>
 											<AxFormControl xmlns=""
 												i:type="AxFormStringControl">
-												<Name>OverviewLines_UpdatedBy</Name>
+												<Name>OverviewLines_ExternalNumber</Name>
 												<Type>String</Type>
 												<FormControlExtension
 													i:nil="true" />
-												<DataField>UpdatedBy</DataField>
+												<DataField>ExternalNumber</DataField>
+												<DataSource>DEVIntegTutorialWebSalesTableStaging</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>OverviewLines_ExternalAccount</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ExternalAccount</DataField>
+												<DataSource>DEVIntegTutorialWebSalesTableStaging</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>OverviewLines_CustAccount</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CustAccount</DataField>
+												<DataSource>DEVIntegTutorialWebSalesTableStaging</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>OverviewLines_SalesId</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>SalesId</DataField>
 												<DataSource>DEVIntegTutorialWebSalesTableStaging</DataSource>
 											</AxFormControl>
 										</Controls>
@@ -733,6 +818,94 @@ public class DEVIntegTutorialWebSalesTableStaging extends FormRun
 					</AxFormControl>
 				</Controls>
 				<DataSource>DEVIntegTutorialWebSalesTableStaging</DataSource>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>SplitterGroup</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<Style>SplitterHorizontalContainer</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>ChildTabControl</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>ChildOverviewTabPageControl</Name>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>LinesGridControlCopy1</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>DataLine</Name>
+										<Type>Group</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Data_ItemBarCode</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ItemBarCode</DataField>
+												<DataSource>DEVIntegTutorialWebSalesLineStaging</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Data_ItemId</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>ItemId</DataField>
+												<DataSource>DEVIntegTutorialWebSalesLineStaging</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormRealControl">
+												<Name>Data_SalesQty</Name>
+												<Type>Real</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>SalesQty</DataField>
+												<DataSource>DEVIntegTutorialWebSalesLineStaging</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormRealControl">
+												<Name>Data_SalesPrice</Name>
+												<Type>Real</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>SalesPrice</DataField>
+												<DataSource>DEVIntegTutorialWebSalesLineStaging</DataSource>
+											</AxFormControl>
+										</Controls>
+										<DataGroup>Data</DataGroup>
+										<DataSource>DEVIntegTutorialWebSalesLineStaging</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>DEVIntegTutorialWebSalesLineStaging</DataSource>
+							</AxFormControl>
+						</Controls>
+						<Caption>Lines</Caption>
+						<DataSource>DEVIntegTutorialWebSalesLineStaging</DataSource>
+					</AxFormControl>
+				</Controls>
 			</AxFormControl>
 		</Controls>
 	</Design>

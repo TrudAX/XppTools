@@ -10,12 +10,8 @@ using Newtonsoft.Json.Linq;
 
 public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
 {
-    public str              requestUrl;
-    public CTMContractId    contractId;
-
+    public str                              requestUrl;
     DEVIntegExternalServiceHttpClient       externalServiceHttpClient;
-
-
 
 }
 ]]></Declaration>
@@ -26,7 +22,6 @@ public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
     void testConnection()
     {
         this.initConnection();
-
         info(strFmt("Connection %1 is OK", messageTypeTable.MessageTypeId));
     }
 
@@ -39,7 +34,7 @@ public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
     {
         DEVIntegConnectionType connectionType = DEVIntegConnectionType::find(messageTypeTable.ConnectionTypeId);
         
-        str requestUrlGetLoads   = strFmt('%1/contracts/inloads/?movement_statuses=void,completed&%2', connectionType.getWebHostNoSlash(), _timeStampValue);
+        str requestUrlGetLoads   = strFmt('%1/api/PurchaseOrder?%2', connectionType.getWebHostNoSlash(), _timeStampValue);
 
         str body = externalServiceHttpClient.invokeOperationSimple(requestUrlGetLoads, HttpMethod::Get, "");
 
@@ -55,7 +50,7 @@ public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
     {
         TransDateTime   curLoadTime = DateTimeUtil::utcNow();
         System.DateTime lastLoadTime = messageTypeTable.lastLoadGetTime();
-        str             fromStrLastDate = lastLoadTime.ToString('yyyyMMddHHmmss');
+        str             fromStrLastDate = lastLoadTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
         str             fromStr;
         int             recordCount;
 
@@ -71,11 +66,11 @@ public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
             //we are in the paging mode
             if (messageTypeTable.LastLoadLimit)
             {
-                fromStr = strFmt('from=%1&offset=%2&limit=%3', fromStrLastDate, int2Str(messageTypeTable.LastLoadOffset), int2Str(messageTypeTable.LastLoadLimit));
+                fromStr = strFmt('updatedAt=%1&offset=%2&limit=%3', fromStrLastDate, int2Str(messageTypeTable.LastLoadOffset), int2Str(messageTypeTable.LastLoadLimit));
             }
             else
             {
-                fromStr = strFmt('from=%1', fromStrLastDate);
+                fromStr = strFmt('updatedAt=%1', fromStrLastDate);
             }
             lastLoadCallLog.MessageTypeId = messageTypeTable.MessageTypeId;
             lastLoadCallLog.CallText = fromStr;
@@ -102,7 +97,8 @@ public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
             else
             {
                 DEVIntegMessageCreator messageCreator = DEVIntegMessageCreator::construct();
-                messageCreator.initFromStringData(strFmt('%1.txt', fromStr), 'inloads', dataStr);
+                str fileNameToSave = strFmt('%1.txt', strReplace(fromStr, ':', ''));
+                messageCreator.initFromStringData(fileNameToSave, 'websales', dataStr);
 
 
                 if (messageTypeTable.IsIgnoreFirstMessageProcessOnLoad)
@@ -147,7 +143,7 @@ public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
 
             currentLoop++;
 
-            if (messageTypeTable.LastLoadLimit && ! isLastLoop)
+            if (messageTypeTable.LastLoadLimit && !isLastLoop)
             {
                 //check wrong loop
                 if (! messageTypeTable.ReadLimitMessages) //put to 100 to avoid infinity loop
@@ -206,9 +202,12 @@ public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
 				<Source><![CDATA[
     public str getHttpToken()
     {
+        str              tokenValue;
+        //that is the example of the token request
+        /*
         DEVIntegConnectionType connectionType = DEVIntegConnectionType::find(messageTypeTableOutbound.RecId ? messageTypeTableOutbound.ConnectionTypeId : messageTypeTable.ConnectionTypeId);
         str              authUrl;
-        str              tokenValue;
+        
         str              userName;
         str              userPassword;
         str              json;
@@ -231,7 +230,7 @@ public class DEVIntegTutorialWebSalesLoad extends DEVIntegMessagesLoadBaseType
             throw error(strFmt("Failed to update a token from %1. Error: %2", authUrl, body));
         }
         externalServiceHttpClient.requestHeaderAdd('Authorization', strFmt('Token %1', tokenValue));
-        
+        */
         return tokenValue;
     }
 

@@ -372,11 +372,28 @@ class DEVIntegTutorialImportLedgerJournal extends DEVIntegProcessMessageBase
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>getVisibleInboundMessageFields</Name>
+				<Source><![CDATA[
+    public container getVisibleInboundMessageFields()
+    {
+        container c = super();
+
+        c += [fieldNum(DEVIntegMessageTypeInbound, LedgerJournalNameId),
+              fieldNum(DEVIntegMessageTypeInbound, IsAutoPostJournal),
+              fieldNum(DEVIntegMessageTypeInbound, IsGroupByDescription)
+            ];
+
+        return c;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>getDescription</Name>
 				<Source><![CDATA[
     public str getDescription()
     {
-        return "Ledger journal sample";
+        return "Ledger journal import CSV sample";
     }
 
 ]]></Source>

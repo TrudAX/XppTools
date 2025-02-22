@@ -26,6 +26,20 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>ParseToken</Name>
+				<Source><![CDATA[
+    public static DEVIntegJObject ParseToken(JToken _body)
+    {
+        DEVIntegJObject jo = new DEVIntegJObject();
+        
+        jo.body = _body;
+        
+        return jo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>construct</Name>
 				<Source><![CDATA[
     public static DEVIntegJObject construct()
@@ -165,31 +179,40 @@ class DEVIntegJObject
 				<Source><![CDATA[
     public date getValueDate(str _propertyName, str _formatString = '')
     {
-        TransDate   res;
+        TransDate           res;
+        System.DateTime     resValue;
+
         JToken      jToken = this.body.GetValue(_propertyName);
 
         if (jToken != null)
         {
-            str  sDate = jToken.ToString();
-            if (sDate)
+            if (jToken.Type == Newtonsoft.Json.Linq.JTokenType::Date)
             {
-                if (_formatString)
+                resValue = jToken;
+                res = resValue;
+            }
+            else
+            {
+                str  sDate = jToken.ToString();
+                if (sDate)
                 {
-                    boolean         parsingOK;
-                    System.DateTime resValue;
-
-                    parsingOK = System.DateTime::TryParseExact(sDate, _formatString, System.Globalization.CultureInfo::get_InvariantCulture(), System.Globalization.DateTimeStyles::None, byref resValue);
-                    if (! parsingOK)
+                    if (_formatString)
                     {
-                        throw error(strFmt("Failed to convert value %1 to a date for %2 JSON property using %3 format",
-                                        sDate, _propertyName, _formatString));
-                    }
-                    res = resValue;
+                        boolean         parsingOK;
 
-                }
-                else
-                {
-                    res   = System.Convert::ToDateTime(sDate);
+                        parsingOK = System.DateTime::TryParseExact(sDate, _formatString, System.Globalization.CultureInfo::get_InvariantCulture(), System.Globalization.DateTimeStyles::None, byref resValue);
+                        if (! parsingOK)
+                        {
+                            throw error(strFmt("Failed to convert value %1 to a date for %2 JSON property using %3 format",
+                                        sDate, _propertyName, _formatString));
+                        }
+                        res = resValue;
+
+                    }
+                    else
+                    {
+                        res   = System.Convert::ToDateTime(sDate);
+                    }
                 }
             }
         }
@@ -204,32 +227,41 @@ class DEVIntegJObject
 				<Source><![CDATA[
     public TransDateTime getValueDateTime(str _propertyName, str _formatString = '')
     {
-        TransDateTime res = utcDateTimeNull();
+        TransDateTime   res = utcDateTimeNull();
+        System.DateTime resValue;
 
         JToken jToken = this.body.GetValue(_propertyName);
 
         if (jToken != null)
         {
-            str  sDate = jToken.ToString();
-            if (sDate)
+            //need to check should we always use string
+            if (jToken.Type == Newtonsoft.Json.Linq.JTokenType::Date)
             {
-                if (_formatString)
+                resValue = jToken;
+                res = resValue;
+            }
+            else
+            {
+                str  sDate = jToken.ToString();
+                if (sDate)
                 {
-                    boolean         parsingOK;
-                    System.DateTime resValue;
-
-                    parsingOK = System.DateTime::TryParseExact(sDate, _formatString, System.Globalization.CultureInfo::get_InvariantCulture(), System.Globalization.DateTimeStyles::None, byref resValue);
-                    if (! parsingOK)
+                    if (_formatString)
                     {
-                        throw error(strFmt("Failed to convert value %1 to a date for %2 JSON property using %3 format", 
-                                        sDate, _propertyName, _formatString));
-                    }
-                    res = resValue;
+                        boolean         parsingOK;
 
-                }
-                else
-                {
-                    res   = System.Convert::ToDateTime(sDate);
+                        parsingOK = System.DateTime::TryParseExact(sDate, _formatString, System.Globalization.CultureInfo::get_InvariantCulture(), System.Globalization.DateTimeStyles::None, byref resValue);
+                        if (! parsingOK)
+                        {
+                            throw error(strFmt("Failed to convert value %1 to a date for %2 JSON property using %3 format",
+                                        sDate, _propertyName, _formatString));
+                        }
+                        res = resValue;
+
+                    }
+                    else
+                    {
+                        res   = System.Convert::ToDateTime(sDate);
+                    }
                 }
             }
         }
@@ -249,11 +281,11 @@ class DEVIntegJObject
 
             JArray  items = null;
 
-            var arrValue = this.GetValueString(_propertyName);
+            var arrValue = this.body.GetValue(_propertyName);
 
             if (arrValue)
             {
-                items = JArray::Parse(arrValue);
+                items = arrValue;//JArray::Parse(arrValue);
             }
 
             return items;

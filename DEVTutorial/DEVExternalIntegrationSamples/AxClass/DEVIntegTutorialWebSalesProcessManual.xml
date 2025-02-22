@@ -89,7 +89,7 @@ public class DEVIntegTutorialWebSalesProcessManual  extends RunBaseBatch
             integMessagesLoad.parmRunProcessAfterLoad(NoYes::Yes);
             integMessagesLoad.parmIsProcessOnlyNewRecords(true);
         }
-        integMessagesLoad.run();
+        integMessagesLoad.runOperation();
     }
 
 ]]></Source>

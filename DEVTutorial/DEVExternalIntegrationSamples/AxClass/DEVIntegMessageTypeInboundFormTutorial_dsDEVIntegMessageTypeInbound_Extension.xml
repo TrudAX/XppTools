@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessageTypeInboundFormTutorial_dsDEVIntegMessageTypeInbound_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(formdatasourcestr(DEVIntegMessageTypeInbound, DEVIntegMessageTypeInbound))]
+final class DEVIntegMessageTypeInboundFormTutorial_dsDEVIntegMessageTypeInbound_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        FormObjectSet formDS = this.formRun().dataSource();
+        formDS.object(fieldNum(DEVIntegMessageTypeInbound, LedgerJournalNameId)).visible(false);
+        formDS.object(fieldNum(DEVIntegMessageTypeInbound, IsAutoPostJournal)).visible(false);
+        formDS.object(fieldNum(DEVIntegMessageTypeInbound, IsGroupByDescription)).visible(false);
+
+
+        next init();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

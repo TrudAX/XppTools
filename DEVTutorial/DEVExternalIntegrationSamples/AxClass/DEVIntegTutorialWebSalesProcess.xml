@@ -3,11 +3,38 @@
 	<Name>DEVIntegTutorialWebSalesProcess</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
+/*
+[
+  {
+    "id": 79,
+    "purchId": "PO-001",
+    "orderAccount": "ACCT-001",
+    "updatedAt": "2025-02-17T03:10:46.7581442",
+    "lines": [
+      {
+        "id": 142,
+        "purchId": "PO-001",
+        "itemId": "M0001",
+        "quantity": 16,
+        "lineAmount": 100
+      },
+      {
+        "id": 143,
+        "purchId": "PO-001",
+        "itemId": "M0004",
+        "quantity": 5,
+        "lineAmount": 75
+      }
+    ]
+  },
+*/
+
+
 using Newtonsoft.Json.Linq;
 public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBase
 {
-    DEVIntegTutorialWebSalesTableStaging     linesStaging;
-    
+    DEVIntegTutorialWebSalesTableStaging      salesTableStaging;
+    DEVIntegTutorialWebSalesLineStaging       salesLineStaging;
 
 }
 ]]></Declaration>
@@ -31,10 +58,10 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
         }
         else
         {
-            select forupdate linesStaging
-                where linesStaging.MessageId == _messageTable.RecId;
+            select forupdate salesTableStaging
+                where salesTableStaging.MessageId == _messageTable.RecId;
 
-            if (! linesStaging.RecId || ! messageTable.IsParsed)  
+            if (! salesTableStaging.RecId || ! messageTable.IsParsed)
             {
                 throw error(strFmt("No data attached to the child record, reprocess the main message %1", messageTable.ParentMessageId));
                 
@@ -47,16 +74,6 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
             messageProcessResult.parmProcessPrefix("CreateDataFromStaging");
             this.createDataFromStaging();
         }
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>getDescription</Name>
-				<Source><![CDATA[
-    public str getDescription()
-    {
-        return "Tutorial Import Web Sales orders";
     }
 
 ]]></Source>
@@ -78,63 +95,62 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
         
         JToken load = loads.First;
                     
-        if (load)
+        while (load)
         {
-            while (load)
-            {
-                DEVIntegJObject result = DEVIntegJObject::Parse(load.ToString());
+            DEVIntegJObject result = DEVIntegJObject::Parse(load.ToString());
                 
-                if (result && result.GetValueString('type') == 'inload')
+            if (result )
+            {
+                messageProcessResult.parmProcessPrefix(strFmt("Web order %1", result.GetValueString('id')));
+
+                salesTableStaging               = null;
+                salesTableStaging.MessageId     =  this.initChildMessage(true).RecId;
+                salesTableStaging.CompanyId     = curExt();
+                salesTableStaging.Identifier    = result.GetValueString('id');
+                salesTableStaging.UpdatedAt     = result.getValueDateTime('updatedAt', 'YYYY-MM-DDThh:mm:ss.fffffff');
+                salesTableStaging.ExternalAccount = result.GetValueString('orderAccount');
+                salesTableStaging.ExternalNumber  = result.GetValueString('purchId');
+
+                if (! salesTableStaging.checkNewerRecordExist(true))
                 {
-                    messageProcessResult.parmProcessPrefix(strFmt("Load %1", result.GetValueString('identifier')));
+                    JArray specs = result.GetValueArray('lines');
 
-                    linesStaging                      = null;
-                    linesStaging.CompanyId            = curExt();
-                    linesStaging.Identifier           = result.GetValueString('identifier');
-                    linesStaging.UpdatedBy            = result.GetValueString('updatedBy');
-                    
-                    if (! linesStaging.checkNewerRecordExist(true))
+                    if (specs)
                     {
-                        CTAPJObject specs = CTAPJObject::Parse(result.GetValueString('specs'));
-                    
-                        if (specs)
+                        JToken line = specs.First;
+
+                        while (line)
                         {
-                            JToken spec = specs.body.First;
-                            int    i;
+                            DEVIntegJObject lineJSON = DEVIntegJObject::ParseToken(line);
 
-                            while (spec)
-                            {
-                                JToken jToken = specs.body.GetValue(spec.Path);
+                            salesLineStaging             = null;
+                            salesLineStaging.MessageId   = salesTableStaging.MessageId;
+                            salesLineStaging.ItemBarCode = lineJSON.GetValueString('itemId');
+                            salesLineStaging.SalesQty    = lineJSON.GetValueReal('quantity');
+                            salesLineStaging.SalesPrice  = lineJSON.GetValueReal('lineAmount');
 
-                                if (jToken.Type != JTokenType::Null)
-                                {
-                                    i++;
+                            DEV::validateWriteRecordCheck(salesLineStaging);
+                            salesLineStaging.insert();
 
-                                    //linesStaging.(testResult) = specs.GetValueReal(spec.Path);
-                                }
-
-                                spec = spec.Next;
-                            }
-                        }
-                        linesStaging.MessageId  =  this.initChildMessage(true).RecId;
-                        linesStaging.insert();
-
-                        this.deleteErrorStaging();
-
-                        messageProcessResult.incProcessedCount();
+                            line = line.Next;
+                        }  
                     }
-                    else
-                    {
-                        messageProcessResult.incSkippedCount();
-                    }
+                    DEV::validateWriteRecordCheck(salesTableStaging);
+                    salesTableStaging.insert();
+
+                    this.deleteErrorStaging();
+
+                    messageProcessResult.incProcessedCount();
                 }
-
-                load = load.Next;
+                else
+                {
+                    messageProcessResult.incSkippedCount();
+                }
             }
+
+            load = load.Next;
         }
-        
         ttscommit;
-        
     }
 
 ]]></Source>
@@ -142,6 +158,7 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
 			<Method>
 				<Name>deleteErrorStaging</Name>
 				<Source><![CDATA[
+    //remove the existing error messages for the same order
     void deleteErrorStaging()
     {
         DEVIntegTutorialWebSalesTableStaging linesStagingError;
@@ -149,9 +166,9 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
 
         while select forupdate messageTableLocal
         exists join linesStagingError
-            where linesStagingError.Identifier == linesStaging.Identifier
-               && linesStagingError.UpdatedAt  <=  linesStaging.UpdatedAt
-               && linesStagingError.RecId      != linesStaging.RecId
+            where linesStagingError.Identifier == salesTableStaging.Identifier
+               && linesStagingError.UpdatedAt  <=  salesTableStaging.UpdatedAt
+               && linesStagingError.RecId      != salesTableStaging.RecId
                && messageTableLocal.RecId == linesStagingError.MessageId
         {
             if (messageTableLocal.isProcessEnabled())
@@ -168,54 +185,50 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
 				<Source><![CDATA[
     void validateDataFromStaging()
     {
-        ttsbegin;
-        boolean              isValidationError;
 
-        if (isValidationError)
+        boolean  isValidLine;
+        int      numLines;
+        ;
+        messageProcessResult.clearValues();
+
+        salesTableStaging.CustAccount = DEVIntegMappingTable::getOurCodeByExtCode(DEVIntegMappingType::TutorialCustCodes, 
+                                        salesTableStaging.ExternalAccount);
+
+        if (! CustTable::exist(salesTableStaging.CustAccount))
         {
-            throw error("Validation failed");
+            checkFailed(strFmt("Customer %1 doesn't exist", salesTableStaging.CustAccount));
+            messageProcessResult.incErrorCount();
         }
-        ttscommit;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>createDataFromStagingLine</Name>
-				<Source><![CDATA[
-    boolean createDataFromStagingLine(DEVIntegTutorialWebSalesTableStaging _stagingLine)
-    {
-        boolean res = true;
-        ttsbegin;
-        
-        DEVIntegTutorialWebSalesTableStaging stagingLine  = DEVIntegTutorialWebSalesTableStaging::findRecId(_stagingLine.RecId, true);
-        SalesTable                           salesTable;
-        
-        /*
-        select firstonly salesTable;
-            where salesTable.DEVIntegTutorialWebSalesID == stagingLine.Identifier;
-
-        if (! salesTable.RecId)
+        while select salesLineStaging
+            order by RecId
+            where salesLineStaging.MessageId ==  salesTableStaging.MessageId
         {
-            this.addSalesTable(stagingLine);
+            isValidLine = true;
+            numLines++;
+
+            if (! InventItemBarcode::findInputBarcode(salesLineStaging.ItemBarCode) &&
+                 ! InventTable::exist(salesLineStaging.ItemBarCode) )
+            {
+                
+                isValidLine = checkFailed(strFmt("Line %1. Barcode %2 doesn't exist", numLines,
+                                                                                   salesLineStaging.ItemBarCode));
+            }
             
+            if (! isValidLine)
+            {
+                messageProcessResult.incErrorCount();
+            }
+            else
+            {
+                messageProcessResult.incProcessedCount();
+            }
         }
-        else
-        if (salesTable && salesTable.DEVIntegTutorialUpdatedAt < stagingLine.UpdatedAt)
+        if (messageProcessResult.hasErrors())
         {
-            this.deleteSales(contractLoad, stagingLine);
-            this.addSales(stagingLine);
+            throw error(strFmt("Message %1 has %2 validation errors", messageTable.Name, messageProcessResult.getErrorCount()));
         }
-        else
-        {
-            res = false;
-            info(strFmt("There is already Sales order %1 with Web ID %2 that has a Updated date %3 more or equal than %4. Line will be skipped.",
-                   salesTable.LoadId, _stagingLine.Identifier, salesTable.CTAPAgrichainUpdatedAt, stagingLine.UpdatedAt));
-        }
-        */
-        ttscommit;
-
-        return res;
+        salesTableStaging.selectForUpdate(true);
+        salesTableStaging.update();
     }
 
 ]]></Source>
@@ -226,20 +239,44 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
     void createDataFromStaging()
     {
         ttsbegin;
+        
+        SalesTable                              salesTable;
+        DEVIntegTutorialWebSalesTableStaging    salesTableStagingPrev;
+        
+    
+        //do we have the same order
+        select firstonly forupdate salesTable
+            where salesTable.CustAccount   == salesTableStaging.CustAccount &&
+                  salesTable.CustomerRef   == salesTableStaging.Identifier;
 
-        while select linesStaging
-            where  linesStaging.MessageId == messageTable.RecId
+        if (! salesTable.RecId)
         {
-            if (this.createDataFromStagingLine(linesStaging))
+            this.addSales();
+            messageProcessResult.incProcessedCount();
+        }
+        else
+        {
+            //checking the updatedAt for the current order. Better to add this field into salesTable
+            select firstonly salesTableStagingPrev
+                order by UpdatedAt desc
+                where salesTableStagingPrev.SalesId == salesTable.SalesId;
+            if (salesTableStagingPrev && salesTableStagingPrev.UpdatedAt < salesTableStaging.UpdatedAt)
             {
+                //In the current import we have more newer data, so need to delete/reverse the old one and create the new one
+                DEV::validateDeleteRecordCheck(salesTable);
+                salesTable.delete();
+
+                this.addSales();
                 messageProcessResult.incProcessedCount();
             }
             else
             {
                 messageProcessResult.incSkippedCount();
+                info(strFmt("There is already Sales order %1 with Web ID %2 that has a Updated date %3 more or equal than %4. Line will be skipped.",
+                       salesTable.SalesId, salesTable.CustomerRef, salesTableStagingPrev.UpdatedAt, salesTableStaging.UpdatedAt));
             }
         }
-
+    
         ttscommit;
 
     }
@@ -249,51 +286,80 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
 			<Method>
 				<Name>addSales</Name>
 				<Source><![CDATA[
-    protected SalesTable addSales(DEVIntegTutorialWebSalesTableStaging _stagingLine)
+    protected SalesTable addSales()
     {
-        setPrefix(strFmt("Web sales ID '%1'", _stagingLine.Identifier));
-        SalesTable    salesTable;
+        setPrefix(strFmt("Web sales ID '%1'", salesTableStaging.Identifier));
+        SalesTable                      salesTable;
+        SalesLine                       salesLine;
 
-        /*
-        if (! _stagingLine.DeliverySiteCode)
+        int                     numLines;
+
+        ttsbegin;
+
+        while select salesLineStaging
+            order by RecId
+            where salesLineStaging.MessageId ==  salesTableStaging.MessageId
         {
-            throw error("Delivery Site Code is not specified");
+            numLines++;
+            if (!salesTable.RecId)
+            {
+                salesTable.initValue(SalesType::Sales);
+                salesTable.SalesId              = NumberSeq::newGetNum(SalesParameters::numRefSalesId()).num();
+                salesTable.CustAccount          = salesTableStaging.CustAccount;
+                salesTable.CustomerRef          = salesTableStaging.Identifier;
+                salesTable.PurchOrderFormNum    = salesTableStaging.ExternalNumber;
+                salesTable.initFromCustTable();
+
+                DEV::validateWriteRecordCheck(salesTable);
+                salesTable.insert();
+
+            }
+            InventItemBarcode  inventItemBarcode = InventItemBarcode::findInputBarcode(salesLineStaging.ItemBarCode);
+            if (inventItemBarcode.RecId) //just for testing
+            {
+                salesLineStaging.ItemId = inventItemBarcode.ItemId;
+            }
+            else
+            {
+                salesLineStaging.ItemId = salesLineStaging.ItemBarCode;
+            }
+            salesLineStaging.selectForUpdate(true);
+            salesLineStaging.update();
+
+            salesLine.clear();
+            salesLine.initValue();
+            salesLine.ItemId = salesLineStaging.ItemId;
+            salesLine.initFromSalesTable(salesTable);
+            salesLine.initFromInventTable(InventTable::find(salesLine.ItemId));
+            salesLine.SalesQty              = salesLineStaging.SalesQty;
+            salesLine.QtyOrdered            = SalesLine.calcQtyOrdered();
+            salesLine.SalesDeliverNow       = salesLine.SalesQty;
+            salesLine.setInventDeliverNow();
+            salesLine.RemainSalesPhysical   = salesLine.SalesQty;
+            salesLine.RemainInventPhysical  = salesLine.QtyOrdered;
+            salesLine.SalesPrice            = salesLineStaging.SalesPrice;
+            salesLine.LineAmount            = salesLine.calcLineAmount(salesLine.SalesQty);
+            //SalesLine.Name              = strfmt("%1 %2", SalesLine.Name, _name);
+
+            if (!salesLine.lineNum)
+            {
+                salesLine.lineNum = numLines;
+            }
+            DEV::validateWriteRecordCheck(salesLine);
+
+            salesLine.createLine(true,false,false,true);
+
         }
 
-        
-        
+        salesTableStaging.selectForUpdate(true);
+        salesTableStaging.SalesId = salesTable.SalesId;
+        salesTableStaging.update();
 
-        salesTable.CTAPinitFromAgrichain(_stagingLine);
-        
-        salesTable.insert();
-       
+        this.updateDocumentDescription(salesTable.SalesId);
+        ttscommit;
+        info(strFmt("Sales order %1 created", salesTable.SalesId));
 
-        _stagingLine.SalesId = salesTable.SalesId;
-        _stagingLine.update();
-         */
         return salesTable;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>deleteSales</Name>
-				<Source><![CDATA[
-    protected void deleteSales(SalesTable _salesTable, DEVIntegTutorialWebSalesTableStaging _stagingLine)
-    {
-        /*
-        if (_salesTable.Posted)
-        {
-           
-        }
-        else
-        {
-            this.cancelLoad(_contractLoad);
-            CTMContractLoads    contractLoad = CTMContractLoads::find(_contractLoad.LoadId, true);
-        
-             contractLoad.delete();
-        }
-        */
     }
 
 ]]></Source>
@@ -328,13 +394,24 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
 
         c += [fieldNum(DEVIntegMessageTypeInbound, LastLoadDateTime), 
               fieldNum(DEVIntegMessageTypeInbound, LastLoadOverlapSec),
-              fieldNum(DEVIntegMessageTypeInbound, IsIgnoreFirstMessageProcessOnLoad),
-              fieldNum(DEVIntegMessageTypeInbound, LastLoadOffset),
-              fieldNum(DEVIntegMessageTypeInbound, LastLoadLimit)
+              fieldNum(DEVIntegMessageTypeInbound, IsIgnoreFirstMessageProcessOnLoad)
+            //use the following fields if you want to implement pagination
+            // , fieldNum(DEVIntegMessageTypeInbound, LastLoadOffset),
+            //  fieldNum(DEVIntegMessageTypeInbound, LastLoadLimit)
 
             ];
 
         return c;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "Tutorial Import Web Sales orders";
     }
 
 ]]></Source>

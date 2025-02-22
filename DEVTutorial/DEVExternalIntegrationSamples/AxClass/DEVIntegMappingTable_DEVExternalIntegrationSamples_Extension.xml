@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMappingTable_DEVExternalIntegrationSamples_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(tableStr(DEVIntegMappingTable))]
+final class DEVIntegMappingTable_DEVExternalIntegrationSamples_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>mappingType2Parameters</Name>
+				<Source><![CDATA[
+    public static container mappingType2Parameters(DEVIntegMappingType _type)
+    {
+        container               ret = next mappingType2Parameters(_type);
+        DEVIntegMappingTable    parameters;
+
+        switch (_type)
+        {
+            case DEVIntegMappingType::TutorialCustCodes:
+                parameters.Description       = 'Tutorial customers';
+                parameters.RequireOurMapping = NoYes::No;
+                parameters.RequireExtMapping = NoYes::No;
+                parameters.Direction         = DEVIntegMappingDirection::Import;
+
+                ret = parameters.packDefaultParameters(tableNum(CustTable));
+                break;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
