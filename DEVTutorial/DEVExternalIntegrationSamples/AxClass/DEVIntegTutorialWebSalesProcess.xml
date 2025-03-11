@@ -396,8 +396,8 @@ public class DEVIntegTutorialWebSalesProcess   extends DEVIntegProcessMessageBas
               fieldNum(DEVIntegMessageTypeInbound, LastLoadOverlapSec),
               fieldNum(DEVIntegMessageTypeInbound, IsIgnoreFirstMessageProcessOnLoad)
             //use the following fields if you want to implement pagination
-            // , fieldNum(DEVIntegMessageTypeInbound, LastLoadOffset),
-            //  fieldNum(DEVIntegMessageTypeInbound, LastLoadLimit)
+             , fieldNum(DEVIntegMessageTypeInbound, LastLoadOffset),
+              fieldNum(DEVIntegMessageTypeInbound, LastLoadLimit)
 
             ];
 

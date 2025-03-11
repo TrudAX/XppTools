@@ -395,7 +395,7 @@ public class DEVIntegMessageTable extends FormRun
 		</AxFormDataSource>
 	</DataSources>
 	<Design>
-		<Caption xmlns="">Incoming file messages</Caption>
+		<Caption xmlns="">Incoming messages</Caption>
 		<DataSource xmlns="">DEVIntegMessageTable</DataSource>
 		<HeightMode xmlns="">Column</HeightMode>
 		<Pattern xmlns="">Task</Pattern>

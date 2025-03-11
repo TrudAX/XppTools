@@ -330,7 +330,6 @@ public class DEVIntegTutorialWebSalesTableStaging extends common
 			i:type="AxTableRelationForeignKey">
 			<Name>SalesTable</Name>
 			<Cardinality>ZeroMore</Cardinality>
-			<OnDelete>Restricted</OnDelete>
 			<RelatedTable>SalesTable</RelatedTable>
 			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
 			<RelationshipType>Association</RelationshipType>
