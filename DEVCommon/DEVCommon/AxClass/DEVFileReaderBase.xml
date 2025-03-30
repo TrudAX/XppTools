@@ -524,7 +524,7 @@ class DEVFileReaderBase
 
         if (_readAsNextRow)
         {
-        this.readNextRow();
+            this.readNextRow();
         }
         headerNamesMap = new Map(Types::String, Types::Integer);
         

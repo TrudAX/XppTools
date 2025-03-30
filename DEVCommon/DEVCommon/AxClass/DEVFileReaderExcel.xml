@@ -36,7 +36,7 @@ class DEVFileReaderExcel extends DEVFileReaderBase
         {
             throw error("Failed to open Excel file");
         }
-        this.readExcelDataToCon();   
+        this.readExcelDataToCon();
     }
 
 ]]></Source>
