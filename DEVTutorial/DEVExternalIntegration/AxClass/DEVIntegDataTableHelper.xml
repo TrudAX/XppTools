@@ -11,6 +11,11 @@ public class DEVIntegDataTableHelper
 
     int    numOfLinesAdded;
 
+
+    str                     curDataTableName;
+    container               curRowData;
+    System.Data.DataTable   curDataTable;
+
 }
 ]]></Declaration>
 		<Methods>
@@ -161,6 +166,71 @@ public class DEVIntegDataTableHelper
 
             numOfLinesAdded++;
         }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDataTable</Name>
+				<Source><![CDATA[
+    public void addDataTable(str _tableName)
+    {
+        curDataTableName = _tableName;
+        
+        curDataTable = null;
+        curRowData = conNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addRowItem</Name>
+				<Source><![CDATA[
+    public void addRowItem(str _columnName, anytype _value)
+    {
+        curRowData += [[_columnName, _value]];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addRow</Name>
+				<Source><![CDATA[
+    public void addRow()
+    {
+        System.Data.DataRow dataRow1;
+        int                 i;
+
+        if (CLRInterop::isNull(curDataTable))
+        {
+            container   columnData;
+
+            curDataTable = this.createDataTable(curDataTableName);
+            for (i = 1; i <= conLen(curRowData); i++)
+            {
+                container curValue = conPeek(curRowData, i);
+
+                str fName = conPeek(curValue, 1);
+                
+                columnData += [[fName, typeOf(conPeek(curValue, 2))]];
+            }
+            this.addColumns(curDataTable, columnData);
+        }
+
+        dataRow1 = curDataTable.NewRow();
+
+        for (i = 1; i <= conLen(curRowData); i++)
+        {
+            container curValue = conPeek(curRowData, i);
+
+            str fName = conPeek(curValue, 1);
+            dataRow1.set_Item(fName,   conPeek(curValue, 2));
+        }
+
+        curDataTable.get_Rows().Add(dataRow1);
+
+        curRowData = conNull();
+        numOfLinesAdded++;
     }
 
 ]]></Source>
