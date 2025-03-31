@@ -598,6 +598,8 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
             loadAzureServiceBusCache = DEVIntegMessagesLoadAzureServiceBus::constructFromOutboundMessage(messageTypeTableOutbound);
 
             loadAzureServiceBusCache.sendMessage(_messageData, _messageLabel);
+
+            documentDescription = messageTypeTableOutbound.ServiceBusQueueName;
         }
         
     }

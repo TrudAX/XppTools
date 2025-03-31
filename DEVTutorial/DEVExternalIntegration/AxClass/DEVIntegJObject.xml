@@ -319,13 +319,9 @@ class DEVIntegJObject
 			<Method>
 				<Name>Add</Name>
 				<Source><![CDATA[
-    public Newtonsoft.Json.Linq.JObject Add(str _propertyName, Newtonsoft.Json.Linq.JToken _propertyValue)
+    public void Add(str _propertyName, Newtonsoft.Json.Linq.JToken _propertyValue)
     {
-        Newtonsoft.Json.Linq.JObject bodyLocal = this.body;
-        
-        bodyLocal.Add(_propertyName, _propertyValue);
-        
-        return bodyLocal;
+        body.Add(_propertyName, _propertyValue);
     }
 
 ]]></Source>
@@ -335,13 +331,11 @@ class DEVIntegJObject
 				<Source><![CDATA[
     public Newtonsoft.Json.Linq.JObject AddBoolean(str _propertyName, boolean _propertyValue)
     {
-        Newtonsoft.Json.Linq.JObject bodyLocal = this.body;
-        
         str boolStr = enum2Str(_propertyValue);
         
-        bodyLocal.Add(_propertyName, boolStr);
+        body.Add(_propertyName, boolStr);
     
-        return bodyLocal;
+        return body;
     }
 
 ]]></Source>

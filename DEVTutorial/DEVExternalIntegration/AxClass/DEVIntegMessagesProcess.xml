@@ -12,7 +12,7 @@ public class DEVIntegMessagesProcess extends RunBaseBatch  implements BatchRetry
     
     Range                       batchIdentifier;
     BatchHeader                 batchHeader;
-
+    
     TransDateTime   lastLoadStartFromDateTime;
     
     #define.CurrentVersion(1)
@@ -111,7 +111,7 @@ public class DEVIntegMessagesProcess extends RunBaseBatch  implements BatchRetry
         qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEVIntegMessageTable, IsManualUpload));
         qBR.value(SysQuery::value(NoYes::No));
         //qBR.status(RangeStatus::Locked);
-
+        
         queryRun = new QueryRun(query);
     }
 
