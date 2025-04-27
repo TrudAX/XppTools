@@ -16,6 +16,8 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 
     DEVIntegMessageTypeTableOutbound       messageTypeTableOutbound;
 
+    DEVIntegExportBulkLog       exportBulkLogUpd;
+
 
     TextStreamIo                ioDataStream;
     int                         numberOfLines;
@@ -40,6 +42,16 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
     public void incSkipCount() //for monitor expensive validations
     {
         numberOfSkippedLines++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExportBulkLog</Name>
+				<Source><![CDATA[
+    public DEVIntegExportBulkLog getExportBulkLog()
+    {
+        return exportBulkLogUpd;
     }
 
 ]]></Source>
@@ -157,7 +169,7 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
     public void run()
     {
 
-        DEVIntegExportBulkLog  exportBulkLog, exportBulkLogUpd;
+        DEVIntegExportBulkLog  exportBulkLog;
         int                    infoCnt;
         Exception              exception = Exception::Info;
 
@@ -180,6 +192,11 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 
             messageTypeTableOutbound = DEVIntegMessageTypeTableOutbound::find(messageTypeIdOutbound);
             messageTypeTableOutbound.validateExportCompany(curExt(), true);
+
+            if (messageTypeTableOutbound.IsClearCacheBeforeRun) //for pricing
+            {
+                SysFlushAOD::main(null);
+            }
 
             this.exportData();
 
@@ -601,7 +618,56 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
 
             documentDescription = messageTypeTableOutbound.ServiceBusQueueName;
         }
-        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getServiceBusDefaultLabel</Name>
+				<Source><![CDATA[
+    str getServiceBusDefaultLabel(int _batchNumber = 0)
+    {
+        Filename        res;
+
+        #define.DefaultFileNameForEmptyValue('')
+
+        if (messageTypeTableOutbound.FileName)
+        {
+            res = messageTypeTableOutbound.FileName;
+            //if contains %d
+            if (strScan(messageTypeTableOutbound.FileName, '%d', 1, strLen(messageTypeTableOutbound.FileName)))
+            {
+                str sAX;
+                if (messageTypeTableOutbound.FileNameParameterD)
+                {
+                    System.DateTime dateNow;
+
+                    if (exportStartDateTime)
+                    {
+                        dateNow = Global::utcDateTime2SystemDateTime(exportStartDateTime);
+                    }
+                    else
+                    {
+                        dateNow = System.DateTime::Now;
+                    }
+                    System.String sDate;
+                    sDate = dateNow.ToString(messageTypeTableOutbound.FileNameParameterD, System.Globalization.DateTimeFormatInfo::InvariantInfo);
+
+                    sAX = sDate;
+                }
+                res = strReplace(res, '%d', sAX);
+            }
+            if (_batchNumber)
+            {
+                res += strFmt('_%1', _batchNumber);
+            }
+        }
+        else
+        {
+            res = #DefaultFileNameForEmptyValue;
+        }
+
+        return res;
     }
 
 ]]></Source>
@@ -619,6 +685,18 @@ public class DEVIntegExportBulkBase extends RunBaseBatch implements BatchRetryab
         ioDataStream.inFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
         ioDataStream.outFieldDelimiter(messageTypeTableOutbound.getFileColumnDelimiter());
         ioDataStream.inRecordDelimiter(#delimiterCRLF);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getVisibleOutboundMessageFields</Name>
+				<Source><![CDATA[
+    public container getVisibleOutboundMessageFields()
+    {
+        container c = connull();
+
+        return c;
     }
 
 ]]></Source>

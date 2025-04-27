@@ -9,6 +9,7 @@
 [Form]
 public class DEVIntegMessageTypeTableOutbound extends FormRun
 {
+    container initialNotVisibleFields;
 }
 ]]></Source>
 			</Method>
@@ -18,6 +19,7 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
     public void init()
     {
         super();
+        initialNotVisibleFields = DEV::dsGetNotVisibleFields(DEVIntegMessageTypeTableOutbound_ds);
     
     }
 
@@ -57,6 +59,8 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
             (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
              connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP ||
              connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::None));
+        QueueParametersGroup.visible(connectionType.RecId &&
+            (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus));
 
         DEVIntegExportBulkBaseButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::Periodic);
         ExportAllButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::DocumentsOnEvents);
@@ -76,6 +80,31 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
             }
         }
         DEVIntegExportDocumentLogButton.visible(DEVIntegMessageTypeTableOutbound.IsFullExport == DEVIntegOutboundExportType::DocumentsOnEvents);
+
+        int i;
+        for (i = 1; i <= conLen(initialNotVisibleFields); i++)
+        {
+            FormDataObject fdo = DEVIntegMessageTypeTableOutbound_ds.object(conPeek(initialNotVisibleFields, i));
+            if (fdo && fdo.visible())
+            {
+                fdo.visible(false);
+            }
+        }
+
+        DEVIntegExportBulkBase  baseClass = DEVIntegMessageTypeTableOutbound.getBulkExportClass();
+        if (baseClass)
+        {
+            container c = baseClass.getVisibleOutboundMessageFields();
+            for (i = 1; i <= conLen(c); i++)
+            {
+                FormDataObject fdo = DEVIntegMessageTypeTableOutbound_ds.object(conPeek(c, i));
+                if (fdo)
+                {
+                    fdo.visible(true);
+                }
+
+            }
+        }
 
 
     }
@@ -350,10 +379,17 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 					<DataField>FileNameParameterD</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>IsClearCacheBeforeRun</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>IsEnabled</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>IsFullExport</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>IsIncludeHeader</DataField>
+					<Visible>No</Visible>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>IsSendEmail</DataField>
@@ -372,6 +408,10 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>OutputFolder</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ParmNumberOfLinesInOneMessage</DataField>
+					<Visible>No</Visible>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>Partition</DataField>
@@ -825,6 +865,37 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 							</AxFormControl>
 							<AxFormControl xmlns=""
 								i:type="AxFormGroupControl">
+								<Name>QueueParametersGroup</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>QueueParametersGroup_FileName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileName</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+										<Label>Queue label</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>QueueParametersGroup_FileNameParameterD</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileNameParameterD</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
 								<Name>SQLParametersGroup</Name>
 								<AutoDeclaration>Yes</AutoDeclaration>
 								<Type>Group</Type>
@@ -857,9 +928,40 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 								<DataGroup>SQLParameters</DataGroup>
 								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ExportParameters</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>ExportParameters_ParmNumberOfLinesInOneMessage</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ParmNumberOfLinesInOneMessage</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>ExportParameters_IsIncludeHeader</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>IsIncludeHeader</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>ExportParameters</DataGroup>
+								<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+							</AxFormControl>
 						</Controls>
 						<ColumnsMode>Fill</ColumnsMode>
 						<Caption>Operation parameters</Caption>
+						<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 					</AxFormControl>
 					<AxFormControl xmlns=""
 						i:type="AxFormTabPageControl">
@@ -974,6 +1076,15 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>CompanyRange</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>Advanced_IsClearCacheBeforeRun</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>IsClearCacheBeforeRun</DataField>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 								</Controls>

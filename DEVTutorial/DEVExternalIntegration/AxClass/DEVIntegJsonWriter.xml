@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegJsonWriter</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Newtonsoft.Json;
+public class DEVIntegJsonWriter
+{
+    System.IO.StringWriter              stringWriter;
+    Newtonsoft.Json.JsonTextWriter      jsonWriter;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        stringWriter = new System.IO.StringWriter();
+        jsonWriter   = new Newtonsoft.Json.JsonTextWriter(stringWriter);
+        
+        Newtonsoft.Json.Formatting format;
+        format = Newtonsoft.Json.Formatting::Indented;
+        jsonWriter.Formatting = format;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegJsonWriter construct()
+    {
+        DEVIntegJsonWriter writer = new DEVIntegJsonWriter();
+        return writer;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getJsonWriter</Name>
+				<Source><![CDATA[
+    public Newtonsoft.Json.JsonTextWriter getJsonWriter()
+    {
+        return jsonWriter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeStartObject</Name>
+				<Source><![CDATA[
+    public void writeStartObject()
+    {
+        jsonWriter.WriteStartObject();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeEndObject</Name>
+				<Source><![CDATA[
+    public void writeEndObject()
+    {
+        jsonWriter.WriteEndObject();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeStartArray</Name>
+				<Source><![CDATA[
+    public void writeStartArray(str _propertyName = '')
+    {
+        if (_propertyName)
+        {
+            jsonWriter.WritePropertyName(_propertyName);
+        }
+        jsonWriter.WriteStartArray();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeEndArray</Name>
+				<Source><![CDATA[
+    public void writeEndArray()
+    {
+        jsonWriter.WriteEndArray();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writePropertyString</Name>
+				<Source><![CDATA[
+    public void writePropertyString(str _propertyName, str _value)
+    {
+        jsonWriter.WritePropertyName(_propertyName);
+        jsonWriter.WriteValue(_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writePropertyInt</Name>
+				<Source><![CDATA[
+    public void writePropertyInt(str _propertyName, int _value)
+    {
+        jsonWriter.WritePropertyName(_propertyName);
+        jsonWriter.WriteValue(_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writePropertyInt64</Name>
+				<Source><![CDATA[
+    public void writePropertyInt64(str _propertyName, int64 _value)
+    {
+        jsonWriter.WritePropertyName(_propertyName);
+        jsonWriter.WriteValue(_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writePropertyReal</Name>
+				<Source><![CDATA[
+    public void writePropertyReal(str _propertyName, real _value)
+    {
+        jsonWriter.WritePropertyName(_propertyName);
+        jsonWriter.WriteValue(System.Convert::ToDecimal(_value));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writePropertyBool</Name>
+				<Source><![CDATA[
+    public void writePropertyBool(str _propertyName, boolean _value)
+    {
+        jsonWriter.WritePropertyName(_propertyName);
+        jsonWriter.WriteValue(_value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writePropertyContainer</Name>
+				<Source><![CDATA[
+    public void writePropertyContainer(str _propertyName, container _value)
+    {
+        int i;
+        jsonWriter.WritePropertyName(_propertyName);
+        jsonWriter.WriteStartArray(); // [
+        for (i = 1; i <= conLen(_value); i++)
+        {
+            jsonWriter.WriteValue(conPeek(_value, i));
+        }
+        jsonWriter.WriteEndArray(); // ]
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writePropertyDateTime</Name>
+				<Source><![CDATA[
+    public void writePropertyDateTime(str _propertyName, TransDateTime _value, str _dateFormat = "yyyy-MM-ddTHH:mm:ssZ")
+    {
+        jsonWriter.WritePropertyName(_propertyName);
+        System.DateTime dt = _value;
+        jsonWriter.WriteValue(dt.ToString(_dateFormat));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writePropertyNull</Name>
+				<Source><![CDATA[
+    public void writePropertyNull(str _propertyName)
+    {
+        jsonWriter.WritePropertyName(_propertyName);
+        jsonWriter.WriteNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getJsonString</Name>
+				<Source><![CDATA[
+    public str getJsonString()
+    {
+        str res;
+        
+        jsonWriter.flush();
+        res = stringWriter.ToString();
+        jsonWriter.Close();
+        stringWriter.Close();
+        return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

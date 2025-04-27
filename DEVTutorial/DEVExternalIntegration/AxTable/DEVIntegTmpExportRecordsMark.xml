@@ -5,15 +5,29 @@
 		<Declaration><![CDATA[
 public class DEVIntegTmpExportRecordsMark extends common
 {
+
 }
 ]]></Declaration>
-		<Methods />
+		<Methods>
+			<Method>
+				<Name>insertCommonRecVersion</Name>
+				<Source><![CDATA[
+    public void insertCommonRecVersion(Common _table)
+    {
+        this.RefRecVersion = _table.RecVersion;
+        this.RefRecId      = _table.RecId;
+        this.insert();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
 	</SourceCode>
 	<Label>Export mark records</Label>
 	<SubscriberAccessLevel>
 		<Read>Allow</Read>
 	</SubscriberAccessLevel>
-	<TitleField1>RefRecId</TitleField1>
+	<TitleField1>RefRecVersion</TitleField1>
 	<TitleField2>Num</TitleField2>
 	<SaveDataPerCompany>No</SaveDataPerCompany>
 	<TableType>TempDB</TableType>
@@ -52,6 +66,12 @@ public class DEVIntegTmpExportRecordsMark extends common
 			<Name>Num</Name>
 			<ExtendedDataType>Description</ExtendedDataType>
 		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>RefRecVersion</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
 	<Indexes>
@@ -60,7 +80,7 @@ public class DEVIntegTmpExportRecordsMark extends common
 			<AllowDuplicates>Yes</AllowDuplicates>
 			<Fields>
 				<AxTableIndexField>
-					<DataField>RefRecId</DataField>
+					<DataField>RefRecVersion</DataField>
 				</AxTableIndexField>
 			</Fields>
 		</AxTableIndex>

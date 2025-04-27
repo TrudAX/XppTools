@@ -123,13 +123,6 @@ class DEVIntegMessagesLoadBaseType
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>constructCustomLoadDelegate</Name>
-				<Source><![CDATA[
-    delegate void constructCustomLoadDelegate(DEVIntegMessageTypeInbound   _messageTypeTable, EventHandlerResult _result) { }
-
-]]></Source>
-			</Method>
-			<Method>
 				<Name>constructFromMessageType</Name>
 				<Source><![CDATA[
     static  DEVIntegMessagesLoadBaseType constructFromMessageType(DEVIntegMessageTypeInbound   _messageTypeTable)
@@ -153,13 +146,6 @@ class DEVIntegMessagesLoadBaseType
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>constructCustomExportDelegate</Name>
-				<Source><![CDATA[
-    delegate void constructCustomExportDelegate(DEVIntegMessageTypeTableOutbound        _messageTypeTableOutbound, EventHandlerResult _result) { }
-
-]]></Source>
-			</Method>
-			<Method>
 				<Name>constructFromMessageTypeOutbound</Name>
 				<Source><![CDATA[
     static  DEVIntegMessagesLoadBaseType constructFromMessageTypeOutbound(DEVIntegMessageTypeTableOutbound        _messageTypeTableOutbound)
@@ -176,19 +162,7 @@ class DEVIntegMessagesLoadBaseType
         }
         if (! shareClass)
         {
-            delegeteCall.constructCustomExportDelegate(_messageTypeTableOutbound, eventHandlerResult);
-
-            className = conPeek(eventHandlerResult.result(), 1);
-       
-            if (className)
-            {
-                shareClass = DictClass::createObject(className);
-            }
-
-            if (! shareClass)
-            {
-                shareClass = DEVIntegMessagesLoadBaseType::constructFromConnectionType(_messageTypeTableOutbound.connectionType());
-            }
+            shareClass = DEVIntegMessagesLoadBaseType::constructFromConnectionType(_messageTypeTableOutbound.connectionType());
         }
         shareClass.parmMessageTypeTableOutbound(_messageTypeTableOutbound);
         return shareClass;

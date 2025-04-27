@@ -597,6 +597,9 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				<AxTableFieldGroupField>
 					<DataField>CompanyRange</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsClearCacheBeforeRun</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -650,6 +653,15 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>EmailCC</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ExportParameters</Name>
+			<Label>Export parameters</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ParmNumberOfLinesInOneMessage</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -791,6 +803,22 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			i:type="AxTableFieldString">
 			<Name>EmailTemplateId</Name>
 			<ExtendedDataType>SysEmailId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ParmNumberOfLinesInOneMessage</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Split messages to this number of lines</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Lines in one message</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsClearCacheBeforeRun</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Clear all system caches before operation execution</HelpText>
+			<Label>Clear cache before run</Label>
+			<EnumType>NoYes</EnumType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
