@@ -230,8 +230,12 @@ class DEVIntegAzureStorageConnectionHelper
     ShareDirectoryClient  getExistingDirectory(FolderName  _folderName)
     {
         ShareDirectoryClient fileDir = rootDir.GetSubdirectoryClient(_folderName);
-
-        if (! fileDir || ! fileDir.Exists(tokenNull))
+        if (! fileDir)
+        {
+            throw error(strFmt("Directory '%1' doesn't exists (Type %2). Can't create a client'", _folderName, messageTypeId));
+        }
+        System.Boolean isExists = fileDir.Exists(tokenNull).get_Value();
+        if (! isExists)
         {
             throw error(strFmt("Directory '%1' doesn't exists (Type %2)", _folderName, messageTypeId));
         }
