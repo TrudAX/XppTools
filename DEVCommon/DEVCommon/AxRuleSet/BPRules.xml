@@ -456,9 +456,6 @@
 			<Moniker>BPErrorLabelAndHelpAreEqual</Moniker>
 		</Rule>
 		<Rule>
-			<Moniker>BPErrorHelpIsText</Moniker>
-		</Rule>
-		<Rule>
 			<Moniker>BPErrorEnumSameLabelAndHelp</Moniker>
 		</Rule>
 		<Rule>
@@ -616,9 +613,6 @@
 		</Rule>
 		<Rule>
 			<Moniker>BPErrorTableDelPrefixConflict</Moniker>
-		</Rule>
-		<Rule>
-			<Moniker>BPErrorDeveloperDocumentationNotDefined</Moniker>
 		</Rule>
 		<Rule>
 			<Moniker>BPErrorTableNaturalKeyWithRecordID</Moniker>

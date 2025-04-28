@@ -17,21 +17,30 @@ class DEVDimensionHelper
 			<Method>
 				<Name>BusinessUnit</Name>
 				<Source><![CDATA[
-    static public Name BusinessUnit()  { return BusinessUnit;  }
+    static public Name BusinessUnit()  
+    { 
+        return BusinessUnit;  
+    }
 
 ]]></Source>
 			</Method>
 			<Method>
 				<Name>Department</Name>
 				<Source><![CDATA[
-    static public Name Department()    { return Department;  }
+    static public Name Department()    
+    { 
+        return Department;  
+    }
 
 ]]></Source>
 			</Method>
 			<Method>
 				<Name>CostCenter</Name>
 				<Source><![CDATA[
-    static public Name CostCenter()    { return CostCenter;  }
+    static public Name CostCenter()    
+    { 
+        return CostCenter;  
+    }
 
 ]]></Source>
 			</Method>
@@ -165,7 +174,7 @@ class DEVDimensionHelper
 
         DimensionDefault dimDef = DEVDimensionHelper::setValueToDefaultDimensionCon(0, _defaultDimsCon);
         
-        LedgerDimensionDefaultAccount  defaultAccount = LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(_mainAccountNum);
+        LedgerDimensionDefaultAccount  defaultAccount = LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountIdAndCOA(_mainAccountNum, LedgerChartOfAccounts::current());
         if (! defaultAccount)
         {
             throw error(strFmt("Can't find main account %1", _mainAccountNum));

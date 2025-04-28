@@ -54,6 +54,7 @@ public class DEVCustomFeatures extends common
 			</Method>
 		</Methods>
 	</SourceCode>
+	<FormRef>DEVCustomFeatures</FormRef>
 	<Label>DEV Custom Features</Label>
 	<TableGroup>Group</TableGroup>
 	<TitleField1>CustomFeaturesId</TitleField1>

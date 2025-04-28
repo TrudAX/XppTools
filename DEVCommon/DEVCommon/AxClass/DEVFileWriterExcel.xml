@@ -296,7 +296,8 @@ class DEVFileWriterExcel
         Binary                              binary  = Binary::constructFromContainer(_imageCon);
         System.IO.MemoryStream              mstream = binary.getMemoryStream();
         System.Drawing.Image                image   = System.Drawing.Image::FromStream(mstream);
-        OfficeOpenXml.Drawing.ExcelPicture  picture = excelWorksheet.Drawings.AddPicture('1', image);
+        excelWorksheet.get_Drawings().AddPicture('1', image);
+        //OfficeOpenXml.Drawing.ExcelPicture  picture =  excelWorksheet.Drawings.AddPicture('1', image);
     }
 
 ]]></Source>
