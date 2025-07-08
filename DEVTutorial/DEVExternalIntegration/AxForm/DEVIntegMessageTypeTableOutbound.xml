@@ -234,7 +234,12 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
         public void clicked()
         {
             DEVIntegExportMessageBase  baseImportClass = DEVIntegMessageTypeTableOutbound.getActionClass();
-            baseImportClass.exportAllData();
+
+            if (Box::okCancel(strFmt("Export all data for message %1? ALL records will be exported unless filtered properly!", DEVIntegMessageTypeTableOutbound.MessageTypeIdOutbound),
+                    DialogButton::Cancel) == DialogButton::Ok)
+            {
+                baseImportClass.exportAllData();
+            }              
         }
 
 ]]></Source>

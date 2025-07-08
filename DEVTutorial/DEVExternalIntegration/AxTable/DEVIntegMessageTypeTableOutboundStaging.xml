@@ -153,8 +153,10 @@
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>AzureShareReference</Name>
-			<ExtendedDataType>FolderName</ExtendedDataType>
+			<ExtendedDataType>DEVIntegFolderName</ExtendedDataType>
 			<HelpText>Share reference for Azure storage</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<IsManuallyUpdated>Yes</IsManuallyUpdated>
 			<IsSystemGenerated>Yes</IsSystemGenerated>
 			<Label>Share reference</Label>
 		</AxTableField>

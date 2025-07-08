@@ -161,7 +161,7 @@ class DEVIntegConnectionHelperSFTP
 			<Method>
 				<Name>createFileInDirectory</Name>
 				<Source><![CDATA[
-    public void  createFileInDirectory(FileName  _fileName, FolderName  _archDir, System.IO.MemoryStream  _fileDataStream)
+    public void  createFileInDirectory(FileName  _fileName, DEVIntegFolderName  _archDir, System.IO.MemoryStream  _fileDataStream)
     {
         str fullPath;
         try
@@ -229,7 +229,7 @@ class DEVIntegConnectionHelperSFTP
 			<Method>
 				<Name>getExistingDirectory</Name>
 				<Source><![CDATA[
-    public void  getExistingDirectory(FolderName  _folderName)
+    public void  getExistingDirectory(DEVIntegFolderName  _folderName)
     {
         if (! clientNet.Exists(_folderName))
         {
@@ -242,7 +242,7 @@ class DEVIntegConnectionHelperSFTP
 			<Method>
 				<Name>fillFiles</Name>
 				<Source><![CDATA[
-    DEVIntegTmpFiles fillFiles(FolderName  _folderName = folderLocation, int _maxFileCount = 0)
+    DEVIntegTmpFiles fillFiles(DEVIntegFolderName  _folderName = folderLocation, int _maxFileCount = 0)
     {
         fileList = null;
        
@@ -282,7 +282,7 @@ class DEVIntegConnectionHelperSFTP
 			<Method>
 				<Name>moveFileToDirectory</Name>
 				<Source><![CDATA[
-    public void  moveFileToDirectory(DEVIntegTmpFiles  _fileRef, FolderName  _archDir, boolean _appendTimeStamp = true)
+    public void  moveFileToDirectory(DEVIntegTmpFiles  _fileRef, DEVIntegFolderName  _archDir, boolean _appendTimeStamp = true)
     {
         try
         {

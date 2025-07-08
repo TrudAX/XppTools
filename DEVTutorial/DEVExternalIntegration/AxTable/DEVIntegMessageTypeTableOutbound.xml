@@ -720,8 +720,9 @@ public class DEVIntegMessageTypeTableOutbound extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>AzureShareReference</Name>
-			<ExtendedDataType>FolderName</ExtendedDataType>
+			<ExtendedDataType>DEVIntegFolderName</ExtendedDataType>
 			<HelpText>Share reference for Azure storage</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Label>Share reference</Label>
 		</AxTableField>
 		<AxTableField xmlns=""

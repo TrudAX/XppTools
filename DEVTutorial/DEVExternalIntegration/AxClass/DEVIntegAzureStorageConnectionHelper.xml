@@ -123,7 +123,7 @@ class DEVIntegAzureStorageConnectionHelper
 			<Method>
 				<Name>createFileInDirectory</Name>
 				<Source><![CDATA[
-    public void  createFileInDirectory(FileName  _fileName, FolderName  _archDir, System.IO.MemoryStream  _fileDataStream)
+    public void  createFileInDirectory(FileName  _fileName, DEVIntegFolderName  _archDir, System.IO.MemoryStream  _fileDataStream)
     {
         try
         {
@@ -155,7 +155,7 @@ class DEVIntegAzureStorageConnectionHelper
 			<Method>
 				<Name>moveFileToDirectory</Name>
 				<Source><![CDATA[
-    public void  moveFileToDirectory(DEVIntegTmpFiles  _fileRef, FolderName  _archDir, System.IO.MemoryStream  _fileDataStream, boolean _appendTimeStamp = true)
+    public void  moveFileToDirectory(DEVIntegTmpFiles  _fileRef, DEVIntegFolderName  _archDir, System.IO.MemoryStream  _fileDataStream, boolean _appendTimeStamp = true)
     {
         try
         {
@@ -227,7 +227,7 @@ class DEVIntegAzureStorageConnectionHelper
 			<Method>
 				<Name>getExistingDirectory</Name>
 				<Source><![CDATA[
-    ShareDirectoryClient  getExistingDirectory(FolderName  _folderName)
+    ShareDirectoryClient  getExistingDirectory(DEVIntegFolderName  _folderName)
     {
         ShareDirectoryClient fileDir = rootDir.GetSubdirectoryClient(_folderName);
         if (! fileDir)
@@ -247,7 +247,7 @@ class DEVIntegAzureStorageConnectionHelper
 			<Method>
 				<Name>fillFiles</Name>
 				<Source><![CDATA[
-    DEVIntegTmpFiles fillFiles(FolderName  _folderName = folderLocation)
+    DEVIntegTmpFiles fillFiles(DEVIntegFolderName  _folderName = folderLocation)
     {
         fileList = null;
 

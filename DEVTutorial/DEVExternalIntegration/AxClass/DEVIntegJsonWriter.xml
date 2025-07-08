@@ -177,6 +177,18 @@ public class DEVIntegJsonWriter
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>writePropertyDate</Name>
+				<Source><![CDATA[
+    public void writePropertyDate(str _propertyName, TransDate _value, str _dateFormat = "yyyy-MM-dd")
+    {
+        jsonWriter.WritePropertyName(_propertyName);
+        System.DateTime dt = _value;
+        jsonWriter.WriteValue(dt.ToString(_dateFormat));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>writePropertyNull</Name>
 				<Source><![CDATA[
     public void writePropertyNull(str _propertyName)

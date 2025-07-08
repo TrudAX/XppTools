@@ -165,11 +165,8 @@ class DEVIntegExportMessageBase
         _loadAzureServiceBusCache.sendMessage(_messageData, _messageLabel);
         if (messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full && _exportDocumentLog.RecId)
         {
-            DEVIntegMessageDataOutbound  messageDataOutbound;
+            processResults.parmMessageBodyStr(_messageData);
 
-            messageDataOutbound.ExportLogRefRecId = _exportDocumentLog.RecId;
-            messageDataOutbound.FileDataStr       = _messageData;
-            messageDataOutbound.insert();
         }
     }
 
@@ -249,11 +246,7 @@ class DEVIntegExportMessageBase
         
         if (messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full && _exportDocumentLog.RecId)
         {
-            DEVIntegMessageDataOutbound  messageDataOutbound;
-
-            messageDataOutbound.ExportLogRefRecId = _exportDocumentLog.RecId;
-            messageDataOutbound.FileDataStr       = _messageData;
-            messageDataOutbound.insert();
+            processResults.parmMessageBodyStr(_messageData);
         }
     }
 
@@ -269,11 +262,8 @@ class DEVIntegExportMessageBase
         _loadFileStorageCache.sendFile(_fileName,  _fileDataStream);
         if (messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full && _exportDocumentLog.RecId)
         {
-            DEVIntegMessageDataOutbound  messageDataOutbound;
+            processResults.parmMessageBodyStr(_fileName);
 
-            messageDataOutbound.ExportLogRefRecId = _exportDocumentLog.RecId;
-            messageDataOutbound.FileDataStr       = _fileName;
-            messageDataOutbound.insert();
         }
     }
 

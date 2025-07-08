@@ -461,22 +461,25 @@ public class DEVIntegMessageTypeInbound extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>ReadLocation</Name>
-			<ExtendedDataType>FolderName</ExtendedDataType>
+			<ExtendedDataType>DEVIntegFolderName</ExtendedDataType>
 			<HelpText>Read location folder(e.g. ParentDir\ChildDir)</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Label>Read location</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>ArchiveLocation</Name>
-			<ExtendedDataType>FolderName</ExtendedDataType>
+			<ExtendedDataType>DEVIntegFolderName</ExtendedDataType>
 			<HelpText>Archive location path</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Label>Archive location</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>AzureShareReference</Name>
-			<ExtendedDataType>FolderName</ExtendedDataType>
+			<ExtendedDataType>DEVIntegFolderName</ExtendedDataType>
 			<HelpText>Share reference for Azure storage</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Label>Share reference</Label>
 		</AxTableField>
 		<AxTableField xmlns=""

@@ -7,14 +7,17 @@ using Newtonsoft.Json.Linq;
 class DEVIntegJObject
 {
     public Newtonsoft.Json.Linq.JObject body;
+
+    public str currentArrayName;
+    public JToken currentArrayElement;
    
 }
 ]]></Declaration>
 		<Methods>
 			<Method>
-				<Name>Parse</Name>
+				<Name>parse</Name>
 				<Source><![CDATA[
-    public static DEVIntegJObject Parse(str _body)
+    public static DEVIntegJObject parse(str _body)
     {
         DEVIntegJObject jo = new DEVIntegJObject();
         
@@ -26,9 +29,9 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>ParseToken</Name>
+				<Name>parseToken</Name>
 				<Source><![CDATA[
-    public static DEVIntegJObject ParseToken(JToken _body)
+    public static DEVIntegJObject parseToken(JToken _body)
     {
         DEVIntegJObject jo = new DEVIntegJObject();
         
@@ -54,9 +57,9 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>Create</Name>
+				<Name>create</Name>
 				<Source><![CDATA[
-    public static DEVIntegJObject Create(JObject _body)
+    public static DEVIntegJObject create(JObject _body)
     {
         DEVIntegJObject jo = new DEVIntegJObject();
         
@@ -68,9 +71,9 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>GetValueString</Name>
+				<Name>getValueString</Name>
 				<Source><![CDATA[
-    public str GetValueString(str _propertyName)
+    public str getValueString(str _propertyName)
     {
         try
         {
@@ -97,9 +100,46 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>GetValueInt64</Name>
+				<Name>getValueEnum</Name>
 				<Source><![CDATA[
-    public int64 GetValueInt64(str _propertyName)
+    public int getValueEnum(str _propertyName, EnumId _enumId)
+    {
+        JToken jToken = this.body.GetValue(_propertyName);
+        str    typeString;
+        int         res;
+        DictEnum    dictEnum ;
+        const int   EnumValueNotFound = 255;
+            
+        if (jToken == null || jToken.Type == JTokenType::Null)
+        {
+            typeString = "";
+        }
+        else
+        {
+            typeString = jToken.ToString();
+        }
+        
+        dictEnum    = new DictEnum(_enumId);
+        res = DMFEntityBase::string2Enum(typeString, _enumId);
+        if (res && !dictEnum.value2Symbol(res))
+        {
+            res = EnumValueNotFound;
+        }
+        if (res == EnumValueNotFound)
+        {
+            throw error(strFmt("Enum %1 does not contain value '%2'(JSON Property Name: %3)",
+                dictEnum.name(), typeString, _propertyName));
+        }
+       
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValueInt64</Name>
+				<Source><![CDATA[
+    public int64 getValueInt64(str _propertyName)
     {
         try
         {
@@ -123,9 +163,9 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>GetValueInt</Name>
+				<Name>getValueInt</Name>
 				<Source><![CDATA[
-    public int GetValueInt(str _propertyName)
+    public int getValueInt(str _propertyName)
     {
         try
         {
@@ -149,9 +189,9 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>GetValueReal</Name>
+				<Name>getValueReal</Name>
 				<Source><![CDATA[
-    public real GetValueReal(str _propertyName)
+    public real getValueReal(str _propertyName)
     {
         try
         {
@@ -272,9 +312,22 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>GetValueArray</Name>
+				<Name>getValueArray</Name>
 				<Source><![CDATA[
-    public JArray GetValueArray(str _propertyName)
+    //OBSOLETTE, use readNextArrayItem instead. How to use:
+    //JArray specs = result.GetValueArray('lines');
+    // (specs)
+    //{
+    //    JToken line = specs.First;
+    //    while (line)
+    //    {
+    //        DEVIntegJObject lineJSON = DEVIntegJObject::ParseToken(line);
+    //
+    //        lineJSON.GetValueString('itemId');
+    //        line = line.Next;
+    //    }
+    //}
+    public JArray getValueArray(str _propertyName)
     {
         try
         {
@@ -299,9 +352,9 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>GetValueObject</Name>
+				<Name>getValueObject</Name>
 				<Source><![CDATA[
-    public DEVIntegJObject GetValueObject(str _propertyName)
+    public DEVIntegJObject getValueObject(str _propertyName)
     {
         JToken      jToken = this.body.GetValue(_propertyName);
         DEVIntegJObject res;
@@ -310,6 +363,10 @@ class DEVIntegJObject
         {
             res = jToken.Type == JTokenType::Null ? null : DEVIntegJObject::Parse(jToken.ToString());
         }
+        if (! res)
+        {
+            throw error(strFmt("Can't find %1 property in the document", _propertyName));
+        }
 
         return res;
     }
@@ -317,9 +374,68 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>Add</Name>
+				<Name>readNextArrayItem</Name>
 				<Source><![CDATA[
-    public void Add(str _propertyName, Newtonsoft.Json.Linq.JToken _propertyValue)
+    //while (headerContract.readNextArrayItem('OrderLines'))
+    //{
+    //    DEVIntegJObject lineJSON = headerContract.getCurrentArrayItemValue();
+    public boolean readNextArrayItem(str _propertyName)
+    {
+        boolean  res;
+        if (currentArrayName != _propertyName)
+        {
+            currentArrayName = _propertyName;
+
+            JArray orderLinesAr = this.getValueArray(_propertyName);
+            if (orderLinesAr)
+            {
+                currentArrayElement = orderLinesAr.First;
+                if (currentArrayElement)
+                {
+                    res = true;
+                }
+            }
+        }
+        else
+        {
+            if (currentArrayElement)
+            {
+                currentArrayElement = currentArrayElement.Next;
+                if (currentArrayElement)
+                {
+                    res = true;
+                }
+            }
+        }
+        if (! res)
+        {
+            currentArrayName = "";
+            currentArrayElement = null;
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCurrentArrayItemValue</Name>
+				<Source><![CDATA[
+    public DEVIntegJObject getCurrentArrayItemValue()
+    {
+        DEVIntegJObject res;
+        if (currentArrayElement)
+        {
+            res = DEVIntegJObject::parseToken(currentArrayElement);
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>add</Name>
+				<Source><![CDATA[
+    public void add(str _propertyName, Newtonsoft.Json.Linq.JToken _propertyValue)
     {
         body.Add(_propertyName, _propertyValue);
     }
@@ -327,9 +443,9 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>AddBoolean</Name>
+				<Name>addBoolean</Name>
 				<Source><![CDATA[
-    public Newtonsoft.Json.Linq.JObject AddBoolean(str _propertyName, boolean _propertyValue)
+    public Newtonsoft.Json.Linq.JObject addBoolean(str _propertyName, boolean _propertyValue)
     {
         str boolStr = enum2Str(_propertyValue);
         
