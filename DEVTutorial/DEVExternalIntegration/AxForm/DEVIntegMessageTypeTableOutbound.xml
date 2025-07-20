@@ -949,15 +949,6 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<DataField>ParmNumberOfLinesInOneMessage</DataField>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormCheckBoxControl">
-										<Name>ExportParameters_IsIncludeHeader</Name>
-										<Type>CheckBox</Type>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>IsIncludeHeader</DataField>
-										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
-									</AxFormControl>
 								</Controls>
 								<Breakable>No</Breakable>
 								<DataGroup>ExportParameters</DataGroup>
