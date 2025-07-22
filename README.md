@@ -104,6 +104,7 @@ Sub-model name: DEVSQLExecute
 
 'SQL reports' functionality is a set of forms that allow to define and execute direct SQL reports in the D365FO database. There is a "SQL definition" table that defines the SQL text, a "SQL format" table that defines the output format(e.g. CSV, Excel, etc..) and an SQL Report table where the user can run the report and output the result to the selected format.
 
+Full description: [D365FinOps SQL Reports Tool](https://www.linkedin.com/pulse/d365finops-sql-reports-tool-denis-trunin-5humc)
 Sub-model name: DEVSQLReports
 
 ### -D365FO Infolog call stack
