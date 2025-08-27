@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegAIProviderParameters</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegAIProviderParameters extends common
+{
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEVIntegAIProviderParameters find(DEVIntegAIProviderId  _providerId,
+                                                    Description           _parameterName,
+                                                    boolean               _forUpdate = false)
+    {
+        DEVIntegAIProviderParameters integAIProviderParameters;
+        ;
+        if (_providerId)
+        {
+            integAIProviderParameters.selectForUpdate(_forUpdate);
+            
+            select firstonly integAIProviderParameters
+                where integAIProviderParameters.ProviderId     == _providerId &&
+                      integAIProviderParameters.ParameterName  == _parameterName;
+        }
+        
+        return integAIProviderParameters;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>AI providers parameters</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>ProviderId</TitleField1>
+	<TitleField2>ParameterName</TitleField2>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>ProviderParmIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>ProviderParmIdx</PrimaryIndex>
+	<ReplacementKey>ProviderParmIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ProviderId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParameterName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ProviderId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParameterName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ParameterName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParameterDefaultValue</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ParameterValue</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Other</Name>
+			<Label>Other</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ProviderId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ProviderId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegAIProviderId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParameterName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<HelpText>Parameter name</HelpText>
+			<Label>Parameter</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParameterDefaultValue</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<HelpText>Parameter default value</HelpText>
+			<Label>Default value</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ParameterValue</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<HelpText>New override value</HelpText>
+			<Label>New value</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>ProviderParmIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>ProviderId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>ParameterName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegAIProvider</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DEVIntegAIProvider</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ProviderId</Name>
+					<SourceEDT>DEVIntegAIProviderId</SourceEDT>
+					<Field>ProviderId</Field>
+					<RelatedField>ProviderId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

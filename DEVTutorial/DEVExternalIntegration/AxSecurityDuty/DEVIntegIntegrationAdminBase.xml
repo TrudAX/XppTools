@@ -27,5 +27,11 @@
 		<AxSecurityPrivilegeReference>
 			<Name>DEVIntegServiceTestMaintain</Name>
 		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegAIPromptDefinitionMaintain</Name>
+		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegAIProviderMaintain</Name>
+		</AxSecurityPrivilegeReference>
 	</Privileges>
 </AxSecurityDuty>

@@ -231,6 +231,7 @@ public class DEVIntegMessageTable extends FormRun
 					<DataField>IsManualUpload</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<AllowEdit>No</AllowEdit>
 					<DataField>IsParsed</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>

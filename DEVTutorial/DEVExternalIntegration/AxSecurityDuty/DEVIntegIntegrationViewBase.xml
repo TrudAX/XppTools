@@ -18,5 +18,11 @@
 		<AxSecurityPrivilegeReference>
 			<Name>DEVIntegMessageTypeServiceView</Name>
 		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegAIPromptDefinitionView</Name>
+		</AxSecurityPrivilegeReference>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegAIProviderView</Name>
+		</AxSecurityPrivilegeReference>
 	</Privileges>
 </AxSecurityDuty>

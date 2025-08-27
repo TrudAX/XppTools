@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegAICallStatistics</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegAICallStatistics
+{
+    public DEVSysTimer    timer;
+    public int            tokenCount;
+    public int            promptTokens;
+    public int            candidateTokens;
+    public static int     TIMER_CLOCK_NUM = 1;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>markStart</Name>
+				<Source><![CDATA[
+    public void markStart()
+    {
+        timer = new DEVSysTimer();
+        tokenCount = 0;
+        promptTokens = 0;
+        candidateTokens = 0;
+        timer.start(TIMER_CLOCK_NUM);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>markEnd</Name>
+				<Source><![CDATA[
+    public void markEnd()
+    {
+        timer.stop(TIMER_CLOCK_NUM);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getExecutionTimeSeconds</Name>
+				<Source><![CDATA[
+    public real getExecutionTimeSeconds()
+    {
+        real timeInMs = timer.time(TIMER_CLOCK_NUM);
+        return timeInMs / 1000.0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setTokenUsage</Name>
+				<Source><![CDATA[
+    public void setTokenUsage(int _promptTokens, int _candidateTokens)
+    {
+        promptTokens = _promptTokens;
+        candidateTokens = _candidateTokens;
+        tokenCount = _promptTokens + _candidateTokens;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFormattedStatistics</Name>
+				<Source><![CDATA[
+    public str getFormattedStatistics()
+    {
+        str result;
+        
+        result = strFmt("Execution Time: %1 seconds\n", num2Str(this.getExecutionTimeSeconds(), 0, 1, 1, 1));
+        result += strFmt("Total Tokens: %1\n", tokenCount);
+        result += strFmt("Prompt Tokens: %1\n", promptTokens);
+        result += strFmt("Response Tokens: %1\n", candidateTokens);
+        
+        return result;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

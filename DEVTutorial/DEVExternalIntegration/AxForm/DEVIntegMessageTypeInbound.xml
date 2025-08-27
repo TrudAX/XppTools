@@ -209,6 +209,10 @@ public class DEVIntegMessageTypeInbound extends FormRun
 			<Table>DEVIntegMessageTypeInbound</Table>
 			<Fields>
 				<AxFormDataSourceField>
+					<DataField>AIPromptDefinitionId</DataField>
+					<Visible>No</Visible>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>ArchiveLocation</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -227,6 +231,9 @@ public class DEVIntegMessageTypeInbound extends FormRun
 					<DataField>CreatedDateTime</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>DefaultCompanyId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>Description</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -240,12 +247,6 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>FileMoveNameChange</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>IsAutoPostJournal</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>IsGroupByDescription</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>IsIgnoreFirstMessageProcessOnLoad</DataField>
@@ -262,9 +263,6 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>LastLoadOverlapSec</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>LedgerJournalNameId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>MessageTypeId</DataField>
@@ -797,6 +795,26 @@ public class DEVIntegMessageTypeInbound extends FormRun
 								</Controls>
 								<Breakable>No</Breakable>
 								<DataGroup>ParmDMFImport</DataGroup>
+								<DataSource>DEVIntegMessageTypeInbound</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>AIConnection</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>AIConnection_AIPromptDefinitionId</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>AIPromptDefinitionId</DataField>
+										<DataSource>DEVIntegMessageTypeInbound</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>AIConnection</DataGroup>
 								<DataSource>DEVIntegMessageTypeInbound</DataSource>
 							</AxFormControl>
 						</Controls>

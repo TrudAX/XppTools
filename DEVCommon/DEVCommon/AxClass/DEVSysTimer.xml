@@ -72,19 +72,8 @@ class DEVSysTimer
     {
         int ticks;
         ;
-        try
-        {
-            new InteropPermission(InteropKind::ClrInterop).assert();
-    
-            ticks = System.Environment::get_TickCount();
-            CodeAccessPermission::revertAssert();
-    
-        }
-        catch(Exception::CLRError)
-        {
-            CodeAccessPermission::revertAssert();
-        }
-    
+        ticks = System.Environment::get_TickCount();
+            
         return ticks;
     }
 

@@ -110,7 +110,14 @@ public class DEVIntegMessageProcessor
             {
                 throw error(strFmt("Message %1. Found %2 errors", _messageTable.Name, processResults.getErrorCount()));
             }
-            curMessageStatus = DEVIntegMessageStatus::Processed;
+            if (processResults.isMessageStatusSet())
+            {
+                curMessageStatus = processResults.messageStatusExternal();
+            }
+            else
+            {
+                curMessageStatus = DEVIntegMessageStatus::Processed;
+            }
         }
         catch (Exception::Info)
         {

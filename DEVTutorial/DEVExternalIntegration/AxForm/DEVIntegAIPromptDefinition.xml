@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVIntegAIPromptDefinition</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEVIntegAIPromptDefinition extends FormRun 
+{
+}
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>TestAPIButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            TestResultStringControl.text('');
+            TestResultStringStatistics.text('');
+
+            DEVIntegAIProviderBase   providerBase = DEVIntegAIProviderBase::constructFromPromptDefinition(DEVIntegAIPromptDefinition);
+            DEVIntegAIPromptDefinitionTestData  promptDefinitionTestData;
+            select firstonly promptDefinitionTestData
+                where promptDefinitionTestData.PromptDefinitionId == DEVIntegAIPromptDefinition.PromptDefinitionId;
+
+            providerBase.setFileContainer(promptDefinitionTestData.FileName, promptDefinitionTestData.FileData);
+            
+            str res = providerBase.callAPIText();
+
+            TestResultStringControl.text(res);
+
+            DEVIntegAICallStatistics statistics = providerBase.getStatistics();
+            TestResultStringStatistics.text(statistics.getFormattedStatistics());
+
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DownloadResultButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            File::SendStringAsFileToUser(TestResultStringControl.text() , 
+                strFmt('AIPrompt_%1.txt', DEVIntegAIPromptDefinition.PromptDefinitionId));
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>DEVIntegAIPromptDefinition</Name>
+			<Table>DEVIntegAIPromptDefinition</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CreatedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Description</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Notes</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PromptDefinitionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PromptText</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ProviderId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ResponseFormat</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>DEVIntegAIPromptDefinitionTestData</Name>
+			<Table>DEVIntegAIPromptDefinitionTestData</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CreatedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileData</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>FileName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PromptDefinitionId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>DEVIntegAIPromptDefinition</JoinSource>
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">AI Prompt Definition</Caption>
+		<DataSource xmlns="">DEVIntegAIPromptDefinition</DataSource>
+		<Pattern xmlns="">SimpleListDetails</Pattern>
+		<PatternVersion xmlns="">1.3</PatternVersion>
+		<Style xmlns="">SimpleListDetails</Style>
+		<TitleDataSource xmlns="">DEVIntegAIPromptDefinition</TitleDataSource>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>MainActionPane</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>NavigationListGroup</Name>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl>
+						<Name>NavListQuickFilter</Name>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension>
+							<Name>QuickFilterControl</Name>
+							<ExtensionComponents />
+							<ExtensionProperties>
+								<AxFormControlExtensionProperty>
+									<Name>targetControlName</Name>
+									<Type>String</Type>
+									<Value>MainGrid</Value>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>placeholderText</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+								<AxFormControlExtensionProperty>
+									<Name>defaultColumnName</Name>
+									<Type>String</Type>
+								</AxFormControlExtensionProperty>
+							</ExtensionProperties>
+						</FormControlExtension>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormGridControl">
+						<Name>MainGrid</Name>
+						<AllowEdit>No</AllowEdit>
+						<Type>Grid</Type>
+						<WidthMode>SizeToContent</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>Overview</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Overview_PromptDefinitionId</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>PromptDefinitionId</DataField>
+										<DataSource>DEVIntegAIPromptDefinition</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Overview_Description</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Description</DataField>
+										<DataSource>DEVIntegAIPromptDefinition</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Overview</DataGroup>
+								<DataSource>DEVIntegAIPromptDefinition</DataSource>
+							</AxFormControl>
+						</Controls>
+						<DataSource>DEVIntegAIPromptDefinition</DataSource>
+						<MultiSelect>No</MultiSelect>
+						<ShowRowLabels>No</ShowRowLabels>
+						<Style>List</Style>
+					</AxFormControl>
+				</Controls>
+				<FrameType>None</FrameType>
+				<Style>SidePanel</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>DetailsHeaderGroup</Name>
+				<Pattern>FieldsFieldGroups</Pattern>
+				<PatternVersion>1.1</PatternVersion>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>DetailsHeaderGroup_PromptDefinitionId</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>PromptDefinitionId</DataField>
+						<DataSource>DEVIntegAIPromptDefinition</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>DetailsHeaderGroup_Description</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>Description</DataField>
+						<DataSource>DEVIntegAIPromptDefinition</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormStringControl">
+						<Name>DetailsHeaderGroup_ProviderId</Name>
+						<Type>String</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ProviderId</DataField>
+						<DataSource>DEVIntegAIPromptDefinition</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>DetailsHeaderGroup_ResponseFormat</Name>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<DataField>ResponseFormat</DataField>
+						<DataSource>DEVIntegAIPromptDefinition</DataSource>
+						<Items />
+					</AxFormControl>
+				</Controls>
+				<ColumnsMode>Fill</ColumnsMode>
+				<DataGroup>DetailsHeaderGroup</DataGroup>
+				<DataSource>DEVIntegAIPromptDefinition</DataSource>
+				<FrameType>None</FrameType>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>DetailsTab</Name>
+				<Type>Tab</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>DetailsTabPage</Name>
+						<Pattern>FillText</Pattern>
+						<PatternVersion>UX7 1.0</PatternVersion>
+						<Type>TabPage</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormStringControl">
+								<Name>DEVIntegAIPromptDefinition_PromptText</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Type>String</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<DataField>PromptText</DataField>
+								<DataSource>DEVIntegAIPromptDefinition</DataSource>
+								<DisplayHeight>15</DisplayHeight>
+								<DisplayHeightMode>Fixed</DisplayHeightMode>
+							</AxFormControl>
+						</Controls>
+						<Caption>Details</Caption>
+						<DataSource>DEVIntegAIPromptDefinition</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TestTabPage</Name>
+						<Pattern>ToolbarFields</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>TestActionPaneControl</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupControl1</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormMenuFunctionButtonControl">
+												<Name>DEVIntegAIPromptTestLoadFile</Name>
+												<Type>MenuFunctionButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<AutoRefreshData>Yes</AutoRefreshData>
+												<DataSource>DEVIntegAIPromptDefinition</DataSource>
+												<MenuItemName>DEVIntegAIPromptTestLoadFile</MenuItemName>
+												<MenuItemType>Action</MenuItemType>
+												<NeedsRecord>Yes</NeedsRecord>
+												<Text>Load file</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>TestAPIButton</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Call API</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>DownloadResultButton</Name>
+												<HelpText>Download result as text file</HelpText>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Text>Download result</Text>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FormGroupControl1</Name>
+								<HeightMode>SizeToAvailable</HeightMode>
+								<Pattern>FieldsFieldGroups</Pattern>
+								<PatternVersion>1.1</PatternVersion>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>DEVIntegAIPromptDefinitionTestData_FileName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>FileName</DataField>
+										<DataSource>DEVIntegAIPromptDefinitionTestData</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>TestResultStringControl</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DisplayHeight>10</DisplayHeight>
+										<DisplayHeightMode>Fixed</DisplayHeightMode>
+										<DisplayLength>500</DisplayLength>
+										<DisplayLengthMode>Fixed</DisplayLengthMode>
+										<ExtendedDataType>FreeText</ExtendedDataType>
+										<Label>Test result</Label>
+										<MultiLine>Yes</MultiLine>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>TestResultStringStatistics</Name>
+										<AllowEdit>No</AllowEdit>
+										<AutoDeclaration>Yes</AutoDeclaration>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DisplayHeight>10</DisplayHeight>
+										<DisplayLength>500</DisplayLength>
+										<DisplayLengthMode>Fixed</DisplayLengthMode>
+										<ExtendedDataType>FreeText</ExtendedDataType>
+										<Label>Statistics</Label>
+										<MultiLine>Yes</MultiLine>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>DEVIntegAIPromptDefinition_Notes</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Notes</DataField>
+										<DataSource>DEVIntegAIPromptDefinition</DataSource>
+										<DisplayHeight>10</DisplayHeight>
+										<DisplayHeightMode>Fixed</DisplayHeightMode>
+										<MultiLine>Yes</MultiLine>
+									</AxFormControl>
+								</Controls>
+								<ColumnsMode>Fill</ColumnsMode>
+								<FrameType>None</FrameType>
+							</AxFormControl>
+						</Controls>
+						<Caption>Test</Caption>
+						<DataSource>DEVIntegAIPromptDefinition</DataSource>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>ValidationTabPage</Name>
+						<Pattern>FieldsFieldGroups</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls />
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>Validation</Caption>
+						<DataSource>DEVIntegAIPromptDefinition</DataSource>
+					</AxFormControl>
+				</Controls>
+				<Style>FastTabs</Style>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

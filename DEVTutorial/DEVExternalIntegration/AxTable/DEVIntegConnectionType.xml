@@ -110,6 +110,16 @@ public class DEVIntegConnectionType extends common
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>getWebPassword</Name>
+				<Source><![CDATA[
+    public DEVIntegAzureConnectionString getWebPassword()
+    {
+        return this.getFTPPassword();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>FTPPasswordSecretEdit</Name>
 				<Source><![CDATA[
     public edit DEVIntegAzureConnectionString FTPPasswordSecretEdit(boolean _set, str _value)
@@ -340,6 +350,15 @@ public class DEVIntegConnectionType extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>TimeoutInSec</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Other</Name>
+			<Label>Other</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>

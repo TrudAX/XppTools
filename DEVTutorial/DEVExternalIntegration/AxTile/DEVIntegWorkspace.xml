@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTile xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>DEVIntegWorkspace</Name>
+	<Label>External Integration</Label>
+	<MenuItemName>DEVIntegWorkspace</MenuItemName>
+	<NormalImage>DataManagement</NormalImage>
+	<Size>Wide</Size>
+	<TileDisplay>BackgroundImage</TileDisplay>
+</AxTile>

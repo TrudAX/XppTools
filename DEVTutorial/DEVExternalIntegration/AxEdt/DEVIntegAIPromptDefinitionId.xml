@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEVIntegAIPromptDefinitionId</Name>
+	<Extends>Num</Extends>
+	<HelpText>Identification of the AI prompt ID</HelpText>
+	<Label>Prompt ID</Label>
+	<ReferenceTable>DEVIntegAIPromptDefinition</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>PromptDefinitionId</RelatedField>
+			<Table>DEVIntegAIPromptDefinition</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+</AxEdt>

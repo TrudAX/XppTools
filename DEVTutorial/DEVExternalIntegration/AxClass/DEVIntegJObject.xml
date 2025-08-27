@@ -433,6 +433,61 @@ class DEVIntegJObject
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>selectTokenPathStr</Name>
+				<Source><![CDATA[
+    public System.String selectTokenPathStr(str _path)
+    {
+        System.String   textJson;
+        JToken  jToken = body.SelectToken(_path);
+        
+        if (jToken == null || jToken.Type == JTokenType::Null)
+        {
+            throw error(strFmt("JSON path '%1' not found in the document", _path));
+        }
+
+        textJson = jToken.ToString();
+
+        return textJson;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>selectTokenPathJSON</Name>
+				<Source><![CDATA[
+    public DEVIntegJObject selectTokenPathJSON(str _path)
+    {
+        DEVIntegJObject res;
+        System.String   textJson;
+
+        textJson = this.selectTokenPathStr(_path);
+        textJson = textJson.Trim();
+
+        if (textJson.StartsWith("```json"))
+        {
+            textJson = textJson.Substring(7);
+        }
+
+        if (textJson.EndsWith("```"))
+        {
+            textJson = textJson.Substring(0, textJson.Length - 3);
+        }
+
+        Newtonsoft.Json.JsonReaderException ex;
+        try
+        {
+            res = DEVIntegJObject::parse(textJson);
+        }
+        catch (ex)
+        {
+            throw error(strFmt("JSON path '%1' contains invalid JSON string: %2", _path, textJson));
+        }
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>add</Name>
 				<Source><![CDATA[
     public void add(str _propertyName, Newtonsoft.Json.Linq.JToken _propertyValue)

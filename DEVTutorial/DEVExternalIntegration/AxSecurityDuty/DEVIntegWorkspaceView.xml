@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityDuty xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegWorkspaceView</Name>
+	<Label>View manage External Integration workspace</Label>
+	<Privileges>
+		<AxSecurityPrivilegeReference>
+			<Name>DEVIntegWorkspaceView</Name>
+		</AxSecurityPrivilegeReference>
+	</Privileges>
+</AxSecurityDuty>

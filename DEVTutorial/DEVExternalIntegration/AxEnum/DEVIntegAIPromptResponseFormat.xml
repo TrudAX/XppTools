@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegAIPromptResponseFormat</Name>
+	<Help>AI Prompt response format</Help>
+	<Label>Response format</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>JSON</Name>
+			<Label>JSON</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Text</Name>
+			<Label>Text</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>TextRaw</Name>
+			<Label>Text - Raw</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

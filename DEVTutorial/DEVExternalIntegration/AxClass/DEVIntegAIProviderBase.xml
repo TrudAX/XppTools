@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegAIProviderBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegAIProviderBase
+{
+    public DEVIntegAIProvider provider;
+
+    public DEVIntegAIPromptResponseFormat   responseFormat;
+    public FreeTxt                          promptText;  
+    public container                        fileContainer;
+    public Filename                         fileName;
+    public DEVIntegAICallStatistics         callStatistics;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(DEVIntegAIProvider _provider)
+    {
+        provider = _provider;
+        callStatistics = new DEVIntegAICallStatistics();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegAIProviderBase construct(DEVIntegAIProvider _provider)
+    {
+        DEVIntegAIProviderBase ret;
+        
+        switch (_provider.ProviderType)
+        {
+            case DEVIntegAIProviderType::Gemini:
+                ret = new DEVIntegAIProviderGemini(_provider);
+                break;
+            default:
+                ret = new DEVIntegAIProviderBase(_provider);
+        }
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructFromPromptDefinition</Name>
+				<Source><![CDATA[
+    public static DEVIntegAIProviderBase constructFromPromptDefinition(DEVIntegAIPromptDefinition _promptDefinition)
+    {
+        DEVIntegAIProviderBase ret;
+        DEVIntegAIProvider     provider = _promptDefinition.getProvider();
+        
+        ret = DEVIntegAIProviderBase::construct(provider);
+        ret.parmResponseFormat(_promptDefinition.ResponseFormat);
+        ret.parmPromptText(_promptDefinition.PromptText);
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setFileContainer</Name>
+				<Source><![CDATA[
+    public void setFileContainer(Filename _fileName, container _fileContainer)
+    {
+        fileName      = _fileName;
+        fileContainer = _fileContainer;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getMimeTypeFromFileName</Name>
+				<Source><![CDATA[
+    public str getMimeTypeFromFileName()
+    {
+        str           ext = System.IO.Path::GetExtension(fileName);
+        str           mimeType;
+
+        switch (ext)
+        {
+            case '.pdf'  : 
+                mimeType = 'application/pdf'; 
+                break;
+            case '.txt'  : 
+                mimeType = 'text/plain'; 
+                break;
+            case '.jpg'  :
+            case '.jpeg' : 
+                mimeType = 'image/jpeg'; 
+                break;
+            case '.png'  : 
+                mimeType = 'image/png'; 
+                break;
+            case '.doc'  : 
+                mimeType = 'application/msword'; 
+                break;
+            case '.docx' : 
+                mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'; 
+                break;
+            case '.json' : 
+                mimeType = 'application/json'; 
+                break;
+            case '.xml'  : 
+                mimeType = 'application/xml'; 
+                break;
+            default      : 
+                mimeType = 'application/octet-stream'; 
+        }
+
+        
+        return mimeType;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPromptText</Name>
+				<Source><![CDATA[
+    public FreeTxt parmPromptText(FreeTxt _promptText = promptText)
+    {
+        promptText = _promptText;
+        return promptText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmResponseFormat</Name>
+				<Source><![CDATA[
+    public DEVIntegAIPromptResponseFormat parmResponseFormat(DEVIntegAIPromptResponseFormat _responseFormat = responseFormat)
+    {
+        responseFormat = _responseFormat;
+        return responseFormat;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callAPIText</Name>
+				<Source><![CDATA[
+    public str callAPIText()
+    {
+        return '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callAPIJson</Name>
+				<Source><![CDATA[
+    public DEVIntegJObject callAPIJson()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getStatistics</Name>
+				<Source><![CDATA[
+    public DEVIntegAICallStatistics getStatistics()
+    {
+        return callStatistics;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getParameterValue</Name>
+				<Source><![CDATA[
+    public str getParameterValue(str _parameterName)
+    {
+        DEVIntegAIProviderParameters providerParam;
+        str ret;
+        
+        providerParam = DEVIntegAIProviderParameters::find(provider.ProviderId, _parameterName);
+        
+        if (!providerParam)
+        {
+            throw error(strFmt("Parameter '%1' is not defined for provider '%2'", _parameterName, provider.ProviderId));
+        }
+        
+        ret = providerParam.ParameterValue ? providerParam.ParameterValue : providerParam.ParameterDefaultValue;
+        
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParameters</Name>
+				<Source><![CDATA[
+    public void initParameters(boolean _isHard)
+    {
+        container parameterContainer = this.defineParameters();
+        int i;
+        str parameterName;
+        str parameterValue;
+        DEVIntegAIProviderParameters providerParam;
+        
+        ttsbegin;
+        if (_isHard)
+        {
+            delete_from providerParam
+                where providerParam.ProviderId == provider.ProviderId;
+        }
+        for (i = 1; i <= conLen(parameterContainer); i += 2)
+        {
+            parameterName = conPeek(parameterContainer, i);
+            parameterValue = conPeek(parameterContainer, i + 1);
+            
+            providerParam = DEVIntegAIProviderParameters::find(provider.ProviderId, parameterName, true);
+            
+            providerParam.ProviderId            = provider.ProviderId;
+            providerParam.ParameterName         = parameterName;
+            providerParam.ParameterDefaultValue = parameterValue;
+            providerParam.write();
+        }
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defineParameters</Name>
+				<Source><![CDATA[
+    protected container defineParameters()
+    {
+        return conNull();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -200,6 +200,17 @@ public class DEVIntegJsonWriter
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>writePropertyObject</Name>
+				<Source><![CDATA[
+    public void writePropertyObject(str _propertyName)
+    {
+        jsonWriter.WritePropertyName(_propertyName);
+        this.writeStartObject();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>getJsonString</Name>
 				<Source><![CDATA[
     public str getJsonString()

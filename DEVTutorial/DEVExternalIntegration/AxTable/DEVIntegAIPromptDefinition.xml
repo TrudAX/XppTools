@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegAIPromptDefinition</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegAIPromptDefinition extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEVIntegAIPromptDefinition find(DEVIntegAIPromptDefinitionId  _promptDefinitionId,
+                                                  boolean                       _forUpdate = false)
+    {
+        DEVIntegAIPromptDefinition integAIPromptDefinition;
+        ;
+        if (_promptDefinitionId)
+        {
+            integAIPromptDefinition.selectForUpdate(_forUpdate);
+            
+            select firstonly integAIPromptDefinition
+                where integAIPromptDefinition.PromptDefinitionId  == _promptDefinitionId;
+        }
+        
+        return integAIPromptDefinition;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getProvider</Name>
+				<Source><![CDATA[
+    public DEVIntegAIProvider getProvider()
+    {
+        DEVIntegAIProvider provider;
+        ;
+        
+        provider = DEVIntegAIProvider::find(this.ProviderId);
+        
+        if (!provider.RecId)
+        {
+            throw error(strFmt("Provider with ID '%1' not found", this.ProviderId));
+        }
+        
+        return provider;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<FormRef>DEVIntegAIPromptDefinition</FormRef>
+	<Label>AI Prompt Definition</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>Group</TableGroup>
+	<TitleField1>PromptDefinitionId</TitleField1>
+	<TitleField2>Description</TitleField2>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<CacheLookup>Found</CacheLookup>
+	<ClusteredIndex>PromptDefinitionIdIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>PromptDefinitionIdIdx</PrimaryIndex>
+	<ReplacementKey>PromptDefinitionIdIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PromptDefinitionId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PromptDefinitionId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>DetailsHeaderGroup</Name>
+			<Label>Details header</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PromptDefinitionId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Description</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ProviderId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ResponseFormat</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Other</Name>
+			<Label>Other</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PromptText</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Notes</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PromptDefinitionId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegAIPromptDefinitionId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Description</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PromptText</Name>
+			<ExtendedDataType>FreeTxt</ExtendedDataType>
+			<HelpText>Specify a detailed prompt text</HelpText>
+			<Label>Prompt Text</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ProviderId</Name>
+			<ExtendedDataType>DEVIntegAIProviderId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ResponseFormat</Name>
+			<EnumType>DEVIntegAIPromptResponseFormat</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Notes</Name>
+			<ExtendedDataType>FreeTxt</ExtendedDataType>
+			<HelpText>Notes for the prompt construction. They will not be used in the call</HelpText>
+			<Label>Notes</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>PromptDefinitionIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>PromptDefinitionId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegAIProvider</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>DEVIntegAIProvider</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>ProviderId</Name>
+					<SourceEDT>DEVIntegAIProviderId</SourceEDT>
+					<Field>ProviderId</Field>
+					<RelatedField>ProviderId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

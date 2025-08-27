@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegAIProviderGemini</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegAIProviderGemini extends DEVIntegAIProviderBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(DEVIntegAIProvider _provider)
+    {
+        super(_provider);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callApiInternal</Name>
+				<Source><![CDATA[
+    protected DEVIntegJObject callApiInternal()
+    {
+        str                     jsonContent;
+        DEVIntegConnectionType  connectionType = DEVIntegConnectionType::find(provider.ConnectionTypeId);
+        DEVIntegExternalServiceHttpClient       externalServiceHttpClient;
+        DEVIntegJObject                         jObjectMain;
+
+        callStatistics.markStart();
+
+        try
+        {
+            jsonContent = this.buildJsonRequest();
+
+            externalServiceHttpClient = DEVIntegExternalServiceHttpClient::construct().withTimeoutInSec(connectionType.TimeoutInSec);
+
+            str requestUrl = strFmt('%1/%2?key=%3', connectionType.getWebHostNoSlash(), 
+                                                    this.getParameterValue('model'),                        
+                                                    connectionType.getWebPassword());
+
+            var   body       = externalServiceHttpClient.invokeOperationSimple(requestUrl, System.Net.Http.HttpMethod::Post, jsonContent);
+
+            jObjectMain = DEVIntegJObject::parse(body);
+        }
+        finally
+        {
+            callStatistics.markEnd();
+        }
+        this.extractTokenUsage(jObjectMain);
+
+        return jObjectMain;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callAPIText</Name>
+				<Source><![CDATA[
+    public str callAPIText()
+    {
+        DEVIntegJObject jObjectMain = this.callApiInternal();
+        str             textStr;
+
+        switch (responseFormat)
+        {
+            case DEVIntegAIPromptResponseFormat::JSON:
+                DEVIntegJObject jObjectText = jObjectMain.selectTokenPathJSON('candidates[0].content.parts[0].text');
+                textStr = jObjectText.body.ToString();
+                break;
+            case DEVIntegAIPromptResponseFormat::Text:
+                textStr = jObjectMain.selectTokenPathStr('candidates[0].content.parts[0].text');
+                break;
+            case DEVIntegAIPromptResponseFormat::TextRaw:
+                textStr = jObjectMain.body.ToString();
+                break;
+            default:
+                throw error(strFmt("Unsupported response format: %1", responseFormat));
+        }
+        
+        return textStr;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>callAPIJson</Name>
+				<Source><![CDATA[
+    public DEVIntegJObject callAPIJson()
+    {
+        DEVIntegJObject jObjectMain = this.callApiInternal();
+
+        DEVIntegJObject jObjectText = jObjectMain.selectTokenPathJSON('candidates[0].content.parts[0].text');
+
+        return jObjectText;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildJsonRequest</Name>
+				<Source><![CDATA[
+    public str buildJsonRequest()
+    {
+        DEVIntegJsonWriter                  jsonWriter;
+        str                                 jsonContent;
+        str                                 base64String;
+        System.IO.MemoryStream              fileMemory;
+        ;
+        if (fileContainer != conNull())
+        {
+            Binary b = Binary::constructFromContainer(fileContainer);
+            fileMemory = b.getMemoryStream();
+
+            base64String = System.Convert::ToBase64String(fileMemory.ToArray());
+        }
+        // Build JSON request using DEVIntegJsonWriter
+        jsonWriter = DEVIntegJsonWriter::construct();
+            
+        jsonWriter.writeStartObject();
+            
+        // Write contents array
+        jsonWriter.writeStartArray('contents');
+        jsonWriter.writeStartObject();
+            
+        // Write parts array
+        jsonWriter.writeStartArray('parts');
+            
+        // Write text part
+        jsonWriter.writeStartObject();
+        jsonWriter.writePropertyString('text', promptText);
+        jsonWriter.writeEndObject();
+            
+        // Write inline_data part
+        if (base64String)
+        {
+            jsonWriter.writeStartObject();
+            jsonWriter.writePropertyObject('inline_data');
+            jsonWriter.writePropertyString('mime_type', this.getMimeTypeFromFileName());
+            jsonWriter.writePropertyString('data', base64String);
+            jsonWriter.writeEndObject(); // End inline_data part
+            jsonWriter.writeEndObject();
+        }
+        jsonWriter.writeEndArray(); // End parts
+        jsonWriter.writeEndObject(); // End content object
+        jsonWriter.writeEndArray(); // End contents
+            
+        // Write generationConfig
+        jsonWriter.writePropertyObject('generationConfig');
+        jsonWriter.writePropertyReal('temperature', 0);
+        jsonWriter.writePropertyObject('thinkingConfig');
+        jsonWriter.writePropertyInt('thinkingBudget', 0);
+        jsonWriter.writeEndObject();
+        jsonWriter.writePropertyString('response_mime_type', responseFormat == DEVIntegAIPromptResponseFormat::JSON ? 
+                                                            @'application/json' : @'text/plain');
+        jsonWriter.writeEndObject();
+            
+        jsonWriter.writeEndObject(); // End root object
+            
+        jsonContent = jsonWriter.getJsonString();
+        return jsonContent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>extractTokenUsage</Name>
+				<Source><![CDATA[
+    protected void extractTokenUsage(DEVIntegJObject _apiResponse)
+    {
+        int promptTokens = 0;
+        int candidateTokens = 0;
+
+        try
+        {
+            DEVIntegJObject usageMetadata = _apiResponse.selectTokenPathJSON('usageMetadata');
+            if (usageMetadata)
+            {
+                promptTokens = usageMetadata.getValueInt('promptTokenCount');
+                candidateTokens = usageMetadata.getValueInt('candidatesTokenCount');
+                
+                callStatistics.setTokenUsage(promptTokens, candidateTokens);
+            }
+        }
+        catch
+        {
+            info("Unable to extract token usage from API response");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return 'Create a connection to the Gemini AI: https://generativelanguage.googleapis.com/v1beta/models/' + '  \n' +
+                'Documentation: https://ai.google.dev/api/generate-content#text_gen_text_only_prompt-SHELL';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>defineParameters</Name>
+				<Source><![CDATA[
+    protected container defineParameters()
+    {
+        return ['model', 'gemini-2.5-flash:generateContent'];
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

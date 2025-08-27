@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegAIPromptTestLoadFile</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegAIPromptTestLoadFile extends RunBase
+{
+    Integer dummy;
+    
+    
+    
+    DEVIntegAIPromptDefinition callerAIPromptDefinition;
+    
+    DialogRunbase     dialog;
+    private const str FileUploadName = 'FileUpload';
+    private const str OkButtonName   = 'OkButton';
+    FileUploadTemporaryStorageResult    fileUploadResult;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        dummy
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        dialog = super();
+        DialogGroup       dialogGroup;
+        FormBuildControl  formBuildControl;
+        FileUploadBuild   dialogFileUpload;
+        ;
+        dialogGroup      = dialog.addGroup("File");
+        formBuildControl = dialog.formBuildDesign().control(dialogGroup.name());
+        dialogFileUpload = formBuildControl.addControlEx(classstr(FileUpload), FileUploadName);
+        dialogFileUpload.style(FileUploadStyle::MinimalWithFilename);
+        dialogFileUpload.baseFileUploadStrategyClassName(classstr(FileUploadTemporaryStorageStrategy));
+        dialogFileUpload.fileTypesAccepted('.pdf');
+        dialogFileUpload.fileNameLabel("@SYS308842");
+        
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        FileUpload  fileUploadControl = this.getFormControl(dialog, FileUploadName);
+        fileUploadResult = fileUploadControl.getFileUploadResult();
+        
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCallerAIPromptDefinition</Name>
+				<Source><![CDATA[
+    public DEVIntegAIPromptDefinition parmCallerAIPromptDefinition(DEVIntegAIPromptDefinition _callerAIPromptDefinition = callerAIPromptDefinition)
+    {
+        callerAIPromptDefinition = _callerAIPromptDefinition;
+        return callerAIPromptDefinition;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        System.IO.MemoryStream memoryStreamFile;
+        try
+        {
+            if (!fileUploadResult)
+            {
+                throw error("File is empty");
+            }
+            //get file names
+            container fileNameCon = Docu::splitFilename(fileUploadResult.getFileName());
+            if (!fileNameCon)
+            {
+                throw error("File is empty");
+            }
+            str fileName   = strFmt('%1.%2', conPeek(fileNameCon, 1), conPeek(fileNameCon, 2));
+            //get file data
+            memoryStreamFile = fileUploadResult.openResult();
+            
+            ttsbegin;
+            DEVIntegAIPromptDefinitionTestData  promptDefinitionTestData;
+            select forupdate firstonly promptDefinitionTestData
+                where promptDefinitionTestData.PromptDefinitionId == callerAIPromptDefinition.PromptDefinitionId;
+            promptDefinitionTestData.PromptDefinitionId = callerAIPromptDefinition.PromptDefinitionId;
+            promptDefinitionTestData.FileName           = fileName;
+            memoryStreamFile.Position = 0;
+            Binary  b = Binary::constructFromMemoryStream(memoryStreamFile);
+            promptDefinitionTestData.FileData           = b.getContainer();
+            promptDefinitionTestData.write();
+
+            ttscommit;
+
+        }
+        catch (Exception::Error)
+        {
+            exceptionTextFallThrough();
+        }
+        finally
+        {
+            fileUploadResult.deleteResult();
+            memoryStreamFile = null;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialogPostRun</Name>
+				<Source><![CDATA[
+    public void dialogPostRun(DialogRunbase _dialog)
+    {
+        FileUpload fileUpload = this.getFormControl(_dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted += eventhandler(this.uploadCompleted);
+        this.setDialogOkButtonEnabled(_dialog, false);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>uploadCompleted</Name>
+				<Source><![CDATA[
+    protected void uploadCompleted()
+    {
+        FileUpload fileUpload = this.getFormControl(dialog, FileUploadName);
+        fileUpload.notifyUploadCompleted -= eventhandler(this.uploadCompleted);
+        this.setDialogOkButtonEnabled(dialog, true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDialogOkButtonEnabled</Name>
+				<Source><![CDATA[
+    protected void setDialogOkButtonEnabled(DialogRunbase _dialog, boolean _isEnabled)
+    {
+        FormControl okButtonControl = this.getFormControl(_dialog, OkButtonName);
+        if (okButtonControl)
+        {
+            okButtonControl.enabled(_isEnabled);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFormControl</Name>
+				<Source><![CDATA[
+    protected FormControl getFormControl(DialogRunbase _dialog, str _controlName)
+    {
+        return _dialog.formRun().control(_dialog.formRun().controlId( _controlName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegAIPromptTestLoadFile construct()
+    {
+        return new DEVIntegAIPromptTestLoadFile();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Load test file";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegAIPromptTestLoadFile    runObject = DEVIntegAIPromptTestLoadFile::construct();
+        ;
+        if (_args.dataset() != tablenum(DEVIntegAIPromptDefinition))
+        {
+            throw error(Error::missingRecord(funcname()));
+        }
+        runObject.parmCallerAIPromptDefinition(_args.record());
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

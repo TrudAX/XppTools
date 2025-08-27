@@ -73,6 +73,23 @@
 			<Label>Setup</Label>
 			<Elements>
 				<AxMenuElement xmlns=""
+					i:type="AxMenuElementSubMenu">
+					<Name>AISubmenu</Name>
+					<Label>AI</Label>
+					<Elements>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>DEVIntegAIPromptDefinition</Name>
+							<MenuItemName>DEVIntegAIPromptDefinition</MenuItemName>
+						</AxMenuElement>
+						<AxMenuElement xmlns=""
+							i:type="AxMenuElementMenuItem">
+							<Name>DEVIntegAIProvider</Name>
+							<MenuItemName>DEVIntegAIProvider</MenuItemName>
+						</AxMenuElement>
+					</Elements>
+				</AxMenuElement>
+				<AxMenuElement xmlns=""
 					i:type="AxMenuElementMenuItem">
 					<Name>DEVIntegConnectionType</Name>
 					<MenuItemName>DEVIntegConnectionType</MenuItemName>

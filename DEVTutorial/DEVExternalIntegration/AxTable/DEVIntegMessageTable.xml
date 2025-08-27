@@ -623,7 +623,6 @@ public class DEVIntegMessageTable extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldEnum">
 			<Name>IsParsed</Name>
-			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>NoYesId</ExtendedDataType>
 			<HelpText>Staging data created</HelpText>
 			<Label>Staging</Label>
@@ -639,6 +638,7 @@ public class DEVIntegMessageTable extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt">
 			<Name>ProcessingAttempts</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<HelpText>Number of processing attempts</HelpText>
 			<Label>Processing attempts</Label>
@@ -646,6 +646,7 @@ public class DEVIntegMessageTable extends common
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
 			<Name>HoldDescription</Name>
+			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>DEVIntegOnHoldDescription</ExtendedDataType>
 		</AxTableField>
 		<AxTableField xmlns=""
