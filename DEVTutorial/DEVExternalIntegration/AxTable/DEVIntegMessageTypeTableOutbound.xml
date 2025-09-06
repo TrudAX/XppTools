@@ -663,6 +663,9 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				<AxTableFieldGroupField>
 					<DataField>ParmNumberOfLinesInOneMessage</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsSkipEmptyMessages</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 	</FieldGroups>
@@ -819,6 +822,14 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<ExtendedDataType>NoYesId</ExtendedDataType>
 			<HelpText>Clear all system caches before operation execution</HelpText>
 			<Label>Clear cache before run</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsSkipEmptyMessages</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Do not send messages with no lines in data section</HelpText>
+			<Label>Skip empty messages</Label>
 			<EnumType>NoYes</EnumType>
 		</AxTableField>
 	</Fields>
