@@ -5,8 +5,9 @@
 		<Declaration><![CDATA[
 class DEVIntegManualFileImport extends RunBaseBatch
 {
-    DEVIntegMessageTypeIdInbound      messageTypeId;
-    DialogField                dlgMessageTypeId;
+    DEVIntegMessageTypeIdInbound    messageTypeId;
+    DialogField                     dlgMessageTypeId;
+    FileUploadBuild                 dialogFileUpload;
 
     DialogRunbase     dialog;
     private const str FileUploadName  = 'FileUpload';
@@ -48,7 +49,7 @@ class DEVIntegManualFileImport extends RunBaseBatch
 
         DialogGroup      dialogGroup;
         FormBuildControl formBuildControl;
-        FileUploadBuild  dialogFileUpload;
+
 
         ;
         dialogGroup = dialog.addGroup("File");
@@ -56,7 +57,7 @@ class DEVIntegManualFileImport extends RunBaseBatch
         dialogFileUpload = formBuildControl.addControlEx(classstr(FileUpload), FileUploadName);
         dialogFileUpload.style(FileUploadStyle::MinimalWithFilename);
         dialogFileUpload.baseFileUploadStrategyClassName(classstr(DEVIntegFileUploadTemporaryStorageStrategyAny));
-        dialogFileUpload.fileNameLabel("@SYS308842");
+        dialogFileUpload.fileNameLabel("@SYS308842"); 
     
         dlgMessageTypeId             = dialog.addFieldValue(extendedtypestr(DEVIntegMessageTypeIdInbound), messageTypeId);
         dlgMessageTypeId.mandatory_RU(true);
@@ -79,7 +80,9 @@ class DEVIntegManualFileImport extends RunBaseBatch
     public void dialogPostRun(DialogRunbase _dialog)
     {
         FileUpload fileUpload = this.getFormControl(_dialog, FileUploadName);
+        //fileUpload.notifyBrowseButtonClicked += eventhandler(this.OnBrowseButtonClicked);      
         fileUpload.notifyUploadCompleted += eventhandler(this.uploadCompleted);
+       
         this.setDialogOkButtonEnabled(_dialog, false);
 
         this.modifiedMessageTypeId(dlgMessageTypeId);
@@ -93,9 +96,37 @@ class DEVIntegManualFileImport extends RunBaseBatch
     protected void uploadCompleted()
     {
         FileUpload fileUpload = this.getFormControl(dialog, FileUploadName);
-        fileUpload.notifyUploadCompleted -= eventhandler(this.uploadCompleted);
+        //fileUpload.notifyUploadCompleted -= eventhandler(this.uploadCompleted);
         
         this.setDialogOkButtonEnabled(dialog, true);
+        this.getFromDialog();
+
+        if (this.checkForDuplicates())
+        {
+            DEVIntegMessageTable messageTableLoc;
+            select firstonly messageTableLoc
+                where messageTableLoc.Name           == fileUploadResult.getFileName() &&
+                      messageTableLoc.MessageTypeId  == messageTypeId;
+            if(messageTableLoc.Name)
+            {
+                DialogButton confirmButton = Box::yesNo(strFmt("File %1 already exists with status %2 created by user %3 on date %4, do you want to import again?", 
+                    messageTableLoc.Name, messageTableLoc.Status, messageTableLoc.CreatedBy, messageTableLoc.CreatedDateTime),DialogButton::No);
+                if(confirmButton == DialogButton::No)
+                {
+                    dialog.close();
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkForDuplicates</Name>
+				<Source><![CDATA[
+    public boolean checkForDuplicates()
+    {
+        return true;
     }
 
 ]]></Source>
