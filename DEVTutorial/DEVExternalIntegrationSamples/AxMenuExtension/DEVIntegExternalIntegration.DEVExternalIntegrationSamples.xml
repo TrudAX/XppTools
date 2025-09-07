@@ -69,6 +69,14 @@
 				<MenuItemName>DEVIntegTutorialWebSalesTableStaging</MenuItemName>
 			</MenuElement>
 		</AxMenuExtensionElement>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>Inquiries</Parent>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementMenuItem">
+				<Name>DEVIntegTutorialPurchOrderOCRStaging</Name>
+				<MenuItemName>DEVIntegTutorialPurchOrderOCRStaging</MenuItemName>
+			</MenuElement>
+		</AxMenuExtensionElement>
 	</Elements>
 	<MenuElementModifications />
 	<PropertyModifications />

@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialPurchOrderOCRStagingHeader</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialPurchOrderOCRStagingHeader extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>shouldThrowExceptionOnZeroDelete</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines if concurrent deletes should throw exception.
+    /// </summary>
+    /// <returns>true, if exception should be thrown; otherwise, false.</returns>
+    public boolean shouldThrowExceptionOnZeroDelete()
+    {
+        boolean ret;
+    
+        ret = super();
+    
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InvoiceRoundingAmount</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    public display Amount InvoiceRoundingAmount()
+    {
+        DEVIntegTutorialPurchOrderOCRStagingLine  stagingLine;
+        select sum(RoundingAmount) from stagingLine
+            where stagingLine.HeaderRecId == this.RecId;
+
+        return stagingLine.RoundingAmount ;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InvoiceTotalAmountLines</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    public display Amount InvoiceTotalAmountLines() 
+    {
+        DEVIntegTutorialPurchOrderOCRStagingLine  stagingLine;
+        select sum(TotalAmount) from stagingLine
+            where stagingLine.HeaderRecId == this.RecId;
+
+        return stagingLine.TotalAmount + this.ChargeValueFile;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>InvoiceTotalQtyLines</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    public display Qty InvoiceTotalQtyLines() 
+    {
+        DEVIntegTutorialPurchOrderOCRStagingLine  stagingLine;
+        select sum(Quantity) from stagingLine
+            where stagingLine.HeaderRecId == this.RecId;
+
+        return stagingLine.Quantity;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPurchTable</Name>
+				<Source><![CDATA[
+    PurchTable  getPurchTable(boolean _forUpdate = false)
+    {
+        PurchTable      purchTable;
+        CompanyId       companyId;
+        ;
+        companyId = curExt();
+        if (companyId)
+        {
+            changecompany(companyId)
+            {
+                purchTable = PurchTable::find(this.PurchId, _forUpdate);
+            }
+        }
+        return purchTable;
+    
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Tutorial Purch import from OCR header staging </Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>VendorNameFile</TitleField1>
+	<TitleField2>PurchPoolIdFile</TitleField2>
+	<AllowArchival>Yes</AllowArchival>
+	<AllowRetention>Yes</AllowRetention>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>PurchId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderAccount</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MessageRefRecId</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Reference</Name>
+			<Label>Reference</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>MessageRefRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PurchId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderAccount</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>FileData</Name>
+			<Label>File data</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>VendorNameFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiptDateFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PurchPoolIdFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ChargeValueFile</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>LinesTotal</Name>
+			<Label>Lines total</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InvoiceTotalQtyFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InvoiceTotalQtyLines</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InvoiceTotalAmountFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InvoiceTotalAmountLines</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>VendorNameFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ChargeValueFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReceiptDateFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PurchPoolIdFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>InvoiceTotalAmountFile</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PurchId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>OrderAccount</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>RoundingGroup</Name>
+			<Label>Rounding</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>InvoiceRoundingAmount</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>MessageRefRecId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEVIntegMessageRefRecId</ExtendedDataType>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PurchId</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>PurchId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>OrderAccount</Name>
+			<ExtendedDataType>VendAccount</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>VendorNameFile</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<Label>Vendor name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>ReceiptDateFile</Name>
+			<ExtendedDataType>PurchTableRequestedReceiptDate</ExtendedDataType>
+			<Label>Receipt date</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>PurchPoolIdFile</Name>
+			<ExtendedDataType>PurchPoolId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>ChargeValueFile</Name>
+			<ExtendedDataType>Amount</ExtendedDataType>
+			<HelpText>Charge amount from the file</HelpText>
+			<Label>Charge amount</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>InvoiceTotalAmountFile</Name>
+			<ExtendedDataType>Amount</ExtendedDataType>
+			<HelpText>Invoice total amount from the file</HelpText>
+			<Label>Invoice amount</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>InvoiceTotalQtyFile</Name>
+			<ExtendedDataType>Qty</ExtendedDataType>
+			<HelpText>Invoice total quantity from the file</HelpText>
+			<Label>Invoice qty</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>MessageIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>MessageRefRecId</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEVIntegMessageTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DEVIntegMessageTable</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>MessageRefRecId</Name>
+					<SourceEDT>DEVIntegMessageRefRecId</SourceEDT>
+					<Field>MessageRefRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>PurchTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>PurchTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>PurchId</Name>
+					<SourceEDT>PurchId</SourceEDT>
+					<Field>PurchId</Field>
+					<RelatedField>PurchId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>VendTable</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>VendTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>OrderAccount</Name>
+					<SourceEDT>VendAccount</SourceEDT>
+					<Field>OrderAccount</Field>
+					<RelatedField>AccountNum</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>PurchPool</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>PurchPool</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>PurchPoolIdFile</Name>
+					<SourceEDT>PurchPoolId</SourceEDT>
+					<Field>PurchPoolIdFile</Field>
+					<RelatedField>PurchPoolId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

@@ -255,6 +255,15 @@ public class DEVIntegParameters extends FormRun
 					<DataField>POExportOnConfirm</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>POInvoiceImportAdminMarkup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>POInvoiceIsProcessAfterImport</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>POInvoiceZeroGSTGroup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>ProductExportCustomer</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -654,6 +663,57 @@ public class DEVIntegParameters extends FormRun
 										<ColumnsMode>Fill</ColumnsMode>
 										<Caption>Tutorial Export</Caption>
 										<DataSource>DEVIntegParametersPerCompany</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormTabPageControl">
+										<Name>FormTabPageControl1</Name>
+										<Pattern>FieldsFieldGroups</Pattern>
+										<PatternVersion>1.1</PatternVersion>
+										<Type>TabPage</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormGroupControl">
+												<Name>POImportFromPDF</Name>
+												<Type>Group</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Controls>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>POImportFromPDF_POInvoiceZeroGSTGroup</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>POInvoiceZeroGSTGroup</DataField>
+														<DataSource>DEVIntegParametersPerCompany</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormStringControl">
+														<Name>POImportFromPDF_POInvoiceImportAdminMarkup</Name>
+														<Type>String</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>POInvoiceImportAdminMarkup</DataField>
+														<DataSource>DEVIntegParametersPerCompany</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormCheckBoxControl">
+														<Name>POImportFromPDF_POInvoiceIsProcessAfterImport</Name>
+														<Type>CheckBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>POInvoiceIsProcessAfterImport</DataField>
+														<DataSource>DEVIntegParametersPerCompany</DataSource>
+													</AxFormControl>
+												</Controls>
+												<DataGroup>POImportFromPDF</DataGroup>
+												<DataSource>DEVIntegParametersPerCompany</DataSource>
+											</AxFormControl>
+										</Controls>
+										<ColumnsMode>Fill</ColumnsMode>
+										<Caption>Purch create from PDF</Caption>
 									</AxFormControl>
 								</Controls>
 								<AlignChild>No</AlignChild>

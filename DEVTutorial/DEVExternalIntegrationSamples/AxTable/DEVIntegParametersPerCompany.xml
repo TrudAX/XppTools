@@ -164,6 +164,21 @@ public class DEVIntegParametersPerCompany extends common
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>POImportFromPDF</Name>
+			<Label>Import Purch order from PDF</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>POInvoiceZeroGSTGroup</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>POInvoiceImportAdminMarkup</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>POInvoiceIsProcessAfterImport</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
 	</FieldGroups>
 	<Fields>
 		<AxTableField xmlns=""
@@ -227,6 +242,27 @@ public class DEVIntegParametersPerCompany extends common
 			i:type="AxTableFieldEnum">
 			<Name>POExportOnConfirm</Name>
 			<EnumType>DEVIntegTutorialExportOnConfirm</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>POInvoiceZeroGSTGroup</Name>
+			<ExtendedDataType>TaxItemGroup</ExtendedDataType>
+			<HelpText>Zero GST item group</HelpText>
+			<Label>Zero GST group</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>POInvoiceImportAdminMarkup</Name>
+			<ExtendedDataType>PurchMarkupCode</ExtendedDataType>
+			<Label>Admin markup code</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>POInvoiceIsProcessAfterImport</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Create PO after the import or review the staging data</HelpText>
+			<Label>Process after the import</Label>
+			<EnumType>NoYes</EnumType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

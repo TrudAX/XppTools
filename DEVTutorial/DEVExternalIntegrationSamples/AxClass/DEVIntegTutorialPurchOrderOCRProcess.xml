@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialPurchOrderOCRProcess</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/*
+You are an expert at extracting structured data from PDF invoices.
+
+*/
+
+public class DEVIntegTutorialPurchOrderOCRProcess extends DEVIntegProcessMessageBase
+{
+    DEVIntegTutorialPurchOrderOCRStagingHeader     integStagingPurchHeader;
+    DEVIntegTutorialPurchOrderOCRStagingLine       integStagingPurchLine;
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>processMessage</Name>
+				<Source><![CDATA[
+    void  processMessage(DEVIntegMessageTable  _messageTable, DEVIntegMessageProcessResult _messageProcessResult)
+    {
+        CompanyId           companyId;
+        DEVIntegParametersPerCompany          integParametersPerCompany = integParametersPerCompany::find();
+        ;
+        messageTable         =  _messageTable;
+        messageProcessResult =  _messageProcessResult;
+    
+        if (! _messageTable.IsParsed)
+        {
+            delete_from integStagingPurchHeader
+                where integStagingPurchHeader.MessageRefRecId == messageTable.RecId;
+            delete_from integStagingPurchLine
+                where integStagingPurchLine.MessageRefRecId == messageTable.RecId;
+    
+            this.readFileToStaging();
+
+            if (! this.validateStaging())
+            {
+                throw error(strFmt("File %1. Validation of staging data failed. To run validation again, clear %2 flag", 
+                            _messageTable.Name, fieldId2PName(_messageTable.TableId, fieldNum(DEVIntegMessageTable, IsParsed))));
+            }
+            
+            if (! integParametersPerCompany.POInvoiceIsProcessAfterImport)
+            {
+                info(strFmt("File %1 loaded sucessfully, check the staging data and press Process to create Purch order", _messageTable.Name));
+                _messageProcessResult.setMessageStatus(DEVIntegMessageStatus::Ready);
+                return;
+            }
+        }
+        integStagingPurchHeader = null;
+        select integStagingPurchHeader
+            where integStagingPurchHeader.MessageRefRecId == messageTable.RecId;
+    
+        companyId = _messageTable.CompanyId;
+        changeCompany(companyId)
+        {
+            this.createDataFromStaging();
+        }
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateStaging</Name>
+				<Source><![CDATA[
+    public boolean validateStaging()
+    {
+        VendTable            vendTable;
+        DirPartyTable        dirPartyTable;
+        ;
+
+        ttsbegin;
+        
+        integStagingPurchHeader = null;
+        select forupdate integStagingPurchHeader
+            where integStagingPurchHeader.MessageRefRecId == messageTable.RecId;
+
+        if (! integStagingPurchHeader.VendorNameFile)
+        {
+            warning("Vendor name is empty");
+            messageProcessResult.incErrorCount();
+        }
+        else
+        {
+            select firstonly vendTable
+            join dirPartyTable
+                where vendTable.Party    == dirPartyTable.RecId &&
+                      dirPartyTable.Name == integStagingPurchHeader.VendorNameFile;
+            if (! vendTable.RecId)
+            {
+                warning(strFmt("Vendor %1 not found", integStagingPurchHeader.VendorNameFile));
+                messageProcessResult.incErrorCount();
+            }
+            else
+            {
+                integStagingPurchHeader.OrderAccount = vendTable.AccountNum;
+                integStagingPurchHeader.update();
+            }
+        }
+        if (integStagingPurchHeader.PurchPoolIdFile && 
+            ! PurchPool::exist(integStagingPurchHeader.PurchPoolIdFile))
+        {
+            warning(strFmt("Purch pool %1 not found", integStagingPurchHeader.PurchPoolIdFile));
+            messageProcessResult.incErrorCount();
+        }
+        DEVIntegTutorialPurchOrderOCRStagingLine   integStagingPurchLineNext;
+
+        while select forupdate integStagingPurchLine
+            order by LineNumberFile
+            where integStagingPurchLine.HeaderRecId == integStagingPurchHeader.RecId
+        {
+
+            if (integStagingPurchLine.Color && ! EcoResColor::findByName(integStagingPurchLine.Color).RecId)
+            {
+                warning(strFmt("Color '%1' not found on line %2", integStagingPurchLine.Color, integStagingPurchLine.LineNumberFile));
+                messageProcessResult.incErrorCount();
+            }
+            if (! integStagingPurchLine.ItemId || ! InventTable::exist(integStagingPurchLine.ItemId))
+            {
+                warning(strFmt("Item mapping %1 not found on line %2", integStagingPurchLine.ItemId, integStagingPurchLine.LineNumberFile));
+                messageProcessResult.incErrorCount();
+            }
+            
+        }
+
+        ttscommit;
+
+        return  messageProcessResult.hasErrors() ? false : true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createDataFromStaging</Name>
+				<Source><![CDATA[
+    void createDataFromStaging()
+    {
+        PurchTable            purchTable;
+        PurchLine             purchLine;
+
+        InventDim            inventDim;
+    
+        TaxGroupData          taxGroupData;
+        boolean               isNeedPOConfirm;
+        PurchFormLetter       purchFormLetter;
+        DEVIntegParametersPerCompany          integParametersPerCompany = integParametersPerCompany::find();
+        ;
+
+        ttsBegin;
+
+        DEV::validateCursorField(integParametersPerCompany, fieldNum(DEVIntegParametersPerCompany, POInvoiceZeroGSTGroup), true);
+    
+        integStagingPurchHeader = null;
+        select forupdate integStagingPurchHeader
+            where integStagingPurchHeader.MessageRefRecId == messageTable.RecId;
+        if (! VendTable::exist(integStagingPurchHeader.OrderAccount))
+        {
+            throw error(strFmt("Supplier %1 doesn't exist", integStagingPurchHeader.OrderAccount));
+        }
+        if (integStagingPurchHeader.PurchPoolIdFile &&
+            ! PurchPool::exist(integStagingPurchHeader.PurchPoolIdFile))
+        {
+            throw error(strFmt("Purch pool %1 not found", integStagingPurchHeader.PurchPoolIdFile));
+        }
+    
+        purchTable.clear();
+        purchTable.initValue();
+        purchTable.PurchaseType             = PurchaseType::Purch;
+        
+        purchTable.PurchPoolId = integStagingPurchHeader.PurchPoolIdFile;
+        purchTable.modifiedField(fieldNum(PurchTable, PurchPoolId));
+
+        purchTable.OrderAccount = integStagingPurchHeader.OrderAccount;
+        DEV::validateCursorFieldValue(purchTable, fieldNum(PurchTable, OrderAccount));
+        purchTable.initFromVendTable();
+
+        purchTable.PurchId = NumberSeq::newGetNum(PurchParameters::numRefPurchId(), true).num();
+        purchTable.ChangeRequestRequired = false;
+
+        purchTable.DeliveryDate = integStagingPurchHeader.ReceiptDateFile;
+        purchTable.modifiedField(fieldNum(PurchTable, DeliveryDate));
+    
+        DEV::validateWriteRecordCheck(purchTable);
+        purchTable.insert();
+       
+            
+        integStagingPurchLine = null;
+        while select forupdate integStagingPurchLine
+            order by LineNumberFile
+            where integStagingPurchLine.HeaderRecId == integStagingPurchHeader.RecId
+        {
+            if (! integStagingPurchLine.ItemId)
+            {
+                throw error(strFmt("Item not found on line %1, Item description %2", integStagingPurchLine.LineNumberFile, integStagingPurchLine.ItemFile));
+            }
+            if (integStagingPurchLine.Color && !  EcoResColor::findByName(integStagingPurchLine.Color).RecId)
+            {
+                throw error(strFmt("Color '%1' not found on line %2", integStagingPurchLine.Color, integStagingPurchLine.LineNumberFile));
+            }
+            purchLine.clear();
+            purchLine.initFromPurchTable(purchTable);
+            purchLine.LineNumber = integStagingPurchLine.LineNumberFile;
+            purchLine.ItemId     = integStagingPurchLine.ItemId;
+            purchLine.initFromInventTable(purchLine.inventTable());
+    
+            purchLine.Name            = integStagingPurchLine.ItemFile;
+            if (! integStagingPurchLine.GST)
+            {
+                purchLine.TaxItemGroup    = integParametersPerCompany.POInvoiceZeroGSTGroup;
+                purchLine.modifiedField(fieldNum(PurchLine, TaxItemGroup));
+            }
+    
+            inventDim = purchLine.inventDim();
+            inventDim.InventColorId = integStagingPurchLine.Color;
+            inventDim = inventDim::findOrCreate(inventDim);
+            purchLine.InventDimId = inventDim.InventDimId;
+
+            purchLine.PurchQty      = integStagingPurchLine.Quantity;
+            purchLine.PurchPrice    = integStagingPurchLine.Price;
+                
+            purchLine.LineAmount    = purchLine.calcLineAmount();
+        
+            purchLine.createLine(true, false, false, true, false, false);
+    
+            messageProcessResult.incProcessedCount();
+            integStagingPurchLine.InventTransIdPOLine = purchLine.InventTransId;
+            integStagingPurchLine.update();
+        }
+
+        if (integStagingPurchHeader.ChargeValueFile)
+        {
+            this.createMarkupTrans(purchTable);
+        }
+    
+        this.updateDocumentDescription(purchTable.PurchId);
+        integStagingPurchHeader.PurchId = purchTable.PurchId;
+        integStagingPurchHeader.update();
+    
+        if (isNeedPOConfirm)
+        {
+            purchFormLetter = purchFormLetter::construct(DocumentStatus::PurchaseOrder);
+            purchFormLetter.update(purchTable,'');
+        }
+    
+        ttsCommit;
+        info(strFmt("Purchase order %1 created", purchTable.PurchId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createMarkupTrans</Name>
+				<Source><![CDATA[
+    public void createMarkupTrans(PurchTable _purchTable)
+    {
+        MarkupTrans                           markupTrans;
+        DEVIntegParametersPerCompany          integParametersPerCompany = integParametersPerCompany::find();
+        MarkupCode                            markupCode;
+        ;
+
+        DEV::validateCursorField(integParametersPerCompany, fieldNum(DEVIntegParametersPerCompany, POInvoiceImportAdminMarkup), true);
+        markupCode = integParametersPerCompany.POInvoiceImportAdminMarkup;
+
+        markupTrans.clear();
+        markupTrans.currencyCode   = CompanyInfoHelper::standardCurrency();
+        
+        markupTrans.initFromMarkupTable(MarkupTable::find(MarkupModuleType::Vend, markupCode));
+        markupTrans.initFromPurchTable(_purchTable);
+
+        markupTrans.lineNum         = MarkupTrans::lastLineNum(markupTrans.transTableId, markupTrans.transRecId) + 1;
+        markupTrans.MarkupCategory  = MarkupCategory::Fixed;
+        markupTrans.modifiedField(fieldNum(MarkupTrans, MarkupCategory));
+        markupTrans.TransDate   = DateTimeUtil::getSystemDate(DateTimeUtil::getUserPreferredTimeZone());
+        markupTrans.Value   = CurrencyExchangeHelper::amount(integStagingPurchHeader.ChargeValueFile );
+        
+        DEV::validateWriteRecordCheck(markupTrans);
+
+        markupTrans.insert();
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "Tutorial Create Purch orders from PDF";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readFileToStaging</Name>
+				<Source><![CDATA[
+    void readFileToStaging()
+    {
+        ttsbegin;
+        integStagingPurchHeader = null;
+        integStagingPurchHeader.MessageRefRecId = messageTable.RecId;
+        integStagingPurchHeader.insert();
+        ttscommit;
+        DEVIntegAIPromptDefinition  integAIPromptDefinition = DEVIntegAIPromptDefinition::find(messageTypeTable.AIPromptDefinitionId);
+        if (! integAIPromptDefinition)
+        {
+            throw error(strFmt("Unable to find AI Prompt Definition for %1", messageTypeTable.MessageTypeId));
+        }
+
+        DEVIntegAIProviderBase  aiProvider = DEVIntegAIProviderBase::constructFromPromptDefinition(integAIPromptDefinition);
+        aiProvider.setFileContainer(messageTable.Name, messageTable.getMessageData().FileData);
+
+        DEVIntegJObject mainJSON = aiProvider.callAPIJson();
+        if (! mainJSON)
+        {
+            throw error(strFmt("Unable to parse JSON from AI prompt %1 for %2", integAIPromptDefinition.PromptDefinitionId, messageTable.Name));
+        }
+
+        DEVIntegJObject headerJSON = mainJSON.getValueObject('HEADER');
+        int currentLineNumber = 1;
+       
+        
+        ttsbegin;
+        select forupdate integStagingPurchHeader
+            where integStagingPurchHeader.MessageRefRecId == messageTable.RecId;
+        
+        integStagingPurchHeader.VendorNameFile          = headerJSON.getValueString('VendorName');
+        integStagingPurchHeader.ReceiptDateFile         = headerJSON.getValueDate('ReceiptDate', 'yyyy-MM-dd');
+        integStagingPurchHeader.PurchPoolIdFile         = headerJSON.getValueString('PurchPoolId');
+        integStagingPurchHeader.ChargeValueFile         = headerJSON.getValueReal('ChargeValue');
+        integStagingPurchHeader.InvoiceTotalAmountFile  = headerJSON.getValueReal('InvoiceTotalAmount');
+        integStagingPurchHeader.InvoiceTotalQtyFile     = headerJSON.getValueReal('InvoiceTotalQty');
+        DEV::validateWriteRecordCheck(integStagingPurchHeader);
+        integStagingPurchHeader.update();
+
+        while (mainJSON.readNextArrayItem('LINES'))
+        {
+            DEVIntegJObject lineJSON = mainJSON.getCurrentArrayItemValue();
+
+            integStagingPurchLine = null;
+            integStagingPurchLine.MessageRefRecId = integStagingPurchHeader.MessageRefRecId;
+            integStagingPurchLine.HeaderRecId     = integStagingPurchHeader.RecId;
+            integStagingPurchLine.LineNumberFile  = currentLineNumber;
+            currentLineNumber++;
+            integStagingPurchLine.ItemFile        = lineJSON.getValueString('InvoiceItem');
+            integStagingPurchLine.ItemId          = lineJSON.getValueString('ItemId');
+            integStagingPurchLine.Quantity        = lineJSON.getValueReal('Quantity');
+            integStagingPurchLine.Price           = lineJSON.getValueReal('Price');
+            integStagingPurchLine.GST             = lineJSON.getValueReal('GST');
+            integStagingPurchLine.TotalAmount     = lineJSON.getValueReal('TotalValue');
+            integStagingPurchLine.Color           = lineJSON.getValueString('Color');
+            DEV::validateWriteRecordCheck(integStagingPurchLine);
+            integStagingPurchLine.insert();
+
+        }
+
+        this.updateStagingDataCreated();
+    
+        ttscommit;
+    
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setViewStagingButton</Name>
+				<Source><![CDATA[
+    public void setViewStagingButton(FormFunctionButtonControl  _viewStagingButtonControl, DEVIntegMessageTable  _messageTable)
+    {
+        _viewStagingButtonControl.visible(_messageTable.IsParsed);
+        _viewStagingButtonControl.menuItemName(menuItemDisplayStr(DEVIntegTutorialPurchOrderOCRStaging));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getVisibleInboundMessageFields</Name>
+				<Source><![CDATA[
+    public container getVisibleInboundMessageFields()
+    {
+        return [fieldNum(DEVIntegMessageTypeInbound, AIPromptDefinitionId)];
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

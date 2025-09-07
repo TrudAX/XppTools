@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtInt64">
+	<Name>DEVIntegTutorialPurchOrderOCRStagingRefRecId</Name>
+	<Extends>RefRecId</Extends>
+	<HelpText>Tutorial Purch order staging header reference</HelpText>
+	<Label>Header reference</Label>
+	<ReferenceTable>DEVIntegTutorialPurchOrderOCRStagingHeader</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>RecId</RelatedField>
+			<Table>DEVIntegTutorialPurchOrderOCRStagingHeader</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+</AxEdt>

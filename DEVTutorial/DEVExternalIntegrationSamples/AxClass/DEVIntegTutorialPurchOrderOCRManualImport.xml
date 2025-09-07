@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialPurchOrderOCRManualImport</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialPurchOrderOCRManualImport  extends DEVIntegManualFileImport
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        dialog = super();
+        dlgMessageTypeId.allowEdit(false);
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Tutorial Import Purch Invoice PDF";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegTutorialPurchOrderOCRManualImport construct()
+    {
+        return new DEVIntegTutorialPurchOrderOCRManualImport();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegTutorialPurchOrderOCRManualImport  runObject = DEVIntegTutorialPurchOrderOCRManualImport::construct();
+        DEVIntegMessageTypeInbound         messageTypeInbound;
+        ;
+        //replace this with a separate table later
+        select firstonly messageTypeInbound
+            where messageTypeInbound.ClassName == classStr(DEVIntegTutorialPurchOrderOCRProcess);
+        if (!messageTypeInbound)
+        {
+            throw error(strFmt("Unable to find message type for %1 class", classStr(DEVIntegTutorialPurchOrderOCRProcess)));
+        }
+
+        runObject.parmMessageTypeId(messageTypeInbound.MessageTypeId);
+  
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+            
+            FormDataSource          formDataSource = FormDataUtil::getFormDataSource(_args.record());
+            
+            if (formDataSource)
+            {
+                formDataSource.research(false);
+                if (_args.dataset() == tableNum(DEVIntegMessageTable))
+                {
+                    formDataSource.positionToRecord(runObject.getMessageTable());
+                }
+            }
+            
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
