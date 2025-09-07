@@ -393,10 +393,6 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 					<DataField>IsFullExport</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
-					<DataField>IsIncludeHeader</DataField>
-					<Visible>No</Visible>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
 					<DataField>IsSendEmail</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -960,15 +956,6 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>IsSkipEmptyMessages</DataField>
-										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
-									</AxFormControl>
-									<AxFormControl xmlns=""
-										i:type="AxFormCheckBoxControl">
-										<Name>ExportParameters_IsIncludeHeader</Name>
-										<Type>CheckBox</Type>
-										<FormControlExtension
-											i:nil="true" />
-										<DataField>IsIncludeHeader</DataField>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 								</Controls>

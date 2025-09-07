@@ -210,7 +210,8 @@ public class DEVIntegTutorialPurchOrderOCRStagingLine extends common
 			<Name>HeaderRecId</Name>
 			<AllowEdit>No</AllowEdit>
 			<AllowEditOnCreate>No</AllowEditOnCreate>
-			<ExtendedDataType>FIEIntegPurchOrderOCRStagingRefRecId</ExtendedDataType>
+			<ExtendedDataType>DEVIntegTutorialPurchOrderOCRStagingRefRecId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Mandatory>Yes</Mandatory>
 		</AxTableField>
 		<AxTableField xmlns=""

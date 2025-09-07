@@ -20,18 +20,18 @@
 		</AxSecurityEntryPointReference>
 		<AxSecurityEntryPointReference>
 			<Name>DEVIntegTutorialPurchOrderOCRStaging</Name>
-			<Grant>
+			<GrantCurrentData>
 				<Correct>Allow</Correct>
 				<Create>Allow</Create>
 				<Delete>Allow</Delete>
 				<Read>Allow</Read>
 				<Update>Allow</Update>
-			</Grant>
+			</GrantCurrentData>
 			<ObjectName>DEVIntegTutorialPurchOrderOCRStaging</ObjectName>
 			<ObjectType>MenuItemDisplay</ObjectType>
 			<Forms>
 				<AxSecurityEntryPointReferenceForm>
-					<Name>FIEIntegPurchOrderOCRStaging</Name>
+					<Name>DEVIntegTutorialPurchOrderOCRStaging</Name>
 					<Controls />
 					<DataSources />
 				</AxSecurityEntryPointReferenceForm>

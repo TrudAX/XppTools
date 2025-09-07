@@ -149,7 +149,7 @@ class DEVIntegTutorialImportLedgerJournal extends DEVIntegProcessMessageBase
                              DEVDimensionHelper::CostCenter(),   tutorialLedgerJourLinesStaging.CostCenter ] );
                         
             ledgerJournalTrans.LedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
-                                              LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(tutorialLedgerJourLinesStaging.MainAccount), dim);
+                LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountIdAndCOA(tutorialLedgerJourLinesStaging.MainAccount, LedgerChartOfAccounts::current()), dim);
         
             if (!ledgerJournalTrans.LedgerDimension)
             {
@@ -235,7 +235,7 @@ class DEVIntegTutorialImportLedgerJournal extends DEVIntegProcessMessageBase
             where tutorialLedgerJourLinesStaging.HeaderRefRecId ==  tutorialLedgerJourHeaderStaging.RecId
         {
             isValidLine = true;
-            if (! MainAccount::findByMainAccountId(tutorialLedgerJourLinesStaging.MainAccount))
+            if (! MainAccount::findByMainAccountIdAndCOA(tutorialLedgerJourLinesStaging.MainAccount, LedgerChartOfAccounts::current()))
             {
                 isValidLine = checkFailed(strFmt("Line %1. Maint account %2 doesn't exist", tutorialLedgerJourLinesStaging.LineNumber,
                                                                                       tutorialLedgerJourLinesStaging.MainAccount));

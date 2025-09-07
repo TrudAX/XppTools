@@ -23,7 +23,7 @@ public class DEVIntegTutorialPurchOrderOCRProcess extends DEVIntegProcessMessage
     void  processMessage(DEVIntegMessageTable  _messageTable, DEVIntegMessageProcessResult _messageProcessResult)
     {
         CompanyId           companyId;
-        DEVIntegParametersPerCompany          integParametersPerCompany = integParametersPerCompany::find();
+        DEVIntegParametersPerCompany          integParametersPerCompany = DEVIntegParametersPerCompany::find();
         ;
         messageTable         =  _messageTable;
         messageProcessResult =  _messageProcessResult;
@@ -107,8 +107,7 @@ public class DEVIntegTutorialPurchOrderOCRProcess extends DEVIntegProcessMessage
             warning(strFmt("Purch pool %1 not found", integStagingPurchHeader.PurchPoolIdFile));
             messageProcessResult.incErrorCount();
         }
-        DEVIntegTutorialPurchOrderOCRStagingLine   integStagingPurchLineNext;
-
+        
         while select forupdate integStagingPurchLine
             order by LineNumberFile
             where integStagingPurchLine.HeaderRecId == integStagingPurchHeader.RecId
@@ -144,10 +143,9 @@ public class DEVIntegTutorialPurchOrderOCRProcess extends DEVIntegProcessMessage
 
         InventDim            inventDim;
     
-        TaxGroupData          taxGroupData;
         boolean               isNeedPOConfirm;
         PurchFormLetter       purchFormLetter;
-        DEVIntegParametersPerCompany          integParametersPerCompany = integParametersPerCompany::find();
+        DEVIntegParametersPerCompany          integParametersPerCompany = DEVIntegParametersPerCompany::find();
         ;
 
         ttsBegin;
@@ -258,7 +256,7 @@ public class DEVIntegTutorialPurchOrderOCRProcess extends DEVIntegProcessMessage
     public void createMarkupTrans(PurchTable _purchTable)
     {
         MarkupTrans                           markupTrans;
-        DEVIntegParametersPerCompany          integParametersPerCompany = integParametersPerCompany::find();
+        DEVIntegParametersPerCompany          integParametersPerCompany = DEVIntegParametersPerCompany::find();
         MarkupCode                            markupCode;
         ;
 

@@ -423,6 +423,42 @@ public class DEVIntegParametersPerCompany extends common
 				</AxTableRelationConstraint>
 			</Constraints>
 		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>MarkupTablePOInvoice</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>MarkupTable</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>POInvoiceImportAdminMarkup</Name>
+					<SourceEDT>PurchMarkupCode</SourceEDT>
+					<Field>POInvoiceImportAdminMarkup</Field>
+					<RelatedField>MarkupCode</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>TaxItemGroupHeadingPOInvoice</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Restricted</OnDelete>
+			<RelatedTable>TaxItemGroupHeading</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>POInvoiceZeroGSTGroup</Name>
+					<SourceEDT>TaxItemGroup</SourceEDT>
+					<Field>POInvoiceZeroGSTGroup</Field>
+					<RelatedField>TaxItemGroup</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
 	</Relations>
 	<StateMachines />
 </AxTable>

@@ -723,7 +723,6 @@ public class DEVIntegTutorialPurchOrderOCRStaging extends FormRun
 								<ElementPosition>1431655764</ElementPosition>
 								<FilterExpression>%1</FilterExpression>
 								<HeightMode>Auto</HeightMode>
-								<Skip>Yes</Skip>
 								<Type>Button</Type>
 								<VerticalSpacing>-1</VerticalSpacing>
 								<WidthMode>Auto</WidthMode>
@@ -739,7 +738,6 @@ public class DEVIntegTutorialPurchOrderOCRStaging extends FormRun
 								<ElementPosition>1789569705</ElementPosition>
 								<FilterExpression>%1</FilterExpression>
 								<HeightMode>Auto</HeightMode>
-								<Skip>Yes</Skip>
 								<Type>Button</Type>
 								<VerticalSpacing>-1</VerticalSpacing>
 								<WidthMode>Auto</WidthMode>
