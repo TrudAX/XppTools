@@ -188,10 +188,10 @@ public class DEVIntegTutorialPurchOrderOCRStagingLine extends common
 					<DataField>TotalAmount</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>RoundingAmount</DataField>
+					<DataField>Color</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>Color</DataField>
+					<DataField>RoundingAmount</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -226,15 +226,15 @@ public class DEVIntegTutorialPurchOrderOCRStagingLine extends common
 			i:type="AxTableFieldReal">
 			<Name>Quantity</Name>
 			<ExtendedDataType>Qty</ExtendedDataType>
-			<HelpText>Num of heads from the file</HelpText>
-			<Label>Num of heads</Label>
+			<HelpText>Quantity from the file</HelpText>
+			<Label>Quantity</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldReal">
 			<Name>Price</Name>
 			<ExtendedDataType>Price</ExtendedDataType>
-			<HelpText>Head value from the file</HelpText>
-			<Label>Head value</Label>
+			<HelpText>Price from the file</HelpText>
+			<Label>Price</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldReal">

@@ -612,6 +612,7 @@ public class DEVIntegTutorialPurchOrderOCRStaging extends FormRun
 			</Fields>
 			<ReferencedDataSources />
 			<JoinSource>StagingHeader</JoinSource>
+			<InsertIfEmpty>No</InsertIfEmpty>
 			<DataSourceLinks />
 			<DerivedDataSources />
 		</AxFormDataSource>
@@ -1348,21 +1349,21 @@ public class DEVIntegTutorialPurchOrderOCRStaging extends FormRun
 												<DataSource>StagingLine</DataSource>
 											</AxFormControl>
 											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview_Color</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Color</DataField>
+												<DataSource>StagingLine</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
 												i:type="AxFormRealControl">
 												<Name>Overview_RoundingAmount</Name>
 												<Type>Real</Type>
 												<FormControlExtension
 													i:nil="true" />
 												<DataField>RoundingAmount</DataField>
-												<DataSource>StagingLine</DataSource>
-											</AxFormControl>
-											<AxFormControl xmlns=""
-												i:type="AxFormStringControl">
-												<Name>Overview_Style</Name>
-												<Type>String</Type>
-												<FormControlExtension
-													i:nil="true" />
-												<DataField>Style</DataField>
 												<DataSource>StagingLine</DataSource>
 											</AxFormControl>
 										</Controls>
