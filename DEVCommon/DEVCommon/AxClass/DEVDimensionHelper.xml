@@ -237,6 +237,17 @@ class DEVDimensionHelper
         }
         return newDimensionDefault;
     }
+    //Resolve dimension for the data entity dimension format
+	private LedgerDimensionAccount resolveDimensionDisplayValue(DimensionDisplayValue _ledgerAccountDisplayValue)
+    {
+        DefaultDimensionIntegrationStructureDisplay dimensionFormat
+            = DimensionHierarchy::getDisplayStringDimensionIntegrationStructure(DimensionDataEntityStructureType::DataEntityLedgerDimensionFormat);
+
+        LedgerAccountDimensionResolver ledgerAccountDimensionResolver = LedgerAccountDimensionResolver::newResolver(_ledgerAccountDisplayValue);
+        ledgerAccountDimensionResolver.parmDimensionFormat(dimensionFormat);
+
+        return ledgerAccountDimensionResolver.resolve();
+    }
 
     /*
     SQL (used for the debug purposes)
