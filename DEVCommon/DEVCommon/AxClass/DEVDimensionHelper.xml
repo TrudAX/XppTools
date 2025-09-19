@@ -238,7 +238,8 @@ class DEVDimensionHelper
         return newDimensionDefault;
     }
     //Resolve dimension for the data entity dimension format
-	private LedgerDimensionAccount resolveDimensionDisplayValue(DimensionDisplayValue _ledgerAccountDisplayValue)
+	// Method code courtesy of Anton Anisimov https://www.linkedin.com/in/ahtoh/
+	public LedgerDimensionAccount resolveDimensionDisplayValue(DimensionDisplayValue _ledgerAccountDisplayValue)
     {
         DefaultDimensionIntegrationStructureDisplay dimensionFormat
             = DimensionHierarchy::getDisplayStringDimensionIntegrationStructure(DimensionDataEntityStructureType::DataEntityLedgerDimensionFormat);
