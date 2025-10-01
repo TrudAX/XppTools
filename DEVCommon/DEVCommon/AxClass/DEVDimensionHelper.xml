@@ -249,6 +249,41 @@ class DEVDimensionHelper
 
         return ledgerAccountDimensionResolver.resolve();
     }
+					
+	// override lookupReference method for Dimension attributes lookup
+	// Method code courtesy of Anton Anisimov https://www.linkedin.com/in/ahtoh/
+	public static DimensionAttribute dimensionAttributeLookup(FormReferenceControl _formReferenceControl, boolean _showMainAccount = false)
+    {
+        Query                   query;
+        QueryBuildRange         queryBuildRange;
+        QueryBuildDataSource    qbdsDimAttr;
+        QueryBuildDataSource    qbdsDimAttrSetItem;
+        DimensionEnumeration    dimensionSetId;
+
+        dimensionSetId = DimensionCache::getDimensionAttributeSetForLedger();
+
+        query = new Query();
+
+        qbdsDimAttr = query.addDataSource(tableNum(DimensionAttribute));
+
+        if (!_showMainAccount)
+        {
+            queryBuildRange = qbdsDimAttr.addRange(fieldNum(DimensionAttribute, Type));
+            queryBuildRange.value(SysQuery::valueNot(DimensionAttributeType::MainAccount));
+        }
+
+        qbdsDimAttrSetItem = qbdsDimAttr.addDataSource(tableNum(DimensionAttributeSetItem));
+        SysQuery::findOrCreateRange(qbdsDimAttrSetItem, fieldNum(DimensionAttributeSetItem, DimensionAttributeSet)).value(queryValue(dimensionSetId));
+        qbdsDimAttrSetItem.joinMode(JoinMode::InnerJoin);
+        qbdsDimAttrSetItem.relations(true);
+
+        SysReferenceTableLookup sysLookupReference = SysReferenceTableLookup::newParameters(tablenum(DimensionAttribute), _formReferenceControl, true);
+
+        sysLookupReference.addLookupfield(fieldnum(DimensionAttribute, Name));
+        sysLookupReference.parmQuery(query);
+
+        return sysLookupReference.performFormLookup();
+    }
 
     /*
     SQL (used for the debug purposes)
