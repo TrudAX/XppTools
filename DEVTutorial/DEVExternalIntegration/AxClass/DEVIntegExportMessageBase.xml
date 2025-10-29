@@ -110,7 +110,7 @@ class DEVIntegExportMessageBase
 			<Method>
 				<Name>createLogFromCommon</Name>
 				<Source><![CDATA[
-    public void createLogFromCommon(Common  _exportTable, Description _documentId)
+    public void createLogFromCommon(Common  _exportTable, Description _documentId, Description _documentId2)
     {
         DEVIntegExportDocumentLog      exportDocumentLog;
         ;
@@ -124,7 +124,7 @@ class DEVIntegExportMessageBase
 
         if (!exportDocumentLog)
         {
-            exportDocumentLog.initFromCommon(_exportTable, messageTypeTableOutbound.ClassName, _documentId);
+            exportDocumentLog.initFromCommon(_exportTable, messageTypeTableOutbound.ClassName, _documentId, _documentId2);
             exportDocumentLog.setToSend();
             exportDocumentLog.insert();
         }

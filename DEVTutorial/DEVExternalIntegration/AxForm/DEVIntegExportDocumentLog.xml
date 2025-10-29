@@ -147,6 +147,9 @@ public class DEVIntegExportDocumentLog extends FormRun
 					<DataField>DocumentId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>DocumentId2</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>DurationInMilliseconds</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>

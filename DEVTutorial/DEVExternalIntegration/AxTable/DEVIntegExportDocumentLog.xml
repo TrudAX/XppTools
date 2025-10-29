@@ -31,7 +31,7 @@ public class DEVIntegExportDocumentLog extends common
 			<Method>
 				<Name>initFromCommon</Name>
 				<Source><![CDATA[
-    public void initFromCommon(Common _common, DEVIntegExportClassName _className, Description _documentId = '')
+    public void initFromCommon(Common _common, DEVIntegExportClassName _className, Description _documentId = '', Description _documentId2 = '')
     {
    
         this.RefTableId     =  _common.TableId;
@@ -40,6 +40,7 @@ public class DEVIntegExportDocumentLog extends common
         this.ClassName      =  _className;
     
         this.DocumentId     =  _documentId;
+        this.DocumentId2    =  _documentId2;
     }
 
 ]]></Source>
@@ -382,6 +383,9 @@ public class DEVIntegExportDocumentLog extends common
 					<DataField>DocumentId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
+					<DataField>DocumentId2</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>ClassName</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
@@ -517,6 +521,13 @@ public class DEVIntegExportDocumentLog extends common
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<HelpText>Number of processing attempts</HelpText>
 			<Label>Processing attempts</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>DocumentId2</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<Label>Document 2</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
