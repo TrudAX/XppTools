@@ -525,6 +525,15 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				<AxTableFieldGroupField>
 					<DataField>IsFullExport</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ConnectionTypeId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsEnabled</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -665,6 +674,9 @@ public class DEVIntegMessageTypeTableOutbound extends common
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
 					<DataField>IsSkipEmptyMessages</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>IsIncludeHeader</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -830,6 +842,14 @@ public class DEVIntegMessageTypeTableOutbound extends common
 			<ExtendedDataType>NoYesId</ExtendedDataType>
 			<HelpText>Do not send messages with no lines in data section</HelpText>
 			<Label>Skip empty messages</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsIncludeHeader</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Include headers to the resulting export file</HelpText>
+			<Label>Include header</Label>
 			<EnumType>NoYes</EnumType>
 		</AxTableField>
 	</Fields>

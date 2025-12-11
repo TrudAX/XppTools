@@ -393,6 +393,10 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 					<DataField>IsFullExport</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>IsIncludeHeader</DataField>
+					<Visible>No</Visible>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>IsSendEmail</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -449,8 +453,8 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 		<Caption xmlns="">Outbound message types</Caption>
 		<DataSource xmlns="">DEVIntegMessageTypeTableOutbound</DataSource>
 		<HeightMode xmlns="">Column</HeightMode>
-		<Pattern xmlns="">SimpleListDetails</Pattern>
-		<PatternVersion xmlns="">1.3</PatternVersion>
+		<Pattern xmlns="">SimpleListDetails-Grid</Pattern>
+		<PatternVersion xmlns="">1.4</PatternVersion>
 		<SetCompany xmlns="">No</SetCompany>
 		<Style xmlns="">SimpleListDetails</Style>
 		<TitleDataSource xmlns="">DEVIntegMessageTypeTableOutbound</TitleDataSource>
@@ -561,6 +565,8 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 				<Name>NavigationListGroup</Name>
 				<HeightMode>SizeToAvailable</HeightMode>
 				<Type>Group</Type>
+				<Width>300</Width>
+				<WidthMode>Manual</WidthMode>
 				<FormControlExtension
 					i:nil="true" />
 				<Controls>
@@ -598,7 +604,6 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 						<FilterExpression>%1</FilterExpression>
 						<Type>Grid</Type>
 						<VerticalSpacing>-1</VerticalSpacing>
-						<WidthMode>SizeToContent</WidthMode>
 						<FormControlExtension
 							i:nil="true" />
 						<Controls>
@@ -640,6 +645,33 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 										<Items />
 									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>GridGroup_ClassName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ClassName</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>GridGroup_ConnectionTypeId</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ConnectionTypeId</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>GridGroup_IsEnabled</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>IsEnabled</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
 								</Controls>
 								<BackgroundColor>WindowBackground</BackgroundColor>
 								<DataGroup>GridGroup</DataGroup>
@@ -651,7 +683,7 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 						<GridLinesStyle>Vertical</GridLinesStyle>
 						<MultiSelect>No</MultiSelect>
 						<ShowRowLabels>No</ShowRowLabels>
-						<Style>List</Style>
+						<Style>Tabular</Style>
 					</AxFormControl>
 				</Controls>
 				<FrameType>None</FrameType>
@@ -659,9 +691,16 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 			</AxFormControl>
 			<AxFormControl xmlns=""
 				i:type="AxFormGroupControl">
+				<Name>VerticalSplitter</Name>
+				<Type>Group</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls />
+				<Style>SplitterVerticalContainer</Style>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
 				<Name>DetailsHeaderGroup</Name>
-				<Pattern>FieldsFieldGroups</Pattern>
-				<PatternVersion>1.1</PatternVersion>
 				<Type>Group</Type>
 				<WidthMode>SizeToAvailable</WidthMode>
 				<FormControlExtension
@@ -956,6 +995,15 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 										<FormControlExtension
 											i:nil="true" />
 										<DataField>IsSkipEmptyMessages</DataField>
+										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>ExportParameters_IsIncludeHeader</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>IsIncludeHeader</DataField>
 										<DataSource>DEVIntegMessageTypeTableOutbound</DataSource>
 									</AxFormControl>
 								</Controls>
