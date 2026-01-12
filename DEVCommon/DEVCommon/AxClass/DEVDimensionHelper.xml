@@ -237,6 +237,12 @@ class DEVDimensionHelper
         }
         return newDimensionDefault;
     }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resolveDimensionDisplayValue</Name>
+				<Source><![CDATA[
     //Resolve dimension for the data entity dimension format
 	// Method code courtesy of Anton Anisimov https://www.linkedin.com/in/ahtoh/
 	public LedgerDimensionAccount resolveDimensionDisplayValue(DimensionDisplayValue _ledgerAccountDisplayValue)
