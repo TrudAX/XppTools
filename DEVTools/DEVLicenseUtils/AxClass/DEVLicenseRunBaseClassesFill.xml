@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVLicenseRunBaseClassesFill</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVLicenseRunBaseClassesFill extends RunBaseBatch implements BatchRetryable
+{
+    Name         nameFilter;
+    
+    DialogField  dlgNameFilter;
+    
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        nameFilter
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgNameFilter  = dialog.addFieldValue(extendedtypestr(Name), nameFilter, "Name filter", "Name fileter for menu items");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        nameFilter   = dlgNameFilter.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNameFilter</Name>
+				<Source><![CDATA[
+    public Name parmNameFilter(Name _nameFilter = nameFilter)
+    {
+        nameFilter = _nameFilter;
+        return nameFilter;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        DEVLicenseRunBaseClasses	licenseRunBaseClasses, licenseRunBaseClassesUpd;
+        
+		System.Type axMenuItemTypeDisplay = new Microsoft.Dynamics.AX.Metadata.MetaModel.AxMenuItemDisplay().GetType();
+
+        System.Collections.Specialized.StringEnumerator menuItemActionNames = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::MenuItemActionNames();
+        
+        DictClass baseClass    = new DictClass(classNum(RunBase));
+
+		while (menuItemActionNames.moveNext ())
+        {
+            str menuItemName = menuItemActionNames.get_current();
+            if (nameFilter && !strStartsWith(menuItemName, nameFilter))
+            {
+                continue;
+            }
+
+			MenuFunction menuFunction = new MenuFunction (menuItemName, MenuItemType::Action);
+            if (menuFunction.objectType() == MenuItemObjectType::Class)
+            {
+                int derivedClassId = className2Id(menuFunction.object());
+                if (derivedClassId && SysDictClass::isEqualOrSuperclass(derivedClassId, classnum(RunBase)))
+                {
+                    licenseRunBaseClasses.AOTName       = menuItemName;
+                    licenseRunBaseClasses.SecurableType = DEVLicenseElementUsageLogMonitor::menuItemTypeToSecurable(MenuItemType::Action);
+                    licenseRunBaseClasses.ObjectName   = menuFunction.object();
+                    ttsbegin;
+                    licenseRunBaseClassesUpd = null;
+                    select forupdate licenseRunBaseClassesUpd
+						where licenseRunBaseClassesUpd.AOTName == licenseRunBaseClasses.AOTName &&
+                        licenseRunBaseClassesUpd.SecurableType == licenseRunBaseClasses.SecurableType;
+                    
+					buf2Buf(licenseRunBaseClasses, licenseRunBaseClassesUpd);
+                    licenseRunBaseClassesUpd.write();
+                    ttscommit;
+                }
+            }
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVLicenseRunBaseClassesFill construct()
+    {
+        return new DEVLicenseRunBaseClassesFill();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Fill Runbase menu items table";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVLicenseRunBaseClassesFill    runObject = DEVLicenseRunBaseClassesFill::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVLicenseElementUsageLogMonitor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVLicenseElementUsageLogMonitor
+{
+    public static Set usedElementsSet;
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>FormRun_onFormRunCompletedDevLic</Name>
+				<Source><![CDATA[
+    [SubscribesTo(classStr(FormRun), staticDelegateStr(FormRun, onFormRunCompleted))]
+    public static void FormRun_onFormRunCompletedDevLic(FormRun _formInstance)
+    {
+        DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureElementUsage;
+        if(     captureType != DEVLicenseCaptureElementUsageType::None
+            &&  _formInstance && _formInstance.args()
+            &&  _formInstance.args().menuItemName())
+        {
+            Args  args = _formInstance.args();
+            DEVLicenseElementUsageLog  elementUsageLog;
+
+            elementUsageLog.SecurableType = DEVLicenseElementUsageLogMonitor::menuItemTypeToSecurable(args.menuItemType());
+            elementUsageLog.AOTName       = args.menuItemName();
+            elementUsageLog.ObjectType   = 'Form';
+            elementUsageLog.ObjectName   = _formInstance.name();
+
+            DEVLicenseElementUsageLogMonitor::insertLogRecord(elementUsageLog, captureType);
+
+            
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SysOperationController_Pre_startOperationDevLic</Name>
+				<Source><![CDATA[
+    [PreHandlerFor(classStr(SysOperationController), methodStr(SysOperationController, startOperation))]
+    public static void SysOperationController_Pre_startOperationDevLic(XppPrePostArgs _args)
+    {
+        DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureElementUsage;
+        if(captureType != DEVLicenseCaptureElementUsageType::None)
+        {
+            SysOperationController controller =  _args.getThis();
+            Args args;
+			if (controller)
+			{
+				args =	controller.parmArgs();
+			}
+            if (args && args.menuItemName())
+            {
+                DEVLicenseElementUsageLog  elementUsageLog;
+
+                elementUsageLog.AOTName       = args.menuItemName();
+                elementUsageLog.SecurableType = DEVLicenseElementUsageLogMonitor::menuItemTypeToSecurable(args.menuItemType());
+                
+                elementUsageLog.ObjectType   = 'SysOperationController';
+                elementUsageLog.ObjectName   = controller.caption();
+
+                //controller.
+
+                DEVLicenseElementUsageLogMonitor::insertLogRecord(elementUsageLog, captureType);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>Runbase_Pre_promptDevLic</Name>
+				<Source><![CDATA[
+    [PreHandlerFor(classStr(Runbase), methodStr(Runbase, prompt))]
+    public static void Runbase_Pre_promptDevLic(XppPrePostArgs _args)
+    {
+        DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureElementUsage;
+        if(captureType != DEVLicenseCaptureElementUsageType::None )
+        {
+            Object controller =  _args.getThis();
+            if (controller && classIdGet(controller))
+            {
+                str className = classId2Name(classIdGet(controller));
+                if (className)
+                {
+                    DEVLicenseElementUsageLog  elementUsageLog;
+
+                    //elementUsageLog.AOTName       = args.menuItemName();
+                    //elementUsageLog.SecurableType = DEVLicenseElementUsageLogMonitor::menuItemTypeToSecurable(args.menuItemType());
+                
+                    elementUsageLog.ObjectType   = 'RunBase';
+                    elementUsageLog.ObjectName   = className;
+
+                    DEVLicenseElementUsageLogMonitor::insertLogRecord(elementUsageLog, captureType);
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FormLetterServiceController_Pre_parseServiceInfoDevLic</Name>
+				<Source><![CDATA[
+    [PreHandlerFor(classStr(FormLetterServiceController), staticMethodStr(FormLetterServiceController, parseServiceInfo))]
+    public static void FormLetterServiceController_Pre_parseServiceInfoDevLic(XppPrePostArgs _args)
+    {
+        DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureElementUsage;
+        if(captureType != DEVLicenseCaptureElementUsageType::None )
+        {
+            Object argsObj = _args.getArgNum(0);
+            if (argsObj && classIdGet(argsObj) == classNum(Args))
+            {
+				Args args = argsObj as Args;
+                
+                DEVLicenseElementUsageLogMonitor::insertFromArgs(args, captureType, 'FormLetterServiceController', '');
+			}
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertFromArgs</Name>
+				<Source><![CDATA[
+    public static void insertFromArgs(Args _args, DEVLicenseCaptureElementUsageType _captureType, str _objectType, str _objectName)
+    {
+        if (_args && _args.menuItemName())
+        {
+            DEVLicenseElementUsageLog  elementUsageLog;
+
+            elementUsageLog.AOTName       = _args.menuItemName();
+            elementUsageLog.SecurableType = DEVLicenseElementUsageLogMonitor::menuItemTypeToSecurable(_args.menuItemType());
+                
+            elementUsageLog.ObjectType   = _objectType;
+            elementUsageLog.ObjectName   = _objectName;
+
+            DEVLicenseElementUsageLogMonitor::insertLogRecord(elementUsageLog, _captureType);
+        }
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insertLogRecord</Name>
+				<Source><![CDATA[
+    public static void insertLogRecord(DEVLicenseElementUsageLog  _elementUsageLog, DEVLicenseCaptureElementUsageType _captureType )
+    {
+        _elementUsageLog.UserId = curUserId();
+        _elementUsageLog.CompanyId = curext();
+        if (_captureType == DEVLicenseCaptureElementUsageType::Summary)
+        {
+            str  usageKey = strFmt('%1|%2|%3|%4|%5',
+                                        _elementUsageLog.UserId,
+                                        _elementUsageLog.CompanyId,
+                                        _elementUsageLog.SecurableType,
+                                        _elementUsageLog.AOTName,
+                                        _elementUsageLog.ObjectName);
+               
+            if (! DEVLicenseElementUsageLogMonitor::usedElementsSet)
+            {
+                DEVLicenseElementUsageLogMonitor::usedElementsSet = new Set(Types::String);
+            }
+            Set localVarSet = DEVLicenseElementUsageLogMonitor::usedElementsSet;
+
+            if ( ! localVarSet.in(usageKey))
+            {
+                localVarSet.add(usageKey);
+                _elementUsageLog.insert();
+            }
+        }
+        else
+        {
+            if (_captureType == DEVLicenseCaptureElementUsageType::Full)
+            {
+                _elementUsageLog.insert();
+            }
+        }
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>menuItemTypeToSecurable</Name>
+				<Source><![CDATA[
+    public static SecurableType menuItemTypeToSecurable(MenuItemType _menuItemType)
+    {
+		switch(_menuItemType)
+		{
+			case MenuItemType::Display:
+                return SecurableType::MenuItemDisplay;
+			case MenuItemType::Output:
+                return SecurableType::MenuItemOutput;
+			case MenuItemType::Action:
+                return SecurableType::MenuItemAction;
+		}
+        return SecurableType::MenuItemDisplay;
+	}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

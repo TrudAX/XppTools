@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVLicenseReportCalc</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+// class to calculate user license report
+//Tables that needs to be copied from Tier2 to debug on Tier1:
+/*
+LICENSI*
+SECURITYROLE
+DEVLicense*
+SysUserLog
+UserInfo
+*/
+public class DEVLicenseReportCalc extends RunBaseBatch implements BatchRetryable
+{
+    UserId       userId;
+    NoYesId      isCalcRunBase;
+    NoYesId      isCalcPermissions;
+    NoYesId      isCalcUserPermissions;
+    NoYesId      isCalcTablesObjectLink;
+    
+    DialogField  dlgUserId;
+    DialogField  dlgIsCalcRunBase;
+    DialogField  dlgIsCalcPermissions;
+    DialogField  dlgIsCalcUserPermissions;
+    DialogField  dlgIsCalcTablesObjectLink;
+    
+    
+    #define.CurrentVersion(2)
+    #localmacro.CurrentList
+        userId,
+        isCalcRunBase,
+        isCalcPermissions,
+        isCalcUserPermissions,
+        isCalcTablesObjectLink
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgUserId                 = dialog.addFieldValue(extendedtypestr(UserId), userId, "User(empty for all)", "User ID filter");
+        dlgIsCalcRunBase          = dialog.addFieldValue(extendedtypestr(NoYesId), isCalcRunBase, "Calc RunBase links", "Calculate RunBase links");
+        dlgIsCalcPermissions      = dialog.addFieldValue(extendedtypestr(NoYesId), isCalcPermissions, "Calc Permissions", "Calculate Menuitems Permissions");
+        dlgIsCalcTablesObjectLink  = dialog.addFieldValue(extendedtypestr(NoYesId), isCalcTablesObjectLink, "Calc Tables With Object Link", "Calculate Tables Object Link");
+		dlgIsCalcUserPermissions  = dialog.addFieldValue(extendedtypestr(NoYesId), isCalcUserPermissions, "Calc User Permissions(may take time)", "Calculate Current User Permissions");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        userId                  = dlgUserId.value();
+        isCalcRunBase           = dlgIsCalcRunBase.value();
+        isCalcPermissions       = dlgIsCalcPermissions.value();
+        isCalcUserPermissions   = dlgIsCalcUserPermissions.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmUserId</Name>
+				<Source><![CDATA[
+    public UserId parmUserId(UserId _userId = userId)
+    {
+        userId = _userId;
+        return userId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsCalcRunBase</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsCalcRunBase(NoYesId _isCalcRunBase = isCalcRunBase)
+    {
+        isCalcRunBase = _isCalcRunBase;
+        return isCalcRunBase;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsCalcPermissions</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsCalcPermissions(NoYesId _isCalcPermissions = isCalcPermissions)
+    {
+        isCalcPermissions = _isCalcPermissions;
+        return isCalcPermissions;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsCalcUserPermissions</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsCalcUserPermissions(NoYesId _isCalcUserPermissions = isCalcUserPermissions)
+    {
+        isCalcUserPermissions = _isCalcUserPermissions;
+        return isCalcUserPermissions;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+		if (isCalcRunBase)
+        {
+            DEVLicenseRunBaseClassesFill runBaseFill = DEVLicenseRunBaseClassesFill::construct();
+            runBaseFill.run();
+		}
+        if (isCalcPermissions)
+        {
+            DEVLicenseReportObjectLicences::populate();
+		}
+        if (isCalcUserPermissions)
+        {
+            DEVLicenseReportUserPermission::populate(userId);
+		}
+        if (isCalcTablesObjectLink)
+        {
+            DEVLicenseTablesObjectLink::populate();
+		}
+
+        this.processLicenseElementUsageLogLine();
+		this.processLicenseElementUsageLogHeader();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processLicenseElementUsageLogHeader</Name>
+				<Source><![CDATA[
+    public void processLicenseElementUsageLogHeader()
+    {
+        DEVLicenseReportUser                 licenseReportUser;
+        LicensingUserLicensesByRole          licensingUserLicensesByRole;
+
+        RecordInsertList                     recordInsertList = new RecordInsertList(tableNum(DEVLicenseReportUser));
+
+        UserId                               currentUserId = '';
+        NoYes                                currentEnabled;
+        str                                  currentSkuList = '';
+        Set                                  currentSkuSet;
+        str                                  skuName;
+
+        // 1) Delete existing records
+        ttsbegin;
+        delete_from licenseReportUser
+            where (licenseReportUser.UserId == userId || userId == '');
+        ttscommit;
+
+        // 2) Build one row per user with comma-separated SKUs
+        ttsbegin;
+
+        currentSkuSet = new Set(Types::String);
+
+        while select licensingUserLicensesByRole
+            order by licensingUserLicensesByRole.UserId,
+                     licensingUserLicensesByRole.RequiredUserLicense desc,
+                     licensingUserLicensesByRole.SkuName
+            where licensingUserLicensesByRole.UserRequiredLicenseQty > 0 &&
+			     (licensingUserLicensesByRole.UserId == userId || userId == '')
+            
+        {
+            // New user boundary => flush previous user record
+            if (currentUserId != '' && licensingUserLicensesByRole.UserId != currentUserId)
+            {
+                licenseReportUser.clear();
+                licenseReportUser.UserId          = currentUserId;
+                licenseReportUser.UserEnabled     = currentEnabled;
+                licenseReportUser.CurrentLicense  = currentSkuList;
+
+                recordInsertList.add(licenseReportUser);
+
+                // reset for next user
+                currentSkuList = '';
+                currentSkuSet  = new Set(Types::String);
+            }
+
+            // Initialize current user (first row or after reset)
+            if (currentUserId == '' || licensingUserLicensesByRole.UserId != currentUserId)
+            {
+                currentUserId  = licensingUserLicensesByRole.UserId;
+                currentEnabled = licensingUserLicensesByRole.UserEnabled;
+            }
+
+            // Append distinct SKU names, comma-separated
+            skuName = licensingUserLicensesByRole.SkuName;
+
+            if (skuName && !currentSkuSet.in(skuName))
+            {
+                currentSkuSet.add(skuName);
+
+                if (currentSkuList == '')
+                {
+                    currentSkuList = skuName;
+                }
+                else
+                {
+                    currentSkuList = strFmt('%1, %2', currentSkuList, skuName);
+                }
+            }
+        }
+
+        // Flush last user (if any)
+        if (currentUserId != '')
+        {
+            licenseReportUser.clear();
+            licenseReportUser.UserId   = currentUserId;
+            licenseReportUser.UserEnabled  = currentEnabled;
+            licenseReportUser.CurrentLicense  = currentSkuList;
+
+            recordInsertList.add(licenseReportUser);
+        }
+
+        recordInsertList.insertDatabase();
+
+        ttscommit;
+
+        LicensingAllSkus				licensingAllSkus;
+        DEVLicenseReportUserLines		licenseReportUserLines;
+
+        DEVLicenseAllSkusUserTmp				licensingAllSkusTmp, licensingAllSkusTmpCurrent;
+
+        SysUserLog   sysUserLog;
+        Map		     userLastLogonMap = new Map(Types::String, Types::UtcDateTime);
+        while select UserId, maxof(CreatedDateTime) from sysUserLog
+            group by UserId
+            where sysUserLog.UserId == userId || userId == ''
+        {
+            userLastLogonMap.insert(sysUserLog.UserId, sysUserLog.CreatedDateTime);
+        }
+
+        licensingAllSkusTmp.setTmp();
+        while select licenseReportUserLines
+            group by UserId, CurrentLicense
+            order by UserId
+            where licenseReportUserLines.UserId == userId || userId == ''
+        join licensingAllSkus
+            group by SkuName, Priority, GroupName, RecId
+            where licensingAllSkus.SkuName == licenseReportUserLines.CurrentLicense
+		{
+            licensingAllSkusTmp.UserId     = licenseReportUserLines.UserId;
+            licensingAllSkusTmp.SkuName    = licensingAllSkus.SkuName;
+            licensingAllSkusTmp.Priority   = licensingAllSkus.Priority;
+            licensingAllSkusTmp.GroupName  = licensingAllSkus.GroupName;
+            licensingAllSkusTmp.skuRecId  = licensingAllSkus.RecId;
+            licensingAllSkusTmp.insert();
+        }
+        str							usageLogLicense;
+        DEVLicenseReportUserLines	licenseReportUserLinesCheck;
+        LicensingAllEntitledPermissions  licensingAllEntitledPermissionsCheck;
+        ttsbegin;
+        while select forupdate licenseReportUser
+            order by UserId
+            where licenseReportUser.UserId == userId || userId == ''
+        {
+            // Find the highest priority SKU for the user
+            licensingAllSkusTmp.clear();
+            select firstonly licensingAllSkusTmp
+				order by Priority desc
+                where licensingAllSkusTmp.UserId == licenseReportUser.UserId;
+            licenseReportUser.UsageLogLicenseSkuPriority = licensingAllSkusTmp.Priority;
+            usageLogLicense = licensingAllSkusTmp.SkuName;
+            if (licensingAllSkusTmp.GroupName)
+            {
+                licensingAllSkusTmpCurrent.data(licensingAllSkusTmp);
+
+                licensingAllSkusTmp.clear();
+                while select licensingAllSkusTmp
+					order by Priority desc
+                    where licensingAllSkusTmp.UserId    == licensingAllSkusTmpCurrent.UserId &&
+                          licensingAllSkusTmp.GroupName == licensingAllSkusTmpCurrent.GroupName &&
+                          licensingAllSkusTmp.Priority <   licensingAllSkusTmpCurrent.Priority
+                {
+                    //should we add this SKU licensingAllSkusTmp.SkuName. Do we have lines with this SKU and with the current highest priority SKU?
+                    licenseReportUserLinesCheck = null;
+                    select firstonly licenseReportUserLinesCheck
+                        where licenseReportUserLinesCheck.UserId == licenseReportUser.UserId &&
+                              licenseReportUserLinesCheck.CurrentLicense == licensingAllSkusTmp.SkuName
+                    join EntitlementObject from licensingAllEntitledPermissionsCheck
+                        where licensingAllEntitledPermissionsCheck.EntitlementObject == licenseReportUserLinesCheck.EntitlementObject &&
+                              licensingAllEntitledPermissionsCheck.SkuRecId          == licensingAllSkusTmpCurrent.SkuRecId;
+                    if (! licenseReportUserLinesCheck.RecId)
+                    {
+                        usageLogLicense += strFmt(', %1', licensingAllSkusTmp.SkuName);
+                    }
+				}
+			}
+            
+            licenseReportUser.UsageLogLicense			 = usageLogLicense;
+            
+            if (userLastLogonMap.exists(licenseReportUser.UserId))
+			{
+				licenseReportUser.LastLogonDate = userLastLogonMap.lookup(licenseReportUser.UserId);
+            }
+            licenseReportUser.update();
+		}
+
+		//caclulate compare status
+        DEVLicenseReportObjectLicences  licenseReportObjectLicences;
+        DEVLicenseTablesObjectLink		licenseTablesObjectLink;
+        DEVLicenseTablesUsers           licenseTablesUsers;
+
+        licenseReportUserLinesCheck = null;
+
+        while select forupdate licenseReportUserLinesCheck
+			where licenseReportUserLinesCheck.CurrentAccessLevel == AccessLevel::Write
+        join licenseReportUser
+            where (licenseReportUser.UserId == userId || userId == '' ) &&
+                  licenseReportUser.UserId == licenseReportUserLinesCheck.UserId
+        exists join licenseTablesObjectLink
+            where licenseTablesObjectLink.EntitlementObject == licenseReportUserLinesCheck.EntitlementObject
+        exists join licenseTablesUsers
+            where licenseTablesUsers.TableName == licenseTablesObjectLink.TableName &&
+                    licenseTablesUsers.UserId    == licenseReportUser.UserId
+        {
+            licenseReportUserLinesCheck.IsWriteInLinkedTables = true;
+            licenseReportUserLinesCheck.update();
+		}
+
+        Map  userNumOnTopLicenses = new Map(Types::String, Types::Integer);
+        Map  userNumOnTopLicensesObj = new Map(Types::String, Types::String);
+        
+        UserId currentUserIdCheck;
+        int    numOnTopLicenses;
+        str   currentTopLicenses;
+
+        licenseReportUserLinesCheck = null;
+        licenseReportUser           = null;
+        licenseReportObjectLicences = null;
+        licensingAllSkus            = null;
+        while select  licenseReportUserLinesCheck
+            order by UserId
+        join UserId from licenseReportUser
+            where (licenseReportUser.UserId == userId || userId == '' ) &&
+                  licenseReportUser.UserId == licenseReportUserLinesCheck.UserId
+        join licenseReportObjectLicences
+			where licenseReportObjectLicences.EntitlementObject == licenseReportUserLinesCheck.EntitlementObject
+        join  licensingAllSkus
+            where licensingAllSkus.SkuName == licenseReportUserLinesCheck.CurrentLicense &&
+                    licensingAllSkus.Priority >= licenseReportUser.UsageLogLicenseSkuPriority
+        {
+            if (currentUserIdCheck != licenseReportUserLinesCheck.UserId && currentUserIdCheck != '')
+			{
+                userNumOnTopLicenses.insert(currentUserIdCheck, numOnTopLicenses);
+                userNumOnTopLicensesObj.insert(currentUserIdCheck, currentTopLicenses);
+
+				currentUserIdCheck = licenseReportUserLinesCheck.UserId;
+                numOnTopLicenses = 0;
+                currentTopLicenses = '';
+            }
+            numOnTopLicenses++;
+            currentTopLicenses += (currentTopLicenses ? ',' : '') + licenseReportObjectLicences.AOTName;
+            currentUserIdCheck = licenseReportUserLinesCheck.UserId;
+		}
+        if (currentUserIdCheck)
+        {
+            userNumOnTopLicenses.insert(currentUserIdCheck, numOnTopLicenses);
+            userNumOnTopLicensesObj.insert(currentUserIdCheck, currentTopLicenses);
+		}
+
+        DEVLicenseReportUserComments		reportUserComments;
+        licenseReportUser.clear();
+		while select forupdate licenseReportUser
+            order by UserId
+            where licenseReportUser.UserId == userId || userId == ''
+        outer join reportUserComments
+            where reportUserComments.UserId == licenseReportUser.UserId
+        {
+            if (userNumOnTopLicenses.exists(licenseReportUser.UserId))
+            {
+                licenseReportUser.HighLicenseObjectCount = userNumOnTopLicenses.lookup(licenseReportUser.UserId);
+                licenseReportUser.HighLicenseObjectList  = userNumOnTopLicensesObj.lookup(licenseReportUser.UserId);
+			}
+
+            if (licenseReportUser.CurrentLicense == licenseReportUser.UsageLogLicense)
+            {
+                licenseReportUserLinesCheck = null;
+                select firstonly RecId from licenseReportUserLinesCheck
+					where licenseReportUserLinesCheck.CurrentAccessLevel == AccessLevel::Write &&
+						  licenseReportUserLinesCheck.IsWriteInLinkedTables == true && 
+						  licenseReportUserLinesCheck.UserId == licenseReportUser.UserId
+				join RecId from licensingAllSkus
+					where licensingAllSkus.SkuName == licenseReportUserLinesCheck.CurrentLicense &&
+							licensingAllSkus.Priority >= licenseReportUser.UsageLogLicenseSkuPriority
+                join RecId from licenseReportObjectLicences
+					where licenseReportObjectLicences.EntitlementObject == licenseReportUserLinesCheck.EntitlementObject &&
+                          licenseReportObjectLicences.WriteLicense      != licenseReportObjectLicences.ReadLicense;
+                if (licenseReportUserLinesCheck.RecId)
+                {
+                    licenseReportUser.CompareStatus = DEVLicenseCompareStatus::MatchUsage;
+				}
+				else
+                {
+                    licenseReportUserLinesCheck = null;
+                    select firstonly RecId from licenseReportUserLinesCheck
+						where licenseReportUserLinesCheck.UserId == licenseReportUser.UserId
+					join RecId from licensingAllSkus
+						where licensingAllSkus.SkuName == licenseReportUserLinesCheck.CurrentLicense &&
+								licensingAllSkus.Priority >= licenseReportUser.UsageLogLicenseSkuPriority
+					join RecId from licenseReportObjectLicences
+						where licenseReportObjectLicences.EntitlementObject == licenseReportUserLinesCheck.EntitlementObject &&
+							  licenseReportObjectLicences.WriteLicense      == licenseReportObjectLicences.ReadLicense;
+                    if (licenseReportUserLinesCheck.RecId)
+                    {
+                        licenseReportUser.CompareStatus = DEVLicenseCompareStatus::MatchUsage;
+                    }
+                    else
+                    {
+                        licenseReportUser.CompareStatus = DEVLicenseCompareStatus::MatchWriteNotConfirmed;
+					}
+				}
+			}
+            else
+			{
+                if (licenseReportUser.LastLogonDate)
+                {
+                    licenseReportUser.CompareStatus = DEVLicenseCompareStatus::HigherThanRequired;
+                }
+				else
+                {
+                    licenseReportUser.CompareStatus = DEVLicenseCompareStatus::HigherThanRequiredNoActivity;
+                }
+			}
+            licenseReportUser.Comment = reportUserComments.Comment;
+            licenseReportUser.update();
+		}
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processLicenseElementUsageLogLine</Name>
+				<Source><![CDATA[
+    public void processLicenseElementUsageLogLine()
+    {
+        DEVLicenseElementUsageLog			licenseElementUsageLog;
+        DEVLicenseReportObjectLicences		licenseReportObjectLicences;
+        DEVLicenseReportUserLines			licenseReportUserLines;
+        RecordInsertList					userLinesInsertList = new RecordInsertList(tableNum(DEVLicenseReportUserLines));
+        DEVLicenseRunBaseClasses			licenseRunBaseClasses;
+
+        delete_from licenseReportUserLines
+			where (licenseReportUserLines.UserId == userId || userId == '');
+
+        while select licenseElementUsageLog
+            group by UserId, AOTName, SecurableType
+            where licenseElementUsageLog.ObjectType != 'RunBase' &&
+			      (licenseElementUsageLog.UserId == userId || userId == '')
+        join maxof(EntitlementObject) from licenseReportObjectLicences    //can be child items
+			where licenseReportObjectLicences.AOTName == licenseElementUsageLog.AOTName &&
+                  licenseReportObjectLicences.SecurableType == licenseElementUsageLog.SecurableType
+        {
+            licenseReportUserLines.UserId = licenseElementUsageLog.UserId;
+            licenseReportUserLines.EntitlementObject = licenseReportObjectLicences.EntitlementObject;
+            userLinesInsertList.add(licenseReportUserLines);
+		}
+
+        while select licenseElementUsageLog
+            group by UserId
+            where licenseElementUsageLog.ObjectType == 'RunBase' &&
+                  (licenseElementUsageLog.UserId == userId || userId == '')
+        join licenseRunBaseClasses
+			group by TableId
+            where licenseRunBaseClasses.ObjectName == licenseElementUsageLog.ObjectName
+        join maxof(EntitlementObject) from licenseReportObjectLicences   
+        where licenseReportObjectLicences.AOTName			== licenseRunBaseClasses.AOTName &&
+                  licenseReportObjectLicences.SecurableType == licenseRunBaseClasses.SecurableType
+        {
+            licenseReportUserLines.UserId = licenseElementUsageLog.UserId;
+            licenseReportUserLines.EntitlementObject = licenseReportObjectLicences.EntitlementObject;
+            userLinesInsertList.add(licenseReportUserLines);
+        }
+        userLinesInsertList.insertDatabase();
+
+        DEVLicenseReportUserPermission  licenseReportUserPermission;
+
+        update_recordset licenseReportUserLines
+            setting CurrentAccessLevel = licenseReportUserPermission.AccessLevel
+			where (licenseReportUserLines.UserId == userId || userId == '')
+		join licenseReportUserPermission
+			where licenseReportUserPermission.UserId == licenseReportUserLines.UserId &&
+				  licenseReportUserPermission.EntitlementObject == licenseReportUserLines.EntitlementObject;
+
+        licenseReportObjectLicences = null;
+        update_recordset licenseReportUserLines
+            setting CurrentLicense = licenseReportObjectLicences.ReadLicense
+            where (licenseReportUserLines.UserId == userId || userId == '') &&
+                  licenseReportUserLines.CurrentAccessLevel == AccessLevel::Read
+        join licenseReportObjectLicences
+            where licenseReportObjectLicences.EntitlementObject == licenseReportUserLines.EntitlementObject;
+
+        licenseReportObjectLicences = null;
+        update_recordset licenseReportUserLines
+            setting CurrentLicense = licenseReportObjectLicences.WriteLicense
+            where (licenseReportUserLines.UserId == userId || userId == '') &&
+                  licenseReportUserLines.CurrentAccessLevel == AccessLevel::Write
+        join licenseReportObjectLicences
+            where licenseReportObjectLicences.EntitlementObject == licenseReportUserLines.EntitlementObject;
+
+        licenseReportObjectLicences = null;
+        LicensingAllSkus  licensingAllSkus;
+        update_recordset licenseReportUserLines
+            setting Priority = licensingAllSkus.Priority * -1
+            where (licenseReportUserLines.UserId == userId || userId == '') 
+        join licensingAllSkus
+            where licensingAllSkus.SkuName == licenseReportUserLines.CurrentLicense;
+
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVLicenseReportCalc construct()
+    {
+        return new DEVLicenseReportCalc();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Licenses by user report";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVLicenseReportCalc    runObject = DEVLicenseReportCalc::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

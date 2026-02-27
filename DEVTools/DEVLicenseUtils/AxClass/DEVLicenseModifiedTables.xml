@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVLicenseModifiedTables</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVLicenseModifiedTables extends RunBaseBatch implements BatchRetryable
+{
+    Days         calculateDays;
+    
+    DialogField  dlgCalculateDays;
+    
+    QueryRun       queryRun;
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        calculateDays
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgCalculateDays  = dialog.addFieldValue(extendedtypestr(Days), calculateDays, "Use last days", "Number of days to perform calculation");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        calculateDays   = dlgCalculateDays.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCalculateDays</Name>
+				<Source><![CDATA[
+    public Days parmCalculateDays(Days _calculateDays = calculateDays)
+    {
+        calculateDays = _calculateDays;
+        return calculateDays;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        this.initQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initQuery</Name>
+				<Source><![CDATA[
+    public void initQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds = query.addDataSource(tablenum(SqlDictionary));
+        QueryBuildRange         qBR;
+        ;
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(SqlDictionary, fieldId));
+        qBR.status(RangeStatus::Locked);
+        qBR.value('0');
+        
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        container  queryCon;
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList, queryCon] = _packedClass;
+                if (SysQuery::isPackedOk(queryCon))
+                {
+                    queryRun = new QueryRun(queryCon);
+                }
+                else
+                {
+                    this.initQuery();
+                }
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        int                     processedCounter;
+        QueryBuildDataSource    qBDS;
+        SqlDictionary    sqlDictionary;
+        
+        qBDS = queryRun.query().dataSourceTable(tableNum(SqlDictionary));
+        
+        while (queryRun.next())
+        {
+            sqlDictionary = queryRun.get(tablenum(SqlDictionary));
+            this.processTable(sqlDictionary);
+            processedCounter++;
+        }
+        info(strfmt(" %1 record(s) processed", processedCounter));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>processTable</Name>
+				<Source><![CDATA[
+    public void processTable(SqlDictionary    _sqlDictionary)
+    {
+        DictTable		dictTable = new DictTable(_sqlDictionary.tabId);
+        Common			commonRec;
+        DEVLicenseTablesUsers  licenseTablesUsers, licenseTablesUsersUpd;
+
+        delete_from licenseTablesUsers
+            where licenseTablesUsers.TableName == _sqlDictionary.name;
+
+
+        utcdatetime calcDate = DateTimeUtil::addDays(DateTimeUtil::utcNow(), -1 * calculateDays);
+
+        if (dictTable.isView() || dictTable.isTempDb() || dictTable.isTempDb())
+		{
+			return;
+        }
+        if (dictTable.fieldName2Id("ModifiedDateTime") && dictTable.fieldName2Id("ModifiedBy"))
+        {
+            commonRec = dictTable.makeRecord();
+            ttsbegin;
+            while select crosscompany commonRec
+                group by ModifiedBy
+                where commonRec.ModifiedDateTime >= calcDate
+            {
+                licenseTablesUsers = null;
+                licenseTablesUsers.TableName = _sqlDictionary.name;
+                licenseTablesUsers.UserId = commonRec.ModifiedBy;
+                licenseTablesUsers.Source = 'ModifiedBy';
+
+                if (licenseTablesUsers.UserId)
+                {
+                    licenseTablesUsers.insert();
+                }
+
+            }
+            ttscommit;
+        }
+        if (dictTable.fieldName2Id("CreatedDateTime") && dictTable.fieldName2Id("CreatedBy"))
+        {
+            commonRec = dictTable.makeRecord();
+            ttsbegin;
+            while select crosscompany commonRec
+                group by CreatedBy
+                where commonRec.CreatedDateTime >= calcDate
+            {
+                licenseTablesUsers = null;
+                licenseTablesUsers.TableName = _sqlDictionary.name;
+                licenseTablesUsers.UserId = commonRec.CreatedBy;
+                licenseTablesUsers.Source = 'CreatedBy';
+
+                if (licenseTablesUsers.UserId )
+                {
+                    licenseTablesUsers.insert();
+                }
+
+            }
+            ttscommit;
+        }
+        ttsbegin;
+        SysDataBaseLog    sysDatabaseLog;
+        while select sysDatabaseLog
+			group by Username
+            where sysDatabaseLog.CreatedDateTime >= calcDate
+                && sysDatabaseLog.table == dictTable.id()
+        {
+            licenseTablesUsers = null;
+            licenseTablesUsers.TableName = _sqlDictionary.name;
+            licenseTablesUsers.UserId = sysDatabaseLog.Username;
+            licenseTablesUsers.Source = 'SysDataBaseLog';
+
+            if (licenseTablesUsers.UserId )
+            {
+                licenseTablesUsers.insert();
+            }
+		}
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVLicenseModifiedTables construct()
+    {
+        return new DEVLicenseModifiedTables();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Calculate modified records";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVLicenseModifiedTables    runObject = DEVLicenseModifiedTables::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

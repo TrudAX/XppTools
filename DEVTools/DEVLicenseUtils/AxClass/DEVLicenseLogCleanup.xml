@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVLicenseLogCleanup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVLicenseLogCleanup extends RunBaseBatch implements BatchRetryable
+{
+    NoYesId      isDelete;
+    Days         keepDays;
+    NoYesId      isCompact;
+    
+    DialogField  dlgIsDelete;
+    DialogField  dlgKeepDays;
+    DialogField  dlgIsCompact;
+    
+    
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        isDelete,
+        keepDays,
+        isCompact
+    #endmacro
+    
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgIsDelete   = dialog.addFieldValue(extendedtypestr(NoYesId), isDelete, "Delete data", "Delete data from the table");
+        dlgKeepDays   = dialog.addFieldValue(extendedtypestr(Days), keepDays, "Days to keep", "Days to keep data");
+        dlgIsCompact  = dialog.addFieldValue(extendedtypestr(NoYesId), isCompact, "Compact data", "Delete duplicate data");
+        
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        isDelete    = dlgIsDelete.value();
+        keepDays    = dlgKeepDays.value();
+        isCompact   = dlgIsCompact.value();
+        
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsDelete</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsDelete(NoYesId _isDelete = isDelete)
+    {
+        isDelete = _isDelete;
+        return isDelete;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmKeepDays</Name>
+				<Source><![CDATA[
+    public Days parmKeepDays(Days _keepDays = keepDays)
+    {
+        keepDays = _keepDays;
+        return keepDays;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsCompact</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsCompact(NoYesId _isCompact = isCompact)
+    {
+        isCompact = _isCompact;
+        return isCompact;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        DEVLicenseElementUsageLog		licenseElementUsageLog, licenseElementUsageLogUpd;
+        int numberOfRecords;
+        utcdatetime calcDate = DateTimeUtil::addDays(DateTimeUtil::utcNow(), -1 * keepDays);
+		if (isDelete)
+        {
+            ttsbegin;
+            delete_from licenseElementUsageLog
+                where licenseElementUsageLog.CreatedDateTime <= calcDate;
+            ttscommit;
+            info(strFmt("Deleted %1 records from %2", licenseElementUsageLog.RowCount(), calcDate));
+		}
+        if (isCompact)
+        {
+            while select maxof(RecId) from licenseElementUsageLog
+                group by AOTName, SecurableType, UserId, ObjectType, ObjectName, CompanyId
+            {
+                ttsbegin;
+                licenseElementUsageLogUpd = null;
+				delete_from licenseElementUsageLogUpd
+					where licenseElementUsageLogUpd.RecId         < licenseElementUsageLog.RecId &&
+						  licenseElementUsageLogUpd.AOTName       == licenseElementUsageLog.AOTName &&
+						  licenseElementUsageLogUpd.SecurableType == licenseElementUsageLog.SecurableType &&
+						  licenseElementUsageLogUpd.UserId        == licenseElementUsageLog.UserId &&
+						  licenseElementUsageLogUpd.ObjectType    == licenseElementUsageLog.ObjectType &&
+						  licenseElementUsageLogUpd.ObjectName    == licenseElementUsageLog.ObjectName &&
+                          licenseElementUsageLogUpd.CompanyId     == licenseElementUsageLog.CompanyId;
+
+                numberOfRecords += licenseElementUsageLogUpd.RowCount();
+                ttscommit;
+			}
+            info(strFmt("Compacted %1 records ", numberOfRecords));
+		}
+        
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVLicenseLogCleanup construct()
+    {
+        return new DEVLicenseLogCleanup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Cleanup element usage log";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVLicenseLogCleanup    runObject = DEVLicenseLogCleanup::construct();
+        ;
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

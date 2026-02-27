@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVLicenseTablesObjectLink</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVLicenseTablesObjectLink extends common
+{
+
+
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>calcValues</Name>
+				<Source><![CDATA[
+	private void calcValues()
+	{
+		LicensingEntitlementObjects                 licensingEntitlementObjects;
+		if (this.EntitlementObject && ! this.AOTName)
+		{
+			select licensingEntitlementObjects
+				where licensingEntitlementObjects.RecId == this.EntitlementObject;
+
+			this.AotName           = licensingEntitlementObjects.AotName;
+			this.SecurableType     = licensingEntitlementObjects.SecurableType;
+		}
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+	public void insert()
+	{
+		this.calcValues();
+		super();
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+	public void update()
+	{
+		this.calcValues();
+		super();
+	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>exists</Name>
+				<Source><![CDATA[
+    public static boolean exists(RefRecId   _entitlementObject,
+                                 TableName  _tableName)
+    {
+        boolean res;
+        ;
+        if (_entitlementObject && _tableName)
+        {
+            res = (select firstonly RecId from DEVLicenseTablesObjectLink
+                    where DEVLicenseTablesObjectLink.EntitlementObject  == _entitlementObject &&
+                          DEVLicenseTablesObjectLink.TableName          == _tableName).RecId != 0;
+        }
+        
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>populate</Name>
+				<Source><![CDATA[
+    public static void populate()
+	{
+		DEVLicenseElementUsageLog  licenseElementUsageLog;
+        DEVLicenseTablesObjectLink  tablesObjectLink;
+
+		while select licenseElementUsageLog
+		group by AOTName, SecurableType
+		where licenseElementUsageLog.SecurableType == SecurableType::MenuItemDisplay
+        {
+  
+            str          formName;
+            int          i;
+
+            MenuFunction menuFunction = new MenuFunction(licenseElementUsageLog.AOTName, MenuItemType::Display);
+            if (menuFunction.objectType() != MenuItemObjectType::Form)
+            {
+                continue;
+            }
+
+       
+            formName = menuFunction.object();
+
+            if (!formName)
+            {
+                continue;
+                }
+            //Microsoft.Dynamics.Ax.Xpp.MetadataSupport::CreateSqlConnection()
+            
+            Microsoft.Dynamics.AX.Metadata.MetaModel.AxForm  formMetadata =  Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetForm(formName);
+            if (!formMetadata)
+            {
+                continue;
+            }
+            LicensingEntitlementObjects                 licensingEntitlementObjects;
+			select firstonly licensingEntitlementObjects
+				order by RecId
+				where licensingEntitlementObjects.AotName == licenseElementUsageLog.AOTName &&
+				licensingEntitlementObjects.SecurableType == licenseElementUsageLog.SecurableType;
+            if (! licensingEntitlementObjects.RecId)
+            {
+			   continue;
+			}
+
+            Microsoft.Dynamics.AX.Metadata.MetaModel.AxFormDataSource dsMetadata;
+
+            // Iterate datasources
+            for (i = 0; i < formMetadata.DataSourceCount(); i++)
+            {
+                dsMetadata = formMetadata.GetDataSource(i);
+ 
+                int tableId = tableName2Id(dsMetadata.Table);
+
+                DictTable dictTable = new DictTable(tableId);
+                if (! dictTable.isTempDb() && ! dictTable.isMap() && ! dictTable.isView() && ! dictTable.isTmp())
+				{
+
+                    tablesObjectLink.EntitlementObject = licensingEntitlementObjects.RecId;
+                    tablesObjectLink.AotName           = licensingEntitlementObjects.AotName;
+                    tablesObjectLink.SecurableType     = licensingEntitlementObjects.SecurableType;
+                    tablesObjectLink.TableName = dictTable.name();
+
+                    if (! DEVLicenseTablesObjectLink::exists(tablesObjectLink.EntitlementObject, tablesObjectLink.TableName))
+                    {
+						tablesObjectLink.insert();
+                    }
+                }
+            }
+        }
+
+	}
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>DEV Reference between tables and menuitems</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TableGroup>WorksheetHeader</TableGroup>
+	<TitleField1>TableName</TitleField1>
+	<TitleField2>AOTName</TitleField2>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<ClusteredIndex>ObjectTableIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<CreatedTransactionId>Yes</CreatedTransactionId>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<IsManuallyUpdated>Yes</IsManuallyUpdated>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>TableName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<IsSystemGenerated>Yes</IsSystemGenerated>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>EntitlementObject</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SecurableType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AOTName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TableName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>TableName</Name>
+			<ExtendedDataType>TableName</ExtendedDataType>
+			<HelpText>Table name that user modify</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Table name</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>EntitlementObject</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SecurableType</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<Label>@UserSecGov:SecurableType</Label>
+			<EnumType>SecurableType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>AOTName</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>AOTName</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>CreatedDateTimeIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>CreatedDateTime</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>ObjectTableIdx</Name>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>EntitlementObject</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>TableName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>LicensingEntitlementObjects</Name>
+			<RelatedTable>LicensingEntitlementObjects</RelatedTable>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>EntitlementObject</Name>
+					<Field>EntitlementObject</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

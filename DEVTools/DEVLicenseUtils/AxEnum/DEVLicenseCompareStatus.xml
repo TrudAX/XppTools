@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVLicenseCompareStatus</Name>
+	<Help>License Compare Status</Help>
+	<Label>Compare Status</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>MatchUsage</Name>
+			<Label>Match</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>MatchWriteNotConfirmed</Name>
+			<Label>Match write not confirmed</Label>
+			<Value>10</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>HigherThanRequired</Name>
+			<Label>Higher than required</Label>
+			<Value>20</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>HigherThanRequiredNoActivity</Name>
+			<Label>Higher than required (no activity)</Label>
+			<Value>30</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

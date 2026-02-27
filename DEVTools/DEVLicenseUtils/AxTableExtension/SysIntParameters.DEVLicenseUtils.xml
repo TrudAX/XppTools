@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTableExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SysIntParameters.DEVLicenseUtils</Name>
+	<FieldGroupExtensions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>DEVLicenseParms</Name>
+			<Label>DEV license</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>DEVLicenseCaptureElementUsage</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<FieldModifications />
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DEVLicenseCaptureElementUsage</Name>
+			<HelpText>Capture element usage</HelpText>
+			<Label>Element usage log</Label>
+			<EnumType>DEVLicenseCaptureElementUsageType</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes />
+	<Mappings />
+	<PropertyModifications />
+	<RelationExtensions />
+	<RelationModifications />
+	<Relations />
+</AxTableExtension>

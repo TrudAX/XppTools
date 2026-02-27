@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVLicenseReportUserLines</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVLicenseReportUserLines extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>shouldThrowExceptionOnZeroDelete</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Determines if concurrent deletes should throw exception.
+    /// </summary>
+    /// <returns>true, if exception should be thrown; otherwise, false.</returns>
+    public boolean shouldThrowExceptionOnZeroDelete()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>noWritesDisplay</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    public display NoYesId noWritesDisplay()
+    {
+        NoYesId  res;
+        DEVLicenseTablesObjectLink		licenseTablesObjectLink;
+        DEVLicenseTablesUsers			licenseTablesUsers;
+        if (this.CurrentAccessLevel == AccessLevel::Write)
+        {
+			//do we have any record for this object
+            select firstonly RecId from licenseTablesObjectLink
+				where licenseTablesObjectLink.EntitlementObject == this.EntitlementObject
+            join licenseTablesUsers
+                where licenseTablesUsers.TableName == licenseTablesObjectLink.TableName;
+            
+			if (licenseTablesObjectLink.RecId)
+            {
+                licenseTablesObjectLink = null;
+                licenseTablesUsers      = null;
+
+                select firstonly RecId from licenseTablesObjectLink
+					where licenseTablesObjectLink.EntitlementObject == this.EntitlementObject
+				join licenseTablesUsers
+					where licenseTablesUsers.TableName == licenseTablesObjectLink.TableName &&
+                          licenseTablesUsers.UserId    == this.UserId;
+				if (!licenseTablesObjectLink.RecId)
+                {
+                    res = true;
+				}
+				 
+			}
+
+		}
+		return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>DEV License report lines</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>UserId</TitleField1>
+	<TitleField2>EntitlementObject</TitleField2>
+	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>UserId</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>UserId</ExtendedDataType>
+			<Label>User</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>EntitlementObject</Name>
+			<ExtendedDataType>RefRecId</ExtendedDataType>
+			<HelpText>EntitlementObject</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>ObjectId</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CurrentAccessLevel</Name>
+			<Label>Access</Label>
+			<EnumType>AccessLevel</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CurrentLicense</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Current Permission</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>Priority</Name>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>IsWriteInLinkedTables</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Write operation found in linked tables</HelpText>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Label>Writes</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>PriorityIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>UserId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Priority</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+		<AxTableIndex>
+			<Name>UserCurrentLicIdx</Name>
+			<AllowDuplicates>Yes</AllowDuplicates>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>UserId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>CurrentLicense</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation>
+			<Name>DEVLicenseReportUser</Name>
+			<RelatedTable>DEVLicenseReportUser</RelatedTable>
+			<RelatedTableCardinality>ExactlyOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>UserId</Name>
+					<Field>UserId</Field>
+					<RelatedField>UserId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>
