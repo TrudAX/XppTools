@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxSecurityPrivilege xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialServiceTestCall</Name>
+	<Label>DEVIntegTutorialServiceTestCall</Label>
+	<DataEntityPermissions />
+	<DirectAccessPermissions />
+	<EntryPoints>
+		<AxSecurityEntryPointReference>
+			<Name>DEVIntegTutorialServiceTestTable</Name>
+			<Grant>
+				<Correct>Allow</Correct>
+				<Create>Allow</Create>
+				<Delete>Allow</Delete>
+				<Invoke>Allow</Invoke>
+				<Read>Allow</Read>
+				<Update>Allow</Update>
+			</Grant>
+			<ObjectChildName>getSOInfoDataTable</ObjectChildName>
+			<ObjectName>DEVIntegTutorialServiceTest</ObjectName>
+			<ObjectType>ServiceOperation</ObjectType>
+			<Forms />
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>DEVIntegTutorialServiceTestTemp</Name>
+			<Grant>
+				<Correct>Allow</Correct>
+				<Create>Allow</Create>
+				<Delete>Allow</Delete>
+				<Invoke>Allow</Invoke>
+				<Read>Allow</Read>
+				<Update>Allow</Update>
+			</Grant>
+			<ObjectChildName>getSOInfoTempTable</ObjectChildName>
+			<ObjectName>DEVIntegTutorialServiceTest</ObjectName>
+			<ObjectType>ServiceOperation</ObjectType>
+			<Forms />
+		</AxSecurityEntryPointReference>
+		<AxSecurityEntryPointReference>
+			<Name>DEVIntegTutorialServiceTestSingle</Name>
+			<Grant>
+				<Correct>Allow</Correct>
+				<Create>Allow</Create>
+				<Delete>Allow</Delete>
+				<Invoke>Allow</Invoke>
+				<Read>Allow</Read>
+				<Update>Allow</Update>
+			</Grant>
+			<ObjectChildName>SOInfoSingleValue</ObjectChildName>
+			<ObjectName>DEVIntegTutorialServiceTest</ObjectName>
+			<ObjectType>ServiceOperation</ObjectType>
+			<Forms />
+		</AxSecurityEntryPointReference>
+	</EntryPoints>
+	<FormControlOverrides />
+</AxSecurityPrivilege>

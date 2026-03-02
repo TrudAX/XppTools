@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxService xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialServiceTest</Name>
+	<Class>DEVIntegTutorialServiceTest</Class>
+	<Description>Tutorial service demo</Description>
+	<ExternalName>DEVIntegTutorialServiceTest</ExternalName>
+	<ServiceOperations>
+		<AxServiceOperation>
+			<Name>getSOInfoDataTable</Name>
+			<Method>getSOInfoDataTable</Method>
+			<SubscriberAccessLevel>
+				<Read>Allow</Read>
+			</SubscriberAccessLevel>
+		</AxServiceOperation>
+		<AxServiceOperation>
+			<Name>getSOInfoTempTable</Name>
+			<Method>getSOInfoTempTable</Method>
+			<SubscriberAccessLevel>
+				<Read>Allow</Read>
+			</SubscriberAccessLevel>
+		</AxServiceOperation>
+		<AxServiceOperation>
+			<Name>SOInfoSingleValue</Name>
+			<Method>SOInfoSingleValue</Method>
+			<SubscriberAccessLevel>
+				<Read>Allow</Read>
+			</SubscriberAccessLevel>
+		</AxServiceOperation>
+	</ServiceOperations>
+</AxService>

@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialServiceTest</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegTutorialServiceTest extends DEVIntegServiceExportBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>getSOInfoDataTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// DEMO #1 (DataTables / DataSet):
+    /// Returns Sales order header + lines in a single response as multiple DataTables.
+    /// Use this when you want to expose values from multiple tables (SalesTable + SalesLine)
+    /// as a structured dataset (header table + line table).
+    /// </summary>
+    public DEVIntegServiceExportResponseContract getSOInfoDataTable(DEVIntegTutorialServiceTestContract _contract)
+    {
+        // Wrapper method for the framework - delegates work to calculate* via serviceCallProcess
+        return this.serviceCallProcess(methodStr(DEVIntegTutorialServiceTest, calculateGetSOInfoDataTable), _contract);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calculateGetSOInfoDataTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// DEMO #1 implementation:
+    /// This demonstrates returning values from multiple tables as a DataSet.
+    /// </summary>
+    public void calculateGetSOInfoDataTable(DEVIntegTutorialServiceTestContract _contract, DEVIntegServiceExportResponseContract _response)
+    {
+        this.validateAndDelay(_contract);
+
+        changecompany(_contract.parmCompanyId())
+        {
+            SalesTable salesTable = SalesTable::find(_contract.parmSalesId(), true);
+            if (!salesTable.RecId)
+            {
+                throw error(strFmt("Sales order %1 not found in company %2", _contract.parmSalesId(), _contract.parmCompanyId()));
+            }
+
+            this.initDataTableHelper();
+
+            // Header table: single row with Sales order header values
+            dataTableHelper.addDataTable('SOHeader');
+            dataTableHelper.addRowItem('SalesId',     salesTable.SalesId);
+            dataTableHelper.addRowItem('CustAccount', salesTable.CustAccount);
+            dataTableHelper.addRow();
+
+            // Lines table: multiple rows with sales lines
+            dataTableHelper.addDataTable('SOLine');
+
+            SalesLine salesLine;
+            while select salesLine
+                where salesLine.SalesId == salesTable.SalesId
+            {
+                dataTableHelper.addRowItem('SalesId',  salesLine.SalesId);
+                dataTableHelper.addRowItem('ItemId',   salesLine.ItemId);
+                dataTableHelper.addRowItem('SalesQty', salesLine.SalesQty);
+                dataTableHelper.addRow();
+            }
+
+            this.addDataTableHelperToResponse(_response);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getSOInfoTempTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// DEMO #2 (Temp table / DataSet):
+    /// Returns ONLY Sales order header fields as a temp-table based DataTable.
+    /// Use this when you want to demonstrate returning a record buffer (e.g., SalesTable.setTmp())
+    /// and let the framework convert it into a dataset table.
+    /// </summary>
+    public DEVIntegServiceExportResponseContract getSOInfoTempTable(DEVIntegTutorialServiceTestContract _contract)
+    {
+        // Wrapper method for the framework - delegates work to calculate* via serviceCallProcess
+        return this.serviceCallProcess(methodStr(DEVIntegTutorialServiceTest, calculateGetSOInfoTempTable), _contract);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calculateGetSOInfoTempTable</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// DEMO #2 implementation:
+    /// Creates a SalesTable temp buffer via setTmp(), inserts one row (SalesId, CustAccount),
+    /// and returns it using addTmpTable().
+    /// This demonstrates returning values from a single table using a temp-table pattern.
+    /// </summary>
+    public void calculateGetSOInfoTempTable(DEVIntegTutorialServiceTestContract _contract, DEVIntegServiceExportResponseContract _response)
+    {
+        this.validateAndDelay(_contract);
+
+        changecompany(_contract.parmCompanyId())
+        {
+            SalesTable salesTable = SalesTable::find(_contract.parmSalesId(), true);
+            if (!salesTable.RecId)
+            {
+                throw error(strFmt("Sales order %1 not found in company %2", _contract.parmSalesId(), _contract.parmCompanyId()));
+            }
+
+            SalesTable tmpSalesTable;
+            tmpSalesTable.setTmp();
+            tmpSalesTable.SalesId     = salesTable.SalesId;
+            tmpSalesTable.CustAccount = salesTable.CustAccount;
+            tmpSalesTable.doinsert();
+
+            this.initDataTableHelper();
+
+            // Return temp table as a dataset DataTable (SOHeaderTmp)
+            dataTableHelper.addTmpTable('SOHeaderTmp', tmpSalesTable,
+                [
+                    fieldNum(SalesTable, SalesId),
+                    fieldNum(SalesTable, CustAccount)
+                ]);
+
+            this.addDataTableHelperToResponse(_response);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>SOInfoSingleValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// DEMO #3 (Single scalar response):
+    /// Returns just one value in MessageData (Sales order number).
+    /// Use this when the service needs to return a simple scalar (string/number)
+    /// rather than a dataset with tables.
+    /// </summary>
+    public DEVIntegServiceExportResponseContract SOInfoSingleValue(DEVIntegTutorialServiceTestContract _contract)
+    {
+        // Wrapper method for the framework - delegates work to calculate* via serviceCallProcess
+        return this.serviceCallProcess(methodStr(DEVIntegTutorialServiceTest, calculateSOInfoSingleValue), _contract);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calculateSOInfoSingleValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// DEMO #3 implementation:
+    /// Sets parmMessageData() to SalesId and marks response as success.
+    /// This demonstrates the simplest "single value" response pattern.
+    /// </summary>
+    public void calculateSOInfoSingleValue(DEVIntegTutorialServiceTestContract _contract, DEVIntegServiceExportResponseContract _response)
+    {
+        this.validateAndDelay(_contract);
+
+        _response.parmMessageData(_contract.parmSalesId());
+        _response.parmIsSuccess(true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validateAndDelay</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Shared validation + optional delay for demo purposes.
+    /// - Validates CompanyId exists and SalesId is provided.
+    /// - If DelaySeconds is set, waits that many seconds (useful to simulate long-running calls).
+    /// </summary>
+    private void validateAndDelay(DEVIntegTutorialServiceTestContract _contract)
+    {
+        if (!_contract.parmCompanyId())
+        {
+            throw error("CompanyId is required");
+        }
+
+        if (!xDataArea::exist(_contract.parmCompanyId()))
+        {
+            throw error(strFmt("Company %1 does not exist", _contract.parmCompanyId()));
+        }
+
+        if (!_contract.parmSalesId())
+        {
+            throw error("SalesId is required");
+        }
+
+        if (_contract.parmDelaySeconds() > 0)
+        {
+            // sleep() uses milliseconds
+            sleep(_contract.parmDelaySeconds() * 1000);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDescription</Name>
+				<Source><![CDATA[
+    public str getDescription()
+    {
+        return "Tutorial service demo: SO info as DataTable / TempTable / Single value";
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

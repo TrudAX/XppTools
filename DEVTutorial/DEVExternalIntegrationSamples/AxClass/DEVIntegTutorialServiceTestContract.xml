@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegTutorialServiceTestContract</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[DataContractAttribute]
+public class DEVIntegTutorialServiceTestContract
+{
+    SalesId     salesId;
+    CompanyId   companyId;
+    int         delaySeconds;
+
+}
+
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>parmSalesId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(SalesId))]
+    public SalesId parmSalesId(SalesId _salesId = salesId)
+    {
+        salesId = _salesId;
+        return salesId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCompanyId</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(CompanyId))]
+    public CompanyId parmCompanyId(CompanyId _companyId = companyId)
+    {
+        companyId = _companyId;
+        return companyId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDelaySeconds</Name>
+				<Source><![CDATA[
+    [DataMemberAttribute(identifierStr(DelaySeconds))]
+    public int parmDelaySeconds(int _delaySeconds = delaySeconds)
+    {
+        delaySeconds = _delaySeconds;
+        return delaySeconds;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
