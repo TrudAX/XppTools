@@ -66,6 +66,7 @@ public class DEVLicenseReportCalc extends RunBaseBatch implements BatchRetryable
         userId                  = dlgUserId.value();
         isCalcRunBase           = dlgIsCalcRunBase.value();
         isCalcPermissions       = dlgIsCalcPermissions.value();
+        isCalcTablesObjectLink  = dlgIsCalcTablesObjectLink.value();
         isCalcUserPermissions   = dlgIsCalcUserPermissions.value();
         
         return super();
