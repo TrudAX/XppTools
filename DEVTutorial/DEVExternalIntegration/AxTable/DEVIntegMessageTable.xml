@@ -175,10 +175,10 @@ public class DEVIntegMessageTable extends common
     void setSession()
     {
         xSession xSession = new xSession(sessionid());
-        if (xSession.masterSessionId())
-        {
-            xSession = new xSession(xSession.masterSessionId());
-        }
+        //if (xSession.masterSessionId())
+        //{
+        //    xSession = new xSession(xSession.masterSessionId());
+        //}
         this.SessionId              = xSession.sessionId();
         this.SessionLoginDateTime   = xSession.loginDateTime();
     }
