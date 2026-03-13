@@ -6,6 +6,7 @@
 public class DEVLicenseElementUsageLogMonitor
 {
     public static Set usedElementsSet;
+    public static Set usedWriteSet;
 
 }
 ]]></Declaration>
@@ -199,6 +200,129 @@ public class DEVLicenseElementUsageLogMonitor
 		}
         return SecurableType::MenuItemDisplay;
 	}
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>FormRun_onFormRunCompletedDevLicWrite</Name>
+				<Source><![CDATA[
+    [SubscribesTo(classStr(FormRun), staticDelegateStr(FormRun, onFormRunCompleted))]
+    public static void FormRun_onFormRunCompletedDevLicWrite(FormRun _formInstance)
+    {
+        try
+        {
+            DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureWriteLog;
+            if (    captureType != DEVLicenseCaptureElementUsageType::None
+                &&  _formInstance && _formInstance.args()
+                &&  _formInstance.args().menuItemName())
+            {
+                int dsCount = _formInstance.dataSourceCount();
+                for (int i = 1; i <= dsCount; i++)
+                {
+                    FormDataSource fds = _formInstance.dataSource(i);
+                    if (fds)
+                    {
+                        fds.onInserted += eventhandler(DEVLicenseElementUsageLogMonitor::onDsInserted);
+                        fds.onUpdated  += eventhandler(DEVLicenseElementUsageLogMonitor::onDsUpdated);
+                        fds.onDeleted  += eventhandler(DEVLicenseElementUsageLogMonitor::onDsDeleted);
+                    }
+                }
+            }
+        }
+        catch
+        {
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onDsInserted</Name>
+				<Source><![CDATA[
+    public static void onDsInserted(FormDataSource _fds, FormDataSourceEventArgs _e)
+    {
+        DEVLicenseElementUsageLogMonitor::logWrite(_fds, 'RealTimeInsert');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onDsUpdated</Name>
+				<Source><![CDATA[
+    public static void onDsUpdated(FormDataSource _fds, FormDataSourceEventArgs _e)
+    {
+        DEVLicenseElementUsageLogMonitor::logWrite(_fds, 'RealTimeUpdate');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onDsDeleted</Name>
+				<Source><![CDATA[
+    public static void onDsDeleted(FormDataSource _fds, FormDataSourceEventArgs _e)
+    {
+        DEVLicenseElementUsageLogMonitor::logWrite(_fds, 'RealTimeDelete');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logWrite</Name>
+				<Source><![CDATA[
+    public static void logWrite(FormDataSource _fds, str _source)
+    {
+        try
+        {
+            DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureWriteLog;
+            if (captureType == DEVLicenseCaptureElementUsageType::None)
+            {
+                return;
+            }
+
+            FormRun formRun = _fds.formRun();
+            if (!formRun || !formRun.args() || !formRun.args().menuItemName())
+            {
+                return;
+            }
+
+            str tableName    = tableId2Name(_fds.table());
+
+            DEVLicenseTablesUsers tablesUsers;
+            tablesUsers.UserId        = curUserId();
+            tablesUsers.TableName     = tableName;
+            tablesUsers.Source        = _source;
+            tablesUsers.AOTName       = formRun.args().menuItemName();
+            tablesUsers.SecurableType = DEVLicenseElementUsageLogMonitor::menuItemTypeToSecurable(formRun.args().menuItemType());
+
+            if (captureType == DEVLicenseCaptureElementUsageType::Summary)
+            {
+                str usageKey = strFmt('%1|%2|%3|%4',
+                                        tablesUsers.UserId,
+                                        tablesUsers.TableName,
+                                        tablesUsers.Source,
+                                        tablesUsers.AOTName);
+
+                if (!DEVLicenseElementUsageLogMonitor::usedWriteSet)
+                {
+                    DEVLicenseElementUsageLogMonitor::usedWriteSet = new Set(Types::String);
+                }
+                Set localVarSet = DEVLicenseElementUsageLogMonitor::usedWriteSet;
+
+                if (!localVarSet.in(usageKey))
+                {
+                    localVarSet.add(usageKey);
+                    tablesUsers.insert();
+                }
+            }
+            else if (captureType == DEVLicenseCaptureElementUsageType::Full)
+            {
+                tablesUsers.insert();
+            }
+        }
+        catch
+        {
+        }
+    }
 
 ]]></Source>
 			</Method>
