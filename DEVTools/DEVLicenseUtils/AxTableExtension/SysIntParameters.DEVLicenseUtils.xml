@@ -10,6 +10,9 @@
 				<AxTableFieldGroupField>
 					<DataField>DEVLicenseCaptureElementUsage</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DEVLicenseCaptureWriteLog</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 	</FieldGroups>
@@ -20,6 +23,13 @@
 			<Name>DEVLicenseCaptureElementUsage</Name>
 			<HelpText>Capture element usage</HelpText>
 			<Label>Element usage log</Label>
+			<EnumType>DEVLicenseCaptureElementUsageType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DEVLicenseCaptureWriteLog</Name>
+			<HelpText>Capture write operations (Insert, Update, Delete) performed through forms</HelpText>
+			<Label>Write operations log</Label>
 			<EnumType>DEVLicenseCaptureElementUsageType</EnumType>
 		</AxTableField>
 	</Fields>

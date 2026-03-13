@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVLicenseWriteLogHandler</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Subscribes to form opened events and attaches datasource write event handlers
+/// for data modification logging.
+/// </summary>
+public class DEVLicenseWriteLogHandler
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>FormRun_onFormRunCompletedDevLicWrite</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Subscribes to FormRun.onFormRunCompleted to attach write event handlers to all datasources
+    /// on the form. Only activated when DEVLicenseCaptureWriteLog is enabled in parameters.
+    /// </summary>
+    [SubscribesTo(classStr(FormRun), staticDelegateStr(FormRun, onFormRunCompleted))]
+    public static void FormRun_onFormRunCompletedDevLicWrite(FormRun _formInstance)
+    {
+        try
+        {
+            DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureWriteLog;
+            if (    captureType != DEVLicenseCaptureElementUsageType::None
+                &&  _formInstance && _formInstance.args()
+                &&  _formInstance.args().menuItemName())
+            {
+                int dsCount = _formInstance.dataSourceCount();
+                for (int i = 1; i <= dsCount; i++)
+                {
+                    FormDataSource fds = _formInstance.dataSource(i);
+                    if (fds)
+                    {
+                        fds.onInserted += eventhandler(DEVLicenseWriteMonitor::onDsInserted);
+                        fds.onUpdated  += eventhandler(DEVLicenseWriteMonitor::onDsUpdated);
+                        fds.onDeleted  += eventhandler(DEVLicenseWriteMonitor::onDsDeleted);
+                    }
+                }
+            }
+        }
+        catch
+        {
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
