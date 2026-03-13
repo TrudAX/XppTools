@@ -75,6 +75,12 @@ public class DEVLicenseTablesUsers extends common
 				<AxTableFieldGroupField>
 					<DataField>TableName</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AOTName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SecurableType</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 		<AxTableFieldGroup>
@@ -114,6 +120,12 @@ public class DEVLicenseTablesUsers extends common
 				<AxTableFieldGroupField>
 					<DataField>Source</DataField>
 				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AOTName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SecurableType</DataField>
+				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
 	</FieldGroups>
@@ -137,6 +149,20 @@ public class DEVLicenseTablesUsers extends common
 			<ExtendedDataType>Description</ExtendedDataType>
 			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Label>Source</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>AOTName</Name>
+			<ExtendedDataType>AOTName</ExtendedDataType>
+			<HelpText>AOT menu item name associated with the write operation</HelpText>
+			<Label>Menu item name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SecurableType</Name>
+			<HelpText>Securable type of the menu item associated with the write operation</HelpText>
+			<Label>Securable type</Label>
+			<EnumType>SecurableType</EnumType>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />

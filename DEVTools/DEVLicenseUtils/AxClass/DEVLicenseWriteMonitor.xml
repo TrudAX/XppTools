@@ -5,7 +5,7 @@
 		<Declaration><![CDATA[
 /// <summary>
 /// Handles datasource write events (insert, update, delete) and logs them
-/// to the DEVLicenseWriteLog table with deduplication support.
+/// to the DEVLicenseTablesUsers table with deduplication support.
 /// </summary>
 public class DEVLicenseWriteMonitor
 {
@@ -22,7 +22,7 @@ public class DEVLicenseWriteMonitor
     /// </summary>
     public static void onDsInserted(FormDataSource _fds, FormDataSourceEventArgs _e)
     {
-        DEVLicenseWriteMonitor::logWrite(_fds, 'Insert');
+        DEVLicenseWriteMonitor::logWrite(_fds, 'RealTimeInsert');
     }
 
 ]]></Source>
@@ -35,7 +35,7 @@ public class DEVLicenseWriteMonitor
     /// </summary>
     public static void onDsUpdated(FormDataSource _fds, FormDataSourceEventArgs _e)
     {
-        DEVLicenseWriteMonitor::logWrite(_fds, 'Update');
+        DEVLicenseWriteMonitor::logWrite(_fds, 'RealTimeUpdate');
     }
 
 ]]></Source>
@@ -48,7 +48,7 @@ public class DEVLicenseWriteMonitor
     /// </summary>
     public static void onDsDeleted(FormDataSource _fds, FormDataSourceEventArgs _e)
     {
-        DEVLicenseWriteMonitor::logWrite(_fds, 'Delete');
+        DEVLicenseWriteMonitor::logWrite(_fds, 'RealTimeDelete');
     }
 
 ]]></Source>
@@ -57,11 +57,11 @@ public class DEVLicenseWriteMonitor
 				<Name>logWrite</Name>
 				<Source><![CDATA[
     /// <summary>
-    /// Logs a write operation to the DEVLicenseWriteLog table.
-    /// In Summary mode, only one entry per user/company/menuItem/table/operation is logged per session.
+    /// Logs a write operation to the DEVLicenseTablesUsers table.
+    /// In Summary mode, only one entry per user/table/source is logged per session.
     /// In Full mode, every write operation is logged.
     /// </summary>
-    public static void logWrite(FormDataSource _fds, str _operationType)
+    public static void logWrite(FormDataSource _fds, str _source)
     {
         try
         {
@@ -77,24 +77,22 @@ public class DEVLicenseWriteMonitor
                 return;
             }
 
-            str menuItemName = formRun.args().menuItemName();
             str tableName    = tableId2Name(_fds.table());
 
-            DEVLicenseWriteLog writeLog;
-            writeLog.UserId        = curUserId();
-            writeLog.CompanyId     = curext();
-            writeLog.MenuItemName  = menuItemName;
-            writeLog.TableName     = tableName;
-            writeLog.OperationType = _operationType;
+            DEVLicenseTablesUsers tablesUsers;
+            tablesUsers.UserId        = curUserId();
+            tablesUsers.TableName     = tableName;
+            tablesUsers.Source        = _source;
+            tablesUsers.AOTName       = formRun.args().menuItemName();
+            tablesUsers.SecurableType = DEVLicenseElementUsageLogMonitor::menuItemTypeToSecurable(formRun.args().menuItemType());
 
             if (captureType == DEVLicenseCaptureElementUsageType::Summary)
             {
-                str usageKey = strFmt('%1|%2|%3|%4|%5',
-                                        writeLog.UserId,
-                                        writeLog.CompanyId,
-                                        writeLog.MenuItemName,
-                                        writeLog.TableName,
-                                        writeLog.OperationType);
+                str usageKey = strFmt('%1|%2|%3|%4',
+                                        tablesUsers.UserId,
+                                        tablesUsers.TableName,
+                                        tablesUsers.Source,
+                                        tablesUsers.AOTName);
 
                 if (!DEVLicenseWriteMonitor::usedWriteSet)
                 {
@@ -105,12 +103,12 @@ public class DEVLicenseWriteMonitor
                 if (!localVarSet.in(usageKey))
                 {
                     localVarSet.add(usageKey);
-                    writeLog.insert();
+                    tablesUsers.insert();
                 }
             }
             else if (captureType == DEVLicenseCaptureElementUsageType::Full)
             {
-                writeLog.insert();
+                tablesUsers.insert();
             }
         }
         catch
