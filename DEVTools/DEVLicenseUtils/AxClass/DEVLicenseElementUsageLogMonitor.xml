@@ -309,11 +309,12 @@ public class DEVLicenseElementUsageLogMonitor
 
             if (captureType == DEVLicenseCaptureElementUsageType::Summary)
             {
-                str usageKey = strFmt('%1|%2|%3|%4',
+                str usageKey = strFmt('%1|%2|%3|%4|%5',
                                         tablesUsers.UserId,
                                         tablesUsers.TableName,
                                         tablesUsers.Source,
-                                        tablesUsers.AOTName);
+                                        tablesUsers.AOTName,
+                                        tablesUsers.SecurableType);
 
                 if (!DEVLicenseElementUsageLogMonitor::usedWriteSet)
                 {
