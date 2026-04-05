@@ -123,6 +123,7 @@ public class DEVLicenseLogCleanup extends RunBaseBatch implements BatchRetryable
     public void run()
     {
         DEVLicenseElementUsageLog		licenseElementUsageLog, licenseElementUsageLogUpd;
+        DEVLicenseTablesUsers           licenseTablesUsers, licenseTablesUsersUpd;
         int numberOfRecords;
         utcdatetime calcDate = DateTimeUtil::addDays(DateTimeUtil::utcNow(), -1 * keepDays);
 		if (isDelete)
@@ -132,6 +133,12 @@ public class DEVLicenseLogCleanup extends RunBaseBatch implements BatchRetryable
                 where licenseElementUsageLog.CreatedDateTime <= calcDate;
             ttscommit;
             info(strFmt("Deleted %1 records from %2", licenseElementUsageLog.RowCount(), calcDate));
+
+            ttsbegin;
+            delete_from licenseTablesUsers
+                where licenseTablesUsers.CreatedDateTime <= calcDate;
+            ttscommit;
+            info(strFmt("Deleted %1 write log records from %2", licenseTablesUsers.RowCount(), calcDate));
 		}
         if (isCompact)
         {
@@ -153,6 +160,24 @@ public class DEVLicenseLogCleanup extends RunBaseBatch implements BatchRetryable
                 ttscommit;
 			}
             info(strFmt("Compacted %1 records ", numberOfRecords));
+
+            numberOfRecords = 0;
+            while select maxof(RecId) from licenseTablesUsers
+                group by UserId, TableName, Source, AOTName
+            {
+                ttsbegin;
+                licenseTablesUsersUpd = null;
+                delete_from licenseTablesUsersUpd
+                    where licenseTablesUsersUpd.RecId     < licenseTablesUsers.RecId &&
+                          licenseTablesUsersUpd.UserId    == licenseTablesUsers.UserId &&
+                          licenseTablesUsersUpd.TableName == licenseTablesUsers.TableName &&
+                          licenseTablesUsersUpd.Source    == licenseTablesUsers.Source &&
+                          licenseTablesUsersUpd.AOTName   == licenseTablesUsers.AOTName;
+
+                numberOfRecords += licenseTablesUsersUpd.RowCount();
+                ttscommit;
+            }
+            info(strFmt("Compacted %1 write log records", numberOfRecords));
 		}
         
     }

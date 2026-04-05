@@ -507,6 +507,23 @@ public class DEVLicenseReportCalc extends RunBaseBatch implements BatchRetryable
             userLinesInsertList.add(licenseReportUserLines);
 		}
 
+        DEVLicenseTablesUsers  licenseTablesUsers;
+        while select licenseTablesUsers
+            group by UserId, AOTName, SecurableType
+            where (licenseTablesUsers.Source == 'RealTimeInsert' ||
+                   licenseTablesUsers.Source == 'RealTimeUpdate' ||
+                   licenseTablesUsers.Source == 'RealTimeDelete') &&
+                  licenseTablesUsers.AOTName != '' &&
+                  (licenseTablesUsers.UserId == userId || userId == '')
+        join maxof(EntitlementObject) from licenseReportObjectLicences
+            where licenseReportObjectLicences.AOTName       == licenseTablesUsers.AOTName &&
+                  licenseReportObjectLicences.SecurableType == licenseTablesUsers.SecurableType
+        {
+            licenseReportUserLines.UserId            = licenseTablesUsers.UserId;
+            licenseReportUserLines.EntitlementObject = licenseReportObjectLicences.EntitlementObject;
+            userLinesInsertList.add(licenseReportUserLines);
+        }
+
         while select licenseElementUsageLog
             group by UserId
             where licenseElementUsageLog.ObjectType == 'RunBase' &&
