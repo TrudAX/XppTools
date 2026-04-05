@@ -17,8 +17,11 @@ public class DEVLicenseElementUsageLogMonitor
     [SubscribesTo(classStr(FormRun), staticDelegateStr(FormRun, onFormRunCompleted))]
     public static void FormRun_onFormRunCompletedDevLic(FormRun _formInstance)
     {
-        DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureElementUsage;
-        if(     captureType != DEVLicenseCaptureElementUsageType::None
+        SysIntParameters                   devSysIntParameters = SysIntParameters::find();
+        DEVLicenseCaptureElementUsageType  captureType = devSysIntParameters.DEVLicenseCaptureElementUsage;
+        
+        if (captureType != DEVLicenseCaptureElementUsageType::None &&
+          (! devSysIntParameters.DEVLicenseUserFilter || strContains(devSysIntParameters.DEVLicenseUserFilter, curUserId()) )
             &&  _formInstance && _formInstance.args()
             &&  _formInstance.args().menuItemName())
         {
@@ -32,6 +35,23 @@ public class DEVLicenseElementUsageLogMonitor
 
             DEVLicenseElementUsageLogMonitor::insertLogRecord(elementUsageLog, captureType);
 
+            DEVLicenseCaptureElementUsageType writeLogCaptureType = devSysIntParameters.DEVLicenseCaptureWriteLog;
+
+            if (writeLogCaptureType != DEVLicenseCaptureElementUsageType::None)
+            {
+                int dsCount = _formInstance.dataSourceCount();
+                for (int i = 1; i <= dsCount; i++)
+                {
+                    FormDataSource fds = _formInstance.dataSource(i);
+                    
+                    if (fds && ! fds.isReferenceDataSource())
+                    {
+                        fds.onCreated  += eventhandler(DEVLicenseElementUsageLogMonitor::onDsCreated);
+                        fds.OnWritten  += eventhandler(DEVLicenseElementUsageLogMonitor::onDsWritten);
+                        fds.onDeleted  += eventhandler(DEVLicenseElementUsageLogMonitor::onDsDeleted);
+                    }
+                }
+            }
             
         }
     }
@@ -44,8 +64,11 @@ public class DEVLicenseElementUsageLogMonitor
     [PreHandlerFor(classStr(SysOperationController), methodStr(SysOperationController, startOperation))]
     public static void SysOperationController_Pre_startOperationDevLic(XppPrePostArgs _args)
     {
-        DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureElementUsage;
-        if(captureType != DEVLicenseCaptureElementUsageType::None)
+        SysIntParameters                   devSysIntParameters = SysIntParameters::find();
+        DEVLicenseCaptureElementUsageType  captureType = devSysIntParameters.DEVLicenseCaptureElementUsage;
+        
+        if(captureType != DEVLicenseCaptureElementUsageType::None &&
+          (! devSysIntParameters.DEVLicenseUserFilter || strContains(devSysIntParameters.DEVLicenseUserFilter, curUserId()) ))
         {
             SysOperationController controller =  _args.getThis();
             Args args;
@@ -78,8 +101,11 @@ public class DEVLicenseElementUsageLogMonitor
     [PreHandlerFor(classStr(Runbase), methodStr(Runbase, prompt))]
     public static void Runbase_Pre_promptDevLic(XppPrePostArgs _args)
     {
-        DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureElementUsage;
-        if(captureType != DEVLicenseCaptureElementUsageType::None )
+        SysIntParameters                   devSysIntParameters = SysIntParameters::find();
+        DEVLicenseCaptureElementUsageType  captureType = devSysIntParameters.DEVLicenseCaptureElementUsage;
+        
+        if(captureType != DEVLicenseCaptureElementUsageType::None &&
+          (! devSysIntParameters.DEVLicenseUserFilter || strContains(devSysIntParameters.DEVLicenseUserFilter, curUserId()) ))
         {
             Object controller =  _args.getThis();
             if (controller && classIdGet(controller))
@@ -109,8 +135,11 @@ public class DEVLicenseElementUsageLogMonitor
     [PreHandlerFor(classStr(FormLetterServiceController), staticMethodStr(FormLetterServiceController, parseServiceInfo))]
     public static void FormLetterServiceController_Pre_parseServiceInfoDevLic(XppPrePostArgs _args)
     {
-        DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureElementUsage;
-        if(captureType != DEVLicenseCaptureElementUsageType::None )
+        SysIntParameters                   devSysIntParameters = SysIntParameters::find();
+        DEVLicenseCaptureElementUsageType  captureType = devSysIntParameters.DEVLicenseCaptureElementUsage;
+        
+        if(captureType != DEVLicenseCaptureElementUsageType::None &&
+          (! devSysIntParameters.DEVLicenseUserFilter || strContains(devSysIntParameters.DEVLicenseUserFilter, curUserId()) ))
         {
             Object argsObj = _args.getArgNum(0);
             if (argsObj && classIdGet(argsObj) == classNum(Args))
@@ -152,12 +181,6 @@ public class DEVLicenseElementUsageLogMonitor
     {
         _elementUsageLog.UserId = curUserId();
         _elementUsageLog.CompanyId = curext();
-
-        str userFilter = SysIntParameters::Find().DEVLicenseUserFilter;
-        if (userFilter && !strContains(userFilter, _elementUsageLog.UserId))
-        {
-            return;
-        }
 
         if (_captureType == DEVLicenseCaptureElementUsageType::Summary)
         {
@@ -211,54 +234,21 @@ public class DEVLicenseElementUsageLogMonitor
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>FormRun_onFormRunCompletedDevLicWrite</Name>
+				<Name>onDsCreated</Name>
 				<Source><![CDATA[
-    [SubscribesTo(classStr(FormRun), staticDelegateStr(FormRun, onFormRunCompleted))]
-    public static void FormRun_onFormRunCompletedDevLicWrite(FormRun _formInstance)
+    public static void onDsCreated(FormDataSource _fds, FormDataSourceEventArgs _e)
     {
-        try
-        {
-            DEVLicenseCaptureElementUsageType  captureType = SysIntParameters::Find().DEVLicenseCaptureWriteLog;
-            if (    captureType != DEVLicenseCaptureElementUsageType::None
-                &&  _formInstance && _formInstance.args()
-                &&  _formInstance.args().menuItemName())
-            {
-                int dsCount = _formInstance.dataSourceCount();
-                for (int i = 1; i <= dsCount; i++)
-                {
-                    FormDataSource fds = _formInstance.dataSource(i);
-                    if (fds)
-                    {
-                        fds.onInserted += eventhandler(DEVLicenseElementUsageLogMonitor::onDsInserted);
-                        fds.onUpdated  += eventhandler(DEVLicenseElementUsageLogMonitor::onDsUpdated);
-                        fds.onDeleted  += eventhandler(DEVLicenseElementUsageLogMonitor::onDsDeleted);
-                    }
-                }
-            }
-        }
-        catch
-        {
-        }
+        DEVLicenseElementUsageLogMonitor::logWrite(_fds, 'FormInsert');
     }
 
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>onDsInserted</Name>
+				<Name>onDsWritten</Name>
 				<Source><![CDATA[
-    public static void onDsInserted(FormDataSource _fds, FormDataSourceEventArgs _e)
+    public static void onDsWritten(FormDataSource _fds, FormDataSourceEventArgs _e)
     {
-        DEVLicenseElementUsageLogMonitor::logWrite(_fds, 'RealTimeInsert');
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>onDsUpdated</Name>
-				<Source><![CDATA[
-    public static void onDsUpdated(FormDataSource _fds, FormDataSourceEventArgs _e)
-    {
-        DEVLicenseElementUsageLogMonitor::logWrite(_fds, 'RealTimeUpdate');
+        DEVLicenseElementUsageLogMonitor::logWrite(_fds, 'FormUpdate');
     }
 
 ]]></Source>
@@ -268,7 +258,7 @@ public class DEVLicenseElementUsageLogMonitor
 				<Source><![CDATA[
     public static void onDsDeleted(FormDataSource _fds, FormDataSourceEventArgs _e)
     {
-        DEVLicenseElementUsageLogMonitor::logWrite(_fds, 'RealTimeDelete');
+        DEVLicenseElementUsageLogMonitor::logWrite(_fds, 'FormDelete');
     }
 
 ]]></Source>
@@ -294,27 +284,25 @@ public class DEVLicenseElementUsageLogMonitor
 
             str tableName    = tableId2Name(_fds.table());
 
-            str userFilter = SysIntParameters::Find().DEVLicenseUserFilter;
-            if (userFilter && !strContains(userFilter, curUserId()))
-            {
-                return;
-            }
-
-            DEVLicenseTablesUsers tablesUsers;
-            tablesUsers.UserId        = curUserId();
-            tablesUsers.TableName     = tableName;
-            tablesUsers.Source        = _source;
+            DEVLicenseElementWriteLog tablesUsers;
             tablesUsers.AOTName       = formRun.args().menuItemName();
             tablesUsers.SecurableType = DEVLicenseElementUsageLogMonitor::menuItemTypeToSecurable(formRun.args().menuItemType());
+            tablesUsers.ObjectName    = formRun.name();
+            tablesUsers.ObjectType    = _source;
+            tablesUsers.UserId        = curUserId();
+            tablesUsers.CompanyId     = curext();
+            tablesUsers.TableName     = tableName;
 
             if (captureType == DEVLicenseCaptureElementUsageType::Summary)
             {
-                str usageKey = strFmt('%1|%2|%3|%4|%5',
+                str usageKey = strFmt('%1|%2|%3|%4|%5|%6|%7',
                                         tablesUsers.UserId,
-                                        tablesUsers.TableName,
-                                        tablesUsers.Source,
+                                        tablesUsers.CompanyId,
+                                        tablesUsers.SecurableType,
                                         tablesUsers.AOTName,
-                                        tablesUsers.SecurableType);
+                                        tablesUsers.ObjectName,
+                                        tablesUsers.ObjectType,
+                                        tablesUsers.TableName);
 
                 if (!DEVLicenseElementUsageLogMonitor::usedWriteSet)
                 {

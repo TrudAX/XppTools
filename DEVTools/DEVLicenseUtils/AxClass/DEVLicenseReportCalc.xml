@@ -19,21 +19,23 @@ public class DEVLicenseReportCalc extends RunBaseBatch implements BatchRetryable
     NoYesId      isCalcPermissions;
     NoYesId      isCalcUserPermissions;
     NoYesId      isCalcTablesObjectLink;
+    NoYesId      isUseWriteLogOnly;
     
     DialogField  dlgUserId;
     DialogField  dlgIsCalcRunBase;
     DialogField  dlgIsCalcPermissions;
     DialogField  dlgIsCalcUserPermissions;
     DialogField  dlgIsCalcTablesObjectLink;
+    DialogField  dlgIsUseWriteLogOnly;
     
-    
-    #define.CurrentVersion(2)
+    #define.CurrentVersion(3)
     #localmacro.CurrentList
         userId,
         isCalcRunBase,
         isCalcPermissions,
         isCalcUserPermissions,
-        isCalcTablesObjectLink
+        isCalcTablesObjectLink,
+        isUseWriteLogOnly
     #endmacro
     
 }
@@ -47,6 +49,10 @@ public class DEVLicenseReportCalc extends RunBaseBatch implements BatchRetryable
         DialogRunbase       dialog = super();
         ;
         dlgUserId                 = dialog.addFieldValue(extendedtypestr(UserId), userId, "User(empty for all)", "User ID filter");
+        dlgIsUseWriteLogOnly      = dialog.addFieldValue(extendedtypestr(NoYesId), isUseWriteLogOnly, "Use only write log", 
+                        "For Access calculation use write log only, ignore SysDatabaseLog and Table created/modifiedBy fields. This is recomended if you have write log data");
+        
+        
         dlgIsCalcRunBase          = dialog.addFieldValue(extendedtypestr(NoYesId), isCalcRunBase, "Calc RunBase links", "Calculate RunBase links");
         dlgIsCalcPermissions      = dialog.addFieldValue(extendedtypestr(NoYesId), isCalcPermissions, "Calc Permissions", "Calculate Menuitems Permissions");
         dlgIsCalcTablesObjectLink  = dialog.addFieldValue(extendedtypestr(NoYesId), isCalcTablesObjectLink, "Calc Tables With Object Link", "Calculate Tables Object Link");
@@ -64,6 +70,7 @@ public class DEVLicenseReportCalc extends RunBaseBatch implements BatchRetryable
     {
         ;
         userId                  = dlgUserId.value();
+        isUseWriteLogOnly       = dlgIsUseWriteLogOnly.value();
         isCalcRunBase           = dlgIsCalcRunBase.value();
         isCalcPermissions       = dlgIsCalcPermissions.value();
         isCalcTablesObjectLink  = dlgIsCalcTablesObjectLink.value();
@@ -352,21 +359,43 @@ public class DEVLicenseReportCalc extends RunBaseBatch implements BatchRetryable
         DEVLicenseTablesUsers           licenseTablesUsers;
 
         licenseReportUserLinesCheck = null;
+        if (! isUseWriteLogOnly)
+        {
+            while select forupdate licenseReportUserLinesCheck
+                where licenseReportUserLinesCheck.CurrentAccessLevel == AccessLevel::Write
+            join licenseReportUser
+                where (licenseReportUser.UserId == userId || userId == '' ) &&
+                      licenseReportUser.UserId == licenseReportUserLinesCheck.UserId
+            exists join licenseTablesObjectLink
+                where licenseTablesObjectLink.EntitlementObject == licenseReportUserLinesCheck.EntitlementObject
+            exists join licenseTablesUsers
+                where licenseTablesUsers.TableName == licenseTablesObjectLink.TableName &&
+                        licenseTablesUsers.UserId    == licenseReportUser.UserId
+            {
+                licenseReportUserLinesCheck.IsWriteInLinkedTables = true;
+                licenseReportUserLinesCheck.update();
+            }
+        }
+        DEVLicenseElementWriteLog     licenseElementWriteLog;
+        LicensingEntitlementObjects   licensingEntitlementObjects;
 
+        licenseReportUserLinesCheck = null;
+        licenseReportUser           = null;
         while select forupdate licenseReportUserLinesCheck
-			where licenseReportUserLinesCheck.CurrentAccessLevel == AccessLevel::Write
-        join licenseReportUser
-            where (licenseReportUser.UserId == userId || userId == '' ) &&
-                  licenseReportUser.UserId == licenseReportUserLinesCheck.UserId
-        exists join licenseTablesObjectLink
-            where licenseTablesObjectLink.EntitlementObject == licenseReportUserLinesCheck.EntitlementObject
-        exists join licenseTablesUsers
-            where licenseTablesUsers.TableName == licenseTablesObjectLink.TableName &&
-                    licenseTablesUsers.UserId    == licenseReportUser.UserId
+                where licenseReportUserLinesCheck.CurrentAccessLevel == AccessLevel::Write
+            join licenseReportUser
+                where (licenseReportUser.UserId == userId || userId == '' ) &&
+                      licenseReportUser.UserId == licenseReportUserLinesCheck.UserId
+            exists join licensingEntitlementObjects
+                where licensingEntitlementObjects.RecId == licenseReportUserLinesCheck.EntitlementObject
+            exists join licenseElementWriteLog
+                where licenseElementWriteLog.AOTName       == licensingEntitlementObjects.AOTName &&
+                      licenseElementWriteLog.SecurableType == licensingEntitlementObjects.SecurableType &&
+                      licenseElementWriteLog.UserId        == licenseReportUser.UserId
         {
             licenseReportUserLinesCheck.IsWriteInLinkedTables = true;
             licenseReportUserLinesCheck.update();
-		}
+        }
 
         Map  userNumOnTopLicenses = new Map(Types::String, Types::Integer);
         Map  userNumOnTopLicensesObj = new Map(Types::String, Types::String);
@@ -506,23 +535,6 @@ public class DEVLicenseReportCalc extends RunBaseBatch implements BatchRetryable
             licenseReportUserLines.EntitlementObject = licenseReportObjectLicences.EntitlementObject;
             userLinesInsertList.add(licenseReportUserLines);
 		}
-
-        DEVLicenseTablesUsers  licenseTablesUsers;
-        while select licenseTablesUsers
-            group by UserId, AOTName, SecurableType
-            where (licenseTablesUsers.Source == 'RealTimeInsert' ||
-                   licenseTablesUsers.Source == 'RealTimeUpdate' ||
-                   licenseTablesUsers.Source == 'RealTimeDelete') &&
-                  licenseTablesUsers.AOTName != '' &&
-                  (licenseTablesUsers.UserId == userId || userId == '')
-        join maxof(EntitlementObject) from licenseReportObjectLicences
-            where licenseReportObjectLicences.AOTName       == licenseTablesUsers.AOTName &&
-                  licenseReportObjectLicences.SecurableType == licenseTablesUsers.SecurableType
-        {
-            licenseReportUserLines.UserId            = licenseTablesUsers.UserId;
-            licenseReportUserLines.EntitlementObject = licenseReportObjectLicences.EntitlementObject;
-            userLinesInsertList.add(licenseReportUserLines);
-        }
 
         while select licenseElementUsageLog
             group by UserId

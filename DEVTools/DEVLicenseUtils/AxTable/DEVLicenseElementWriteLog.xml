@@ -1,60 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
-	<Name>DEVLicenseTablesUsers</Name>
+	<Name>DEVLicenseElementWriteLog</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-public class DEVLicenseTablesUsers extends common
+public class DEVLicenseElementWriteLog extends common
 {
     
+
 }
+
 ]]></Declaration>
-		<Methods>
-			<Method>
-				<Name>find</Name>
-				<Source><![CDATA[
-    public static DEVLicenseTablesUsers find(Name     _tableName,
-                                             UserId   _userId,
-                                             boolean  _forUpdate = false)
-    {
-        DEVLicenseTablesUsers licenseTablesUsers;
-        ;
-        licenseTablesUsers.selectForUpdate(_forUpdate);
-        
-        select firstonly licenseTablesUsers
-            where licenseTablesUsers.TableName  == _tableName &&
-                  licenseTablesUsers.UserId     == _userId;
-        
-        return licenseTablesUsers;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>exists</Name>
-				<Source><![CDATA[
-    public static boolean exists(Name     _tableName,
-                                 UserId   _userId)
-    {
-        boolean res;
-        ;
-        res = (select firstonly RecId from DEVLicenseTablesUsers
-                where DEVLicenseTablesUsers.TableName  == _tableName &&
-                      DEVLicenseTablesUsers.UserId     == _userId).RecId != 0;
-        
-        return res;
-    }
-
-]]></Source>
-			</Method>
-		</Methods>
+		<Methods />
 	</SourceCode>
-	<Label>DEV Users who modify tables</Label>
+	<Label>DEV Elements write log</Label>
 	<SubscriberAccessLevel>
 		<Read>Allow</Read>
 	</SubscriberAccessLevel>
 	<TableGroup>WorksheetHeader</TableGroup>
-	<TitleField1>TableName</TitleField1>
-	<TitleField2>UserId</TitleField2>
+	<TitleField1>ObjectName</TitleField1>
+	<TitleField2>ObjectType</TitleField2>
 	<AllowRowVersionChangeTracking>Yes</AllowRowVersionChangeTracking>
 	<CreatedBy>Yes</CreatedBy>
 	<CreatedDateTime>Yes</CreatedDateTime>
@@ -70,10 +34,22 @@ public class DEVLicenseTablesUsers extends common
 			<IsSystemGenerated>Yes</IsSystemGenerated>
 			<Fields>
 				<AxTableFieldGroupField>
+					<DataField>AOTName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>SecurableType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>UserId</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>TableName</DataField>
+					<DataField>ObjectType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ObjectName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -109,10 +85,22 @@ public class DEVLicenseTablesUsers extends common
 					<DataField>CreatedDateTime</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>TableName</DataField>
+					<DataField>SecurableType</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
-					<DataField>Source</DataField>
+					<DataField>AOTName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ObjectType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ObjectName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CompanyId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>TableName</DataField>
 				</AxTableFieldGroupField>
 			</Fields>
 		</AxTableFieldGroup>
@@ -120,8 +108,37 @@ public class DEVLicenseTablesUsers extends common
 	<Fields>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
+			<Name>AOTName</Name>
+			<ExtendedDataType>AOTName</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>SecurableType</Name>
+			<EnumType>SecurableType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
 			<Name>UserId</Name>
 			<ExtendedDataType>UserId</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ObjectType</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<HelpText>Object type logged</HelpText>
+			<Label>Object type</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ObjectName</Name>
+			<ExtendedDataType>Name</ExtendedDataType>
+			<HelpText>Object name logged</HelpText>
+			<Label>Object name</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CompanyId</Name>
+			<ExtendedDataType>CompanyId</ExtendedDataType>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
@@ -130,13 +147,6 @@ public class DEVLicenseTablesUsers extends common
 			<HelpText>Table name that user modify</HelpText>
 			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
 			<Label>Table name</Label>
-		</AxTableField>
-		<AxTableField xmlns=""
-			i:type="AxTableFieldString">
-			<Name>Source</Name>
-			<ExtendedDataType>Description</ExtendedDataType>
-			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
-			<Label>Source</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
@@ -151,11 +161,14 @@ public class DEVLicenseTablesUsers extends common
 			</Fields>
 		</AxTableIndex>
 		<AxTableIndex>
-			<Name>TableUserIdx</Name>
+			<Name>AOTNameIdx</Name>
 			<AllowDuplicates>Yes</AllowDuplicates>
 			<Fields>
 				<AxTableIndexField>
-					<DataField>TableName</DataField>
+					<DataField>AOTName</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>SecurableType</DataField>
 				</AxTableIndexField>
 				<AxTableIndexField>
 					<DataField>UserId</DataField>

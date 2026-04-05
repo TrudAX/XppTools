@@ -123,7 +123,7 @@ public class DEVLicenseLogCleanup extends RunBaseBatch implements BatchRetryable
     public void run()
     {
         DEVLicenseElementUsageLog		licenseElementUsageLog, licenseElementUsageLogUpd;
-        DEVLicenseTablesUsers           licenseTablesUsers, licenseTablesUsersUpd;
+        DEVLicenseElementWriteLog       licenseWriteLog, licenseWriteLogUpd;
         int numberOfRecords;
         utcdatetime calcDate = DateTimeUtil::addDays(DateTimeUtil::utcNow(), -1 * keepDays);
 		if (isDelete)
@@ -135,10 +135,10 @@ public class DEVLicenseLogCleanup extends RunBaseBatch implements BatchRetryable
             info(strFmt("Deleted %1 records from %2", licenseElementUsageLog.RowCount(), calcDate));
 
             ttsbegin;
-            delete_from licenseTablesUsers
-                where licenseTablesUsers.CreatedDateTime <= calcDate;
+            delete_from licenseWriteLog
+                where licenseWriteLog.CreatedDateTime <= calcDate;
             ttscommit;
-            info(strFmt("Deleted %1 write log records from %2", licenseTablesUsers.RowCount(), calcDate));
+            info(strFmt("Deleted %1 write log records from %2", licenseWriteLog.RowCount(), calcDate));
 		}
         if (isCompact)
         {
@@ -162,19 +162,22 @@ public class DEVLicenseLogCleanup extends RunBaseBatch implements BatchRetryable
             info(strFmt("Compacted %1 records ", numberOfRecords));
 
             numberOfRecords = 0;
-            while select maxof(RecId) from licenseTablesUsers
-                group by UserId, TableName, Source, AOTName
+            while select maxof(RecId) from licenseWriteLog
+                group by AOTName, SecurableType, UserId, ObjectType, ObjectName, CompanyId, TableName
             {
                 ttsbegin;
-                licenseTablesUsersUpd = null;
-                delete_from licenseTablesUsersUpd
-                    where licenseTablesUsersUpd.RecId     < licenseTablesUsers.RecId &&
-                          licenseTablesUsersUpd.UserId    == licenseTablesUsers.UserId &&
-                          licenseTablesUsersUpd.TableName == licenseTablesUsers.TableName &&
-                          licenseTablesUsersUpd.Source    == licenseTablesUsers.Source &&
-                          licenseTablesUsersUpd.AOTName   == licenseTablesUsers.AOTName;
+                licenseWriteLogUpd = null;
+                delete_from licenseWriteLogUpd
+                    where licenseWriteLogUpd.RecId         < licenseWriteLog.RecId &&
+                          licenseWriteLogUpd.AOTName       == licenseWriteLog.AOTName  &&
+                          licenseWriteLogUpd.SecurableType == licenseWriteLog.SecurableType &&
+                          licenseWriteLogUpd.UserId        == licenseWriteLog.UserId &&
+                          licenseWriteLogUpd.ObjectType    == licenseWriteLog.ObjectType &&
+                          licenseWriteLogUpd.ObjectName    == licenseWriteLog.ObjectName &&
+                          licenseWriteLogUpd.CompanyId     == licenseWriteLog.CompanyId  &&
+                          licenseWriteLogUpd.TableName     == licenseWriteLog.TableName;
 
-                numberOfRecords += licenseTablesUsersUpd.RowCount();
+                numberOfRecords += licenseWriteLogUpd.RowCount();
                 ttscommit;
             }
             info(strFmt("Compacted %1 write log records", numberOfRecords));
