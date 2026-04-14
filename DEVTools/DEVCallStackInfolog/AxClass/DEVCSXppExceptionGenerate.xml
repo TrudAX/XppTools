@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVCSXppExceptionGenerate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Demonstrates different X++ exception types based on user selection.
+/// </summary>
+class DEVCSXppExceptionGenerate extends RunBaseBatch
+{
+    DialogField                dialogExceptionType;
+    DialogField                dialogReverseLockOrder;
+    DEVCSXppExceptionType      exceptionType;
+    boolean                    reverseLockOrder;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        exceptionType,
+        reverseLockOrder
+    #endmacro
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        Dialog dialog = super();
+
+        dialogExceptionType = dialog.addFieldValue(enumStr(DEVCSXppExceptionType), exceptionType, "Exception type", "Select the type of exception to generate");
+        dialogReverseLockOrder = dialog.addFieldValue(enumStr(NoYes), reverseLockOrder, "Deadlock session 2", "Applicable for Deadlock exception type. Enable for Session 2 to create deadlock condition");
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        exceptionType = dialogExceptionType.value();
+        reverseLockOrder = dialogReverseLockOrder.value();
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        switch (exceptionType)
+        {
+            case DEVCSXppExceptionType::Error:
+                this.generateErrorException();
+                break;
+
+            case DEVCSXppExceptionType::RecordNotSelected:
+                this.generateRecordNotSelectedException();
+                break;
+
+            case DEVCSXppExceptionType::UpdateNotInTTS:
+                this.generateUpdateNotInTTSException();
+                break;
+
+            case DEVCSXppExceptionType::UpdateByDiffUser:
+                this.generateUpdateByDifferentUserException();
+                break;
+
+            case DEVCSXppExceptionType::Deadlock:
+                this.generateDeadlockException();
+                break;
+
+            case DEVCSXppExceptionType::Duplicate:
+                this.generateDuplicateKeyException();
+                break;
+
+            case DEVCSXppExceptionType::StackOverFlow:
+                this.generateStackOverFlowException();
+                break;
+
+            default:
+                info("No exception type selected.");
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>causeAOSCrash</Name>
+				<Source><![CDATA[
+    public void causeAOSCrash()
+    {
+        this.causeAOSCrash();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateErrorException</Name>
+				<Source><![CDATA[
+    private void generateErrorException()
+    {
+        throw error("VALIDATE EXCEPTION ERROR");
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateStackOverFlowException</Name>
+				<Source><![CDATA[
+    private void generateStackOverFlowException()
+    {
+        this.causeAOSCrash();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateRecordNotSelectedException</Name>
+				<Source><![CDATA[
+    private void generateRecordNotSelectedException()
+    {
+        CustGroup custGroup;
+
+        // Attempting to update without selecting a record first
+        // This will cause "Record not selected" exception
+        custGroup.Name = "Test";
+        custGroup.update();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateUpdateNotInTTSException</Name>
+				<Source><![CDATA[
+    private void generateUpdateNotInTTSException()
+    {
+        CustGroup custGroup;
+
+        // Select a record but update outside of transaction scope
+        select firstonly forupdate custGroup;
+
+        if (custGroup)
+        {
+            // This will cause "Update not in TTS" exception
+            // because we are not inside a ttsbegin/ttscommit block
+            custGroup.Name = custGroup.Name;
+            custGroup.update();
+        }
+        else
+        {
+            info("No CustGroup record found to update.");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateUpdateByDifferentUserException</Name>
+				<Source><![CDATA[
+    private void generateUpdateByDifferentUserException()
+    {
+        CustGroup custGroup;
+        CustGroup custGroupCopy;
+
+        ttsbegin;
+
+        // Select the same record twice with forupdate
+        select firstonly forupdate custGroup;
+
+        if (custGroup)
+        {
+            // Copy the record with current RecVersion
+            custGroupCopy.data(custGroup);
+
+            // First update - actually change the value so RecVersion increments
+            custGroup.Name = custGroup.Name + " ";
+            custGroup.update();
+
+            // Now try to update with the old RecVersion (simulating different user)
+            // This causes "Update conflict" / "Update by different user" exception
+            custGroupCopy.Name = custGroupCopy.Name + "X";
+            custGroupCopy.update();
+        }
+        else
+        {
+            info("No CustGroup record found to update.");
+        }
+
+        ttsabort;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateDeadlockException</Name>
+				<Source><![CDATA[
+    private void generateDeadlockException()
+    {
+        CustGroup   custGroupA;
+        CustGroup   custGroupB;
+        CustGroup   lockFirst;
+        CustGroup   lockSecond;
+        CustGroupId custGroupIdFirst, custGroupIdSecond;
+
+        // Get two different CustGroup records
+        select firstonly custGroupA order by CustGroup asc;
+        select firstonly custGroupB order by CustGroup desc
+            where custGroupB.CustGroup != custGroupA.CustGroup;
+
+        if (!custGroupA || !custGroupB)
+        {
+            info("Need at least two CustGroup records to generate deadlock.");
+            return;
+        }
+
+        // Determine lock order based on reverseLockOrder flag
+        if (reverseLockOrder)
+        {
+            custGroupIdFirst = custGroupB.CustGroup;
+            custGroupIdSecond = custGroupA.CustGroup;
+        }
+        else
+        {
+            custGroupIdFirst = custGroupA.CustGroup;
+            custGroupIdSecond = custGroupB.CustGroup;
+        }
+
+        info(strFmt("Will lock records in order: %1 -> %2", lockFirst.CustGroup, lockSecond.CustGroup));
+        info("");
+
+        ttsbegin;
+
+        lockFirst = null;
+
+        // Pessimistic lock on first record
+        info(strFmt("Locking first record: %1...", lockFirst.CustGroup));
+        select firstonly pessimisticlock lockFirst
+            where lockFirst.CustGroup == custGroupIdFirst;
+
+
+        info(strFmt("Locked: %1. Waiting 30 seconds for other session...", lockFirst.CustGroup));
+
+        // Wait to allow other session to lock its first record
+        if (!reverseLockOrder)
+        {
+            sleep(40000);
+        }
+
+        lockSecond = null;
+
+        // Now try to lock second record - this will deadlock if other session has it locked
+        info(strFmt("Now attempting to lock second record: %1...", lockSecond.CustGroup));
+        select firstonly pessimisticlock lockSecond
+            where lockSecond.CustGroup == custGroupIdSecond;
+
+        info("No deadlock occurred - other session may not be running.");
+
+        ttsabort;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>generateDuplicateKeyException</Name>
+				<Source><![CDATA[
+    private void generateDuplicateKeyException()
+    {
+        CustGroup custGroup;
+        CustGroup custGroupDuplicate;
+
+        // Get an existing CustGroup record
+        select firstonly custGroup;
+
+        if (custGroup)
+        {
+            ttsbegin;
+
+            // Try to insert a record with the same primary key
+            // This will cause a "Duplicate key" exception
+            custGroupDuplicate.CustGroup = custGroup.CustGroup;
+            custGroupDuplicate.Name = "Duplicate Test";
+            custGroupDuplicate.insert();
+
+            ttsabort;
+        }
+        else
+        {
+            info("No CustGroup record found to duplicate.");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        int version = RunBase::getVersion(_packedClass);
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "Exception Test Demo";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVCSXppExceptionGenerate demo = new DEVCSXppExceptionGenerate();
+
+        if (demo.prompt())
+        {
+            demo.run();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVCSXppExceptionGenerate construct()
+    {
+        return new DEVCSXppExceptionGenerate();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

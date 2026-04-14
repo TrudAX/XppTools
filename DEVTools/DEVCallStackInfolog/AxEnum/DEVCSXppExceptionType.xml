@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVCSXppExceptionType</Name>
+	<Label>Exception type</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Error</Name>
+			<Label>Error</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>RecordNotSelected</Name>
+			<Label>Record not selected</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Duplicate</Name>
+			<Label>Duplicate</Label>
+			<Value>5</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>UpdateNotInTTS</Name>
+			<Label>Update not in TTS</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>UpdateByDiffUser</Name>
+			<Label>Update by different user</Label>
+			<Value>3</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Deadlock</Name>
+			<Label>Deadlock</Label>
+			<Value>4</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>StackOverFlow</Name>
+			<Label>StackOverFlow</Label>
+			<Value>6</Value>
+		</AxEnumValue>
+	</EnumValues>
+	<IsExtensible>true</IsExtensible>
+</AxEnum>

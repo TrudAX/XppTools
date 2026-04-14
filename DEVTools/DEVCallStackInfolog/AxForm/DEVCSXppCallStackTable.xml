@@ -310,6 +310,16 @@ public class DEVCSXppCallStackTable extends FormRun
 									i:nil="true" />
 								<Text>Clear</Text>
 							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVCSXppExceptionGenerate</Name>
+								<NeededPermission>Manual</NeededPermission>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>DEVCSXppExceptionGenerate</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+							</AxFormControl>
 						</Controls>
 					</AxFormControl>
 				</Controls>
