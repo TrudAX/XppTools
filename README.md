@@ -187,6 +187,8 @@ A sample code to Create a new design for Sales Invoice report in D365FO (https:/
 
 Contains "External integration" framework. It includes [core module](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegration) and [samples](https://github.com/TrudAX/XppTools/tree/master/DEVTutorial/DEVExternalIntegrationSamples). The External Integration framework provides a standardized approach to developing X++ based integrations. It emphasizes ease of support and expedites the development process.
 
+📖 **Official documentation site: https://trudax.github.io/d365fointegration/** — forms reference, connectors, document types, and the full comparison with standard Microsoft tools.
+
 ### -File-based integration in Dynamics 365 FinOps using X++
 
 A sample code for implementing file-based integration in Dynamics 365 FinOps using X++. Create Ledger journals based on periodic import of Excel/CSV files from Azure storage   (https://denistrunin.com/xpptools-fileintegledger/). Test files for Demo database [here](https://github.com/TrudAX/XppTools/blob/master/assets/TestPeriodicLedgerJournalImport.zip)
