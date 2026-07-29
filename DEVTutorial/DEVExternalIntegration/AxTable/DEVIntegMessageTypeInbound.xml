@@ -65,7 +65,8 @@ public class DEVIntegMessageTypeInbound extends common
         boolean  res;
         DEVIntegConnectionTypeResource connectionTypeResource = this.connectionTypeResource();
         if (connectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
-            connectionTypeResource == DEVIntegConnectionTypeResource::SFTP)
+            connectionTypeResource == DEVIntegConnectionTypeResource::SFTP ||
+            connectionTypeResource == DEVIntegConnectionTypeResource::AzureBlob)
         {
             res = true;   
         }

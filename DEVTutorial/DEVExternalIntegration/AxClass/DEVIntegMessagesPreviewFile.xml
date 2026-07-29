@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegMessagesPreviewFile</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEVIntegMessagesPreviewFile extends RunBaseBatch implements BatchRetryable
+{
+    NoYesId      isUpdateMessageStatusToSent;
+    NoYesId      isSendToServiceBus;
+
+    DialogField  dlgIsUpdateMessageStatusToSent;
+
+    DEVIntegExportDocumentLog callerIntegExportDocumentLog;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        isUpdateMessageStatusToSent
+    #endmacro
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+        ;
+        dlgIsUpdateMessageStatusToSent  = dialog.addFieldValue(extendedtypestr(NoYesId), isUpdateMessageStatusToSent, "Update message status to Sent", "Mark it if you plan to send this file manually to the destination system");
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        ;
+        isUpdateMessageStatusToSent = dlgIsUpdateMessageStatusToSent.value();
+
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsUpdateMessageStatusToSent</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsUpdateMessageStatusToSent(NoYesId _isUpdateMessageStatusToSent = isUpdateMessageStatusToSent)
+    {
+        isUpdateMessageStatusToSent = _isUpdateMessageStatusToSent;
+        return isUpdateMessageStatusToSent;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCallerIntegExportDocumentLog</Name>
+				<Source><![CDATA[
+    public DEVIntegExportDocumentLog parmCallerIntegExportDocumentLog(DEVIntegExportDocumentLog _callerIntegExportDocumentLog = callerIntegExportDocumentLog)
+    {
+        callerIntegExportDocumentLog = _callerIntegExportDocumentLog;
+        return callerIntegExportDocumentLog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version, #CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>validate</Name>
+				<Source><![CDATA[
+    public boolean validate(Object _calledFrom = null)
+    {
+        boolean ret = super(_calledFrom);
+
+        if (!callerIntegExportDocumentLog.RecId)
+        {
+            ret = checkFailed("Export document log record is required");
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        DEVIntegMessagesPreviewType          previewType;
+
+        previewType = isUpdateMessageStatusToSent ? DEVIntegMessagesPreviewType::PreviewWithUpdate
+                                                  : DEVIntegMessagesPreviewType::PreviewOnly;
+
+        DEVIntegExportDocumentsLog::exportSelectedRecords(this.parmCallerIntegExportDocumentLog(), previewType);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVIntegMessagesPreviewFile construct()
+    {
+        return new DEVIntegMessagesPreviewFile();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Get the file for the current export log record";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVIntegMessagesPreviewFile    runObject = DEVIntegMessagesPreviewFile::construct();
+        QueryBuildDataSource  qbds;
+        ;
+        if (_args.dataset() != tablenum(DEVIntegExportDocumentLog))
+        {
+            throw error(Error::missingRecord(funcname()));
+        }
+        runObject.parmCallerIntegExportDocumentLog(_args.record());
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

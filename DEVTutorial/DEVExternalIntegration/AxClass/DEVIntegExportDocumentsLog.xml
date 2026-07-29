@@ -143,7 +143,7 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
 			<Method>
 				<Name>processExportDocumentLog</Name>
 				<Source><![CDATA[
-    public void processExportDocumentLog(DEVIntegExportDocumentLog _exportDocumentLog, DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound)
+    public void processExportDocumentLog(DEVIntegExportDocumentLog _exportDocumentLog, DEVIntegMessageTypeTableOutbound  _messageTypeTableOutbound, DEVIntegMessagesPreviewType _previewType = DEVIntegMessagesPreviewType::None)
     {
         DEVIntegExportDocumentLog    exportDocumentLogUpd;
         DEVIntegExportMessageBase    exportMessageBase;
@@ -167,6 +167,7 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
         {
             exportMessageBase = _messageTypeTableOutbound.getActionClass();
             exportMessageBase.parmProcessResults(processResults);
+            exportMessageBase.parmPreviewType(_previewType);
             
             infoCnt = infologLine();
             try
@@ -213,19 +214,24 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
     
                 refRecIf = _exportDocumentLog.recVersion;
                 exportDocumentLogUpd = DEVIntegExportDocumentLog::findRecId(_exportDocumentLog.RecId, true);
-                if (exportDocumentLogUpd.RecId && exportDocumentLogUpd.StatusChangeDate == _exportDocumentLog.StatusChangeDate)
-                {
-                    stopwatch.Stop();
 
-                    exportDocumentLogUpd.ExportStatus           = DEVIntegExportStatus::Sent;
-                    exportDocumentLogUpd.StatusChangeDate       = DateTimeUtil::utcNow();
-                    exportDocumentLogUpd.DurationInMilliseconds = any2Int(stopwatch.get_ElapsedMilliseconds());
-                    exportDocumentLogUpd.update();
-                }
-
-                if (_messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full)
+                if (_previewType != DEVIntegMessagesPreviewType::PreviewOnly)
                 {
-                    DEVIntegMessageDataOutbound::insertLog(_exportDocumentLog, exception, processResults);
+                    if (exportDocumentLogUpd.RecId && exportDocumentLogUpd.StatusChangeDate == _exportDocumentLog.StatusChangeDate)
+                    {
+                        stopwatch.Stop();
+
+                        exportDocumentLogUpd.ExportStatus           = DEVIntegExportStatus::Sent;
+                        exportDocumentLogUpd.StatusChangeDate       = DateTimeUtil::utcNow();
+                        exportDocumentLogUpd.DurationInMilliseconds = any2Int(stopwatch.get_ElapsedMilliseconds());
+                        exportDocumentLogUpd.NumberOfRecords        = exportMessageBase.parmNumberOfRecords();
+                        exportDocumentLogUpd.update();
+                    }
+
+                    if (_messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full)
+                    {
+                        DEVIntegMessageDataOutbound::insertLog(_exportDocumentLog, exception, processResults);
+                    }
                 }
     
                 ttsCommit;
@@ -474,7 +480,8 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
 			<Method>
 				<Name>exportSelectedRecords</Name>
 				<Source><![CDATA[
-    static void exportSelectedRecords(DEVIntegExportDocumentLog    _exportDocumentLog)
+    static void exportSelectedRecords(DEVIntegExportDocumentLog    _exportDocumentLog, 
+        DEVIntegMessagesPreviewType _previewType = DEVIntegMessagesPreviewType::None)
     {
         FormDataSource                exportDocumentLogDS;
         DEVIntegExportDocumentLog     exportDocumentLog;
@@ -487,7 +494,7 @@ class DEVIntegExportDocumentsLog extends RunBaseBatch
             exportDocumentLog.RecId;
             exportDocumentLog = exportDocumentLogDS.getNext())
         {
-            integExportDocumentLog.processExportDocumentLog(exportDocumentLog, exportDocumentLog.messageTypeTableOutbound());
+            integExportDocumentLog.processExportDocumentLog(exportDocumentLog, exportDocumentLog.messageTypeTableOutbound(), _previewType);
             processedCounter++;
         }
         DEV::dsResearch(_exportDocumentLog);

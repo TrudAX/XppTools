@@ -182,6 +182,9 @@ class DEVIntegMessagesLoadBaseType
             case DEVIntegConnectionTypeResource::AzureFileShare:
                 shareClass = new DEVIntegMessagesLoadAzureFileShare();
                 break;
+            case DEVIntegConnectionTypeResource::AzureBlob:
+                shareClass = new DEVIntegMessagesLoadAzureBlob();
+                break;
             case DEVIntegConnectionTypeResource::AzureServiceBus:
                 shareClass = new DEVIntegMessagesLoadAzureServiceBus();
                 break;

@@ -401,6 +401,9 @@ public class DEVIntegExportDocumentLog extends common
 					<DataField>StatusChangeDate</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
+					<DataField>NumberOfRecords</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>DurationInMilliseconds</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
@@ -528,6 +531,13 @@ public class DEVIntegExportDocumentLog extends common
 			<AllowEdit>No</AllowEdit>
 			<ExtendedDataType>Description</ExtendedDataType>
 			<Label>Document 2</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>NumberOfRecords</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Number of exported records</HelpText>
+			<Label>Number of records</Label>
 		</AxTableField>
 	</Fields>
 	<FullTextIndexes />
