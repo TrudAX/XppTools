@@ -28,7 +28,7 @@ public class DEVIntegConnectionType extends FormRun
         WebGroup.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::Web);
 
         ConnectionDetail.visible(DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
-                                 DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
+            DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus || DEVIntegConnectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureBlob);
 
         DEVIntegConnectionType_ds.object(fieldNum(DEVIntegConnectionType,FTPPassword)).visible(
             DEVIntegConnectionType.ConnectionStringSource == DEVIntegConnectionStringSource::ManualEntry);

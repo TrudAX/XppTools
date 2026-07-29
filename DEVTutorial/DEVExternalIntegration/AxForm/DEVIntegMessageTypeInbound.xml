@@ -37,7 +37,7 @@ public class DEVIntegMessageTypeInbound extends FormRun
         boolean                isFileBasedConnection = DEVIntegMessageTypeInbound.isFileBasedConnection();
 
         SourceGroupServiceBus.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureServiceBus);
-        SourceGroupFileShare.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
+        SourceGroupFileShare.visible(connectionType.RecId && (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare || connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureBlob));
         SourceGroupSFTP.visible(connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP);
 
         DEVIntegManualTextImport.visible(! isFileBasedConnection);
@@ -229,9 +229,6 @@ public class DEVIntegMessageTypeInbound extends FormRun
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>CreatedDateTime</DataField>
-				</AxFormDataSourceField>
-				<AxFormDataSourceField>
-					<DataField>DefaultCompanyId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
 					<DataField>Description</DataField>

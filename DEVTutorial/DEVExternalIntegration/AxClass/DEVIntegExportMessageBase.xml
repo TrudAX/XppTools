@@ -11,9 +11,47 @@ class DEVIntegExportMessageBase
 
     DEVIntegMessageProcessResult     processResults;
 
+    int                              numberOfRecords;
+
+    // Controls preview behaviour for DEVIntegMessagesPreviewFile.
+    // If a child class modifies any data, you need to always add condition if (previewType != DEVIntegMesagesPreviewType::Preview)...
+    DEVIntegMessagesPreviewType       previewType;
+
 }
 ]]></Declaration>
 		<Methods>
+			<Method>
+				<Name>logIncNumberOfRecords</Name>
+				<Source><![CDATA[
+    public void logIncNumberOfRecords(int _increaseCount = 1)
+    {
+        numberOfRecords += _increaseCount;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmNumberOfRecords</Name>
+				<Source><![CDATA[
+    public int parmNumberOfRecords(int _numberOfRecords = numberOfRecords)
+    {
+        numberOfRecords = _numberOfRecords;
+        return numberOfRecords;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPreviewType</Name>
+				<Source><![CDATA[
+    public DEVIntegMessagesPreviewType parmPreviewType(DEVIntegMessagesPreviewType _previewType = previewType)
+    {
+        previewType = _previewType;
+        return previewType;
+    }
+
+]]></Source>
+			</Method>
 			<Method>
 				<Name>parmProcessResults</Name>
 				<Source><![CDATA[
@@ -162,7 +200,15 @@ class DEVIntegExportMessageBase
                                           DEVIntegMessagesLoadAzureServiceBus     _loadAzureServiceBusCache,
                                            str  _messageData, str _messageLabel = '')
     {
-        _loadAzureServiceBusCache.sendMessage(_messageData, _messageLabel);
+        if (previewType == DEVIntegMessagesPreviewType::None)
+        {
+            _loadAzureServiceBusCache.sendMessage(_messageData, _messageLabel);
+        }
+        else
+        {
+            File::SendStringAsFileToUser(_messageData, _messageLabel ? strFmt('%1.txt', _messageLabel) : 'ExportLog.txt');
+        }
+
         if (messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full && _exportDocumentLog.RecId)
         {
             processResults.parmMessageBodyStr(_messageData);
@@ -242,8 +288,15 @@ class DEVIntegExportMessageBase
                                str                          _request,
                                str                          _messageData)
     {
-        _loadFileStorageCache.sendMessage(_request, _messageData);
-        
+        if (previewType == DEVIntegMessagesPreviewType::None)
+        {
+            _loadFileStorageCache.sendMessage(_request, _messageData);
+        }
+        else
+        {
+            File::SendStringAsFileToUser(_messageData, 'ExportLog.txt');
+        }
+
         if (messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full && _exportDocumentLog.RecId)
         {
             processResults.parmMessageBodyStr(_messageData);
@@ -257,13 +310,22 @@ class DEVIntegExportMessageBase
 				<Source><![CDATA[
     public void sendMessageFileStorageCache(DEVIntegExportDocumentLog        _exportDocumentLog,
                                             DEVIntegMessagesLoadBaseType     _loadFileStorageCache,
-                                            FileName  _fileName, System.IO.MemoryStream  _fileDataStream)
+                                            FileName  _fileName, 
+                                            System.IO.MemoryStream  _fileDataStream)
     {
-        _loadFileStorageCache.sendFile(_fileName,  _fileDataStream);
+        if (previewType == DEVIntegMessagesPreviewType::None)
+        {
+            _loadFileStorageCache.sendFile(_fileName,  _fileDataStream);
+        }
+        else
+        {
+            _fileDataStream.Position    = 0;
+            File::SendFileToUser(_fileDataStream, _fileName);
+        }
+
         if (messageTypeTableOutbound.OutboundLogType == DEVIntegOutboundLogType::Full && _exportDocumentLog.RecId)
         {
             processResults.parmMessageBodyStr(_fileName);
-
         }
     }
 

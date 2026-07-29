@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVIntegAzureBlobConnectionHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+
+class DEVIntegAzureBlobConnectionHelper
+{
+    Common                      messageTypeTableRef;
+    BlobContainerClient         blobContainer;
+    DEVIntegTmpFiles            fileList;
+
+    str                         folderLocation;
+    str                         archiveLocation;
+    DEVIntegConnectionTypeId    connectionTypeId;
+    str                         messageTypeId;
+    str                         azureContainerReference;
+
+    System.Threading.CancellationToken  tokenNull;
+    System.Object                       objNull;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>testConnection</Name>
+				<Source><![CDATA[
+    void testConnection()
+    {
+        boolean testisOK = true;
+        try
+        {
+            this.connect();
+
+            this.fillFiles();
+
+            this.printFileList();
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+        catch
+        {
+            testisOK = false;
+        }
+        if (testisOK)
+        {
+            info("Test is OK");
+        }
+        else
+        {
+            throw error("Test Failed");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConnectionString</Name>
+				<Source><![CDATA[
+    str   getConnectionString()
+    {
+        str connectionString;
+        DEVIntegConnectionType connectionType = DEVIntegConnectionType::find(connectionTypeId);
+        connectionString = connectionType.getConnectionString();
+
+        if (! connectionString)
+        {
+            throw error(strFmt("Connection string is not specified for message type %1", messageTypeId));
+        }
+
+        return connectionString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>connect</Name>
+				<Source><![CDATA[
+    void connect()
+    {
+        if (! azureContainerReference)
+        {
+            throw error(strFmt("Container reference is not specified for message type %1", messageTypeId));
+        }
+        try
+        {
+            str                 connectionString  = this.getConnectionString();
+
+            blobContainer = new BlobContainerClient(connectionString, azureContainerReference);
+            boolean isExists;
+            isExists = blobContainer.Exists(tokenNull);
+            if (! isExists)
+            {
+                throw error(strFmt("Container '%1' doesn't exist (Type %2)", azureContainerReference, messageTypeId));
+            }
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>createFileInDirectory</Name>
+				<Source><![CDATA[
+    public void  createFileInDirectory(FileName  _fileName, DEVIntegFolderName  _archDir, System.IO.MemoryStream  _fileDataStream)
+    {
+        try
+        {
+            str blobName = strFmt("%1/%2", _archDir, _fileName);
+            BlobClient blobClient = blobContainer.GetBlobClient(blobName);
+
+            _fileDataStream.Position = 0;
+
+            blobClient.Upload(_fileDataStream, true, tokenNull);
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>moveFileToDirectory</Name>
+				<Source><![CDATA[
+    public void  moveFileToDirectory(DEVIntegTmpFiles  _fileRef, DEVIntegFolderName  _archDir, System.IO.MemoryStream  _fileDataStream, boolean _appendTimeStamp = true)
+    {
+        try
+        {
+            str sourceBlobName = strFmt("%1/%2", _fileRef.FolderName, _fileRef.FileName);
+            BlobClient sourceBlob = blobContainer.GetBlobClient(sourceBlobName);
+
+            FileName newFileName = _fileRef.FileName;
+            if (_appendTimeStamp)
+            {
+                container entityFileData = Docu::splitFilename(newFileName);
+
+                FileName            entityName = conPeek(entityFileData, 1);
+                DMFDefaultExtension extension = conPeek(entityFileData, 2);
+
+                System.DateTime dt = System.DateTime::Now;
+                str timeStamp = dt.ToString("yyyy'-'MM'-'dd'T'HHmmss");
+
+                entityName = entityName + '_' + timeStamp;
+                entityName = subStr(entityName, 1, 254);
+
+                newFileName = entityName + (extension ? strFmt(".%1", extension) : "");
+            }
+
+            str destBlobName = strFmt("%1/%2", _archDir, newFileName);
+            BlobClient destBlob = blobContainer.GetBlobClient(destBlobName);
+
+            // Blob storage has no server-side rename; archiving is a synchronous server-side copy followed by deleting the source.
+            destBlob.SyncCopyFromUri(sourceBlob.Uri, objNull, tokenNull);
+
+            sourceBlob.DeleteIfExists(DeleteSnapshotsOption::None, objNull, tokenNull);
+
+        }
+        catch( Exception::CLRError )
+        {
+            throw error(AifUtil::getClrErrorMessage());
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>readFile</Name>
+				<Source><![CDATA[
+    System.IO.MemoryStream  readFile(DEVIntegTmpFiles  _fileRef)
+    {
+        System.IO.MemoryStream memoryStream;
+
+        str blobName = strFmt("%1/%2", _fileRef.FolderName, _fileRef.FileName);
+        BlobClient blobClient = blobContainer.GetBlobClient(blobName);
+
+        // Ensure that the blob exists.
+        if (blobClient.Exists(tokenNull))
+        {
+            memoryStream = new System.IO.MemoryStream();
+            BlobDownloadInfo download = blobClient.Download(tokenNull);
+            System.IO.Stream  downloadContent = download.Content;
+
+            downloadContent.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+        }
+        else
+        {
+            warning(strFmt("File '%1' doesn't exist", _fileRef.FileName));
+        }
+
+        return memoryStream;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fillFiles</Name>
+				<Source><![CDATA[
+    DEVIntegTmpFiles fillFiles(DEVIntegFolderName  _folderName = folderLocation)
+    {
+        fileList = null;
+
+        // GetBlobsByHierarchy with a '/' delimiter mirrors the single-level file/folder split used by
+        // the file-share connector: BlobHierarchyItem.IsBlob is a file at this level, IsPrefix is a virtual subfolder.
+        str prefix = _folderName ? strFmt("%1/", _folderName) : "";
+
+        var azureItems  = blobContainer.GetBlobsByHierarchy(BlobTraits::None, BlobStates::None, "/", prefix, tokenNull);
+        var enum1  = azureItems.GetEnumerator();
+
+        while (enum1.MoveNext())
+        {
+            BlobHierarchyItem item = enum1.Current as BlobHierarchyItem;
+
+            if (item != null && item.IsBlob)
+            {
+                BlobItem blob = item.Blob;
+                FileName fileNameOnly = subStr(blob.Name, strLen(prefix) + 1, strLen(blob.Name) - strLen(prefix));
+
+                fileList.FileName    = fileNameOnly;
+                fileList.FolderName  = _folderName;
+                fileList.FileSize    = blob.Properties.ContentLength;
+                fileList.insert();
+            }
+        }
+        return fileList;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>printFileList</Name>
+				<Source><![CDATA[
+    void printFileList()
+    {
+        boolean     isAny;
+
+        fileList.clear();
+        while select fileList
+        {
+            info(strFmt("Name %1, Size %2", fileList.FileName, fileList.FileSize));
+            isAny = true;
+        }
+        if (! isAny)
+        {
+            info("No files found");
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmMessageTypeTableRef</Name>
+				<Source><![CDATA[
+    public Common parmMessageTypeTableRef(Common _messageTypeTableRef = messageTypeTableRef)
+    {
+        messageTypeTableRef = _messageTypeTableRef;
+        return messageTypeTableRef;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromMessageTypeTable</Name>
+				<Source><![CDATA[
+    public void initFromMessageTypeTable(Common     _messageTable)
+    {
+
+        DEVIntegMessageTypeInbound          messageTypeInbound;
+        DEVIntegMessageTypeTableOutbound    messageTypeTableOutbound;
+
+        this.parmMessageTypeTableRef(_messageTable);
+
+        switch (_messageTable.TableId)
+        {
+            case tableNum(DEVIntegMessageTypeInbound):
+                messageTypeInbound = _messageTable;
+                folderLocation           = messageTypeInbound.ReadLocation;
+                archiveLocation          = messageTypeInbound.ArchiveLocation;
+                connectionTypeId         = messageTypeInbound.ConnectionTypeId;
+                messageTypeId            = messageTypeInbound.MessageTypeId;
+                azureContainerReference  = messageTypeInbound.AzureShareReference;
+                break;
+            case tableNum(DEVIntegMessageTypeTableOutbound):
+                messageTypeTableOutbound = _messageTable;
+                folderLocation           = messageTypeTableOutbound.OutputFolder;
+                archiveLocation          = '';
+                connectionTypeId         = messageTypeTableOutbound.ConnectionTypeId;
+                messageTypeId            = messageTypeTableOutbound.MessageTypeIdOutbound;
+                azureContainerReference  = messageTypeTableOutbound.AzureShareReference;
+                break;
+
+            default:
+                throw error(strFmt("Table %1 is not supported", _messageTable.TableId));
+        }
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructMessageTypeId</Name>
+				<Source><![CDATA[
+    static DEVIntegAzureBlobConnectionHelper constructMessageTypeId(DEVIntegMessageTypeIdInbound  _messageTypeId)
+    {
+        DEVIntegMessageTypeInbound             messageTypeTable;
+        DEVIntegAzureBlobConnectionHelper     res;
+        ;
+        messageTypeTable = DEVIntegMessageTypeInbound::find(_messageTypeId);
+        if (! messageTypeTable.RecId)
+        {
+            throw error(strFmt("Message type '%1' does not exist", _messageTypeId));
+        }
+
+        res = DEVIntegAzureBlobConnectionHelper::construct(messageTypeTable);
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    static DEVIntegAzureBlobConnectionHelper construct(DEVIntegMessageTypeInbound     _messageTypeTable)
+    {
+        DEVIntegAzureBlobConnectionHelper        res = new DEVIntegAzureBlobConnectionHelper();
+        res.initFromMessageTypeTable(_messageTypeTable);
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>constructOutbound</Name>
+				<Source><![CDATA[
+    static DEVIntegAzureBlobConnectionHelper constructOutbound(DEVIntegMessageTypeTableOutbound     _messageTypeTableOutbound)
+    {
+        DEVIntegAzureBlobConnectionHelper        res = new DEVIntegAzureBlobConnectionHelper();
+        res.initFromMessageTypeTable(_messageTypeTableOutbound);
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getAzureEnvHostedServiceName</Name>
+				<Source><![CDATA[
+    public static DEVIntegAzureEnvHostedServiceName getAzureEnvHostedServiceName()
+    {
+        var env = Microsoft.Dynamics.ApplicationPlatform.Environment.EnvironmentFactory::GetApplicationEnvironment();
+
+        return env.Infrastructure.HostedServiceName;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

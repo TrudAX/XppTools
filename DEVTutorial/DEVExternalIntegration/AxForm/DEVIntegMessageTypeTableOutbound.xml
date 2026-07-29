@@ -50,13 +50,24 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 
         DEVIntegMessageTypeTableOutbound_ds.object(fieldNum(DEVIntegMessageTypeTableOutbound, OutputFolder)).visible(
             connectionType.RecId && (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
+            connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureBlob ||
                                       connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP));
         DEVIntegMessageTypeTableOutbound_ds.object(fieldNum(DEVIntegMessageTypeTableOutbound, AzureShareReference)).visible(
-            connectionType.RecId && connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare);
+            connectionType.RecId && (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare || connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureBlob));
 
+        if (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare)
+        {
+            DEVIntegMessageTypeTableOutbound_AzureShareReference.label("Share reference");
+        }
+        else if (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureBlob)
+        {
+            DEVIntegMessageTypeTableOutbound_AzureShareReference.label("Blob container");
+        }
+        
         SQLParametersGroup.visible(DEVIntegMessageTypeTableOutbound.ClassName == classStr(DEVIntegExportBulkSQL));
         FileParametersGroup.visible(connectionType.RecId && 
             (connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureFileShare ||
+             connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::AzureBlob ||
              connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::SFTP ||
              connectionType.ConnectionTypeResource == DEVIntegConnectionTypeResource::None));
         QueueParametersGroup.visible(connectionType.RecId &&
@@ -794,6 +805,7 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 									<AxFormControl xmlns=""
 										i:type="AxFormStringControl">
 										<Name>DEVIntegMessageTypeTableOutbound_AzureShareReference</Name>
+										<AutoDeclaration>Yes</AutoDeclaration>
 										<Type>String</Type>
 										<FormControlExtension
 											i:nil="true" />

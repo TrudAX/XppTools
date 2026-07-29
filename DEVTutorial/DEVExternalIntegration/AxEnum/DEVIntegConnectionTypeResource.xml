@@ -29,5 +29,10 @@
 			<Label>Web</Label>
 			<Value>4</Value>
 		</AxEnumValue>
+		<AxEnumValue>
+			<Name>AzureBlob</Name>
+			<Label>Azure blob storage</Label>
+			<Value>5</Value>
+		</AxEnumValue>
 	</EnumValues>
 </AxEnum>
