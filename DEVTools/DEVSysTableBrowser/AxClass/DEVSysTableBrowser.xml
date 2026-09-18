@@ -611,7 +611,7 @@ public class DEVSysTableBrowser
 			<Method>
 				<Name>main</Name>
 				<Source><![CDATA[
-    client static void main(Args args)
+    static void main(Args args)
     {
         DEVSysTableBrowser sysTableBrowser;
         URLUtility urlUtil = new URLUtility();
