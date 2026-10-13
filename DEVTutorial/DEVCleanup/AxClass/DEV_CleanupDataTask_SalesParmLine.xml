@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTask_SalesParmLine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEV_CleanupDataTask_SalesParmLine extends DEV_CleanupDataTaskBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cleanup</Name>
+				<Source><![CDATA[
+    protected void cleanup()
+    {
+        SalesParmCleanUp                            salesParmCleanUp;
+        SalesParmLine                               salesParmLine;
+        int64                                       recCount;
+        boolean                                     shouldContinue = true;
+
+        while select crosscompany salesParmLine
+            group by DataAreaId
+        {
+            changeCompany(salesParmLine.dataAreaId)
+            {
+                if (cleanupTaskSettings.isCleanupAllowedForCompany(salesParmLine.dataAreaId))
+                {
+                    recCount = this.countRecords(tableNum(SalesParmLine));
+
+                    salesParmCleanUp = SalesParmCleanUp::construct();
+                    salesParmCleanUp.DEVCleanUp_cleanUpMode(SalesPurchParmCleanUpMode::All);
+                    salesParmCleanUp.DEVCleanUp_setDaysAgo(true);
+                    salesParmCleanUp.DEVCleanUp_daysAgo(cleanupTaskSettings.cleanupDaysForCompany(salesParmLine.dataAreaId));
+                    salesParmCleanUp.runOperation();
+
+                    shouldContinue = this.addDeletedRecords(recCount - this.countRecords(tableNum(SalesParmLine)));
+                }
+            }
+
+            if (!shouldContinue)
+            {
+                break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTaskName</Name>
+				<Source><![CDATA[
+    public DEV_CleanUpTaskName getTaskName()
+    {
+        ;
+        return 'SalesParmLine table cleanup(Standard)';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+    {
+        ;
+        super(_taskSettings);
+        _taskSettings.CleanupDays = 31;
+        _taskSettings.AllowPerCompanySetup = true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    public void estimate()
+    {        
+        SalesParmLine   salesParmLineGroup;
+        
+        info("Company, RecCount");
+
+        while select crosscompany salesParmLineGroup
+            group by DataAreaId
+        {
+            changeCompany(salesParmLineGroup.dataAreaId)
+            {
+                if (cleanupTaskSettings.isCleanupAllowedForCompany(salesParmLineGroup.dataAreaId))
+                {
+                    utcdatetime     cleanUpDateTime = cleanupTaskSettings.cleanupDateTimeForCompany(salesParmLineGroup.dataAreaId);
+                    int64           recordCount;
+                    SalesParmLine   salesParmLine;
+                    salesParmTable  salesParmTable;
+
+                    select count(RecId) from salesParmLine
+                        notexists join salesParmTable
+                            where   salesParmTable.ParmId == salesParmLine.ParmId
+                                    && salesParmTable.TableRefId == salesParmLine.TableRefId;
+
+                    recordCount = salesParmLine.RecId;
+
+                    salesParmLine   = null;
+                    salesParmTable  = null;
+
+                    select count(RecId) from salesParmLine
+                        join TableId from salesParmTable
+                            where   salesParmTable.ParmId == salesParmLine.ParmId
+                                    && salesParmTable.TableRefId == salesParmLine.TableRefId
+                                    && salesParmTable.createdDateTime <= cleanUpDateTime;
+
+                    recordCount += salesParmLine.RecId;
+
+                    info(strFmt("%1, %2", salesParmLineGroup.dataAreaId, recordCount));
+                }
+                else if (cleanupTaskSettings.PerCompanySetup)
+                {
+                    warning(strFmt("%1, settings were not found!", salesParmLineGroup.dataAreaId));
+                }
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

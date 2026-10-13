@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTask_ReturnSalesOrders</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEV_CleanupDataTask_ReturnSalesOrders extends DEV_CleanupDataTaskBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cleanup</Name>
+				<Source><![CDATA[
+    protected void cleanup()
+    {
+        this.cleanupByQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    public void estimate()
+    {
+        this.estimateByQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTaskName</Name>
+				<Source><![CDATA[
+    public DEV_CleanUpTaskName getTaskName()
+    {
+        ;
+        return "Open return sales orders";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+    {
+        ;
+        super(_taskSettings);
+        _taskSettings.CleanupDays = 93;
+        _taskSettings.AllowDeleteByQuery = true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getQuery</Name>
+				<Source><![CDATA[
+    public Query getQuery()
+    {
+        Query ret = new Query();
+
+        QueryBuildDatasource    qbds = ret.addDataSource(tableNum(SalesTable));
+        QueryBuildRange         qbr;
+
+        qbr = SysQuery::findOrCreateRange(qbds, fieldNum(SalesTable, SalesType));
+        qbr.value(queryValue(SalesType::ReturnItem));
+        qbr.status(RangeStatus::Locked);
+            
+        qbr = SysQuery::findOrCreateRange(qbds, fieldNum(SalesTable, SalesStatus));
+        qbr.value(queryValue(SalesStatus::Backorder));
+        qbr.status(RangeStatus::Locked);
+
+        qbr = SysQuery::findOrCreateRange(qbds, fieldNum(SalesTable, SalesPoolId));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateQuery</Name>
+				<Source><![CDATA[
+    protected void updateQuery(Query _query, DEV_CleanupTaskSettingsQuery _settings)
+    {
+        TransDateTime           cleanupdDateTime = _settings.getCleanupDateTime();
+        QueryBuildDataSource    qbds = _query.dataSourceNo(1);
+        QueryBuildRange         qbr;
+
+        qbr = SysQuery::findOrCreateRange(qbds, fieldNum(SalesTable, CreatedDateTime));
+        qbr.value(SysQuery::range(dateNull(), cleanupdDateTime));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

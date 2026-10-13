@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>SalesParmCleanUp_DEVCleanUp_Extension</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+[ExtensionOf(classStr(SalesParmCleanUp))]
+final class SalesParmCleanUp_DEVCleanUp_Extension
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>DEVCleanUp_cleanUpMode</Name>
+				<Source><![CDATA[
+    SalesPurchParmCleanUpMode DEVCleanUp_cleanUpMode(SalesPurchParmCleanUpMode _cleanUpMode = cleanUpMode)
+    {
+        cleanUpMode = _cleanUpMode;
+        return cleanUpMode;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DEVCleanUp_setDaysAgo</Name>
+				<Source><![CDATA[
+    boolean DEVCleanUp_setDaysAgo(boolean _setDaysAgo = setDaysAgo)
+    {
+        setDaysAgo = _setDaysAgo;
+        return setDaysAgo;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>DEVCleanUp_daysAgo</Name>
+				<Source><![CDATA[
+    PositiveDays DEVCleanUp_daysAgo(PositiveDays _daysAgo = daysAgo)
+    {
+        daysAgo = _daysAgo;
+        return daysAgo;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

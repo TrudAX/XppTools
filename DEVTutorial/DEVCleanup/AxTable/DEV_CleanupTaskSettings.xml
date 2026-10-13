@@ -1,0 +1,623 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupTaskSettings</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEV_CleanupTaskSettings extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>durationMin</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    display RealBase durationMin()
+    {
+        RealBase res;
+        ;
+        if (this.LastEndTime && this.LastBeginTime)
+        {
+            res = any2real(DateTimeUtil::getDifference(this.LastEndTime, this.LastBeginTime) / 60);
+        }
+    
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCleanupDateTime</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Cutoff date and time of the task: records up to and including it are deleted.
+    /// </summary>
+    /// <returns>The cutoff date and time.</returns>
+    TransDateTime getCleanupDateTime()
+    {
+        return DEV_CleanupTaskSettings::calcCleanupDateTime(this.CleanupDateType, this.CleanupDays, this.CleanupDate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>calcCleanupDateTime</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The one rule for the cutoff of all tasks: the end of the cutoff day in the user's time zone.
+    /// Records up to and including the cutoff are deleted.
+    /// </summary>
+    /// <param name = "_cleanupDateType">Periodic: keep the last _cleanupDays days. To date: delete up to and including _cleanupDate.</param>
+    /// <param name = "_cleanupDays">The number of days to keep, for Periodic.</param>
+    /// <param name = "_cleanupDate">The last date to delete, for To date.</param>
+    /// <returns>The cutoff date and time.</returns>
+    public static TransDateTime calcCleanupDateTime(DEV_CleanupDateType _cleanupDateType, Days _cleanupDays, TransDate _cleanupDate)
+    {
+        TimeZone    timeZone = DateTimeUtil::getUserPreferredTimeZone();
+        TransDate   cleanupDate;
+
+        switch (_cleanupDateType)
+        {
+            case DEV_CleanupDateType::Periodic:
+                cleanupDate = DateTimeUtil::getToday(timeZone) - _cleanupDays;
+                break;
+
+            case DEV_CleanupDateType::ToDate:
+                cleanupDate = _cleanupDate;
+                break;
+        }
+
+        if (!cleanupDate)
+        {
+            throw error("Cleanup date is not specified.");
+        }
+
+        return datetoendUtcDateTime(cleanupDate, timeZone);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEV_CleanupTaskSettings find(DEV_CleanUpTaskName _cleanupTaskName,
+                                               boolean             _forUpdate = false)
+    {
+        DEV_CleanupTaskSettings DEV_CleanupTaskSettings;
+    
+        if (_cleanupTaskName)
+        {
+            DEV_CleanupTaskSettings.selectForUpdate(_forUpdate);
+    
+            select firstonly DEV_CleanupTaskSettings
+                where DEV_CleanupTaskSettings.CleanupTaskName == _cleanupTaskName;
+        }
+    
+        return DEV_CleanupTaskSettings;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupTask</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The task class of these settings; null when the class does not exist.
+    /// </summary>
+    public DEV_CleanupDataTaskBase cleanupTask()
+    {
+        DEV_CleanupDataTaskBase     cleanupTask;
+        ClassId                     classId = className2Id(this.ClassName);
+
+        if (classId)
+        {
+            cleanupTask = new DictClass(classId).makeObject();
+            cleanupTask.parmCleanupTaskSettings(this);
+        }
+
+        return cleanupTask;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupDaysForCompany</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The number of days to keep, for standard cleanup classes that take days instead of a date.
+    /// </summary>
+    /// <param name = "_company">The company; used with By company.</param>
+    /// <returns>The number of days from today to the cutoff date.</returns>
+    public Days cleanupDaysForCompany(DataAreaId _company = curExt())
+    {
+        TimeZone        timeZone        = DateTimeUtil::getUserPreferredTimeZone();
+        utcdatetime     cleanupDateTime = this.cleanupDateTimeForCompany(_company);
+
+        return DateTimeUtil::getToday(timeZone) - DateTimeUtil::date(DateTimeUtil::applyTimeZoneOffset(cleanupDateTime, timeZone));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupDateTimeForCompany</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Cutoff date and time for a company: from the By company settings when they are used; otherwise, of the task.
+    /// </summary>
+    /// <param name = "_company">The company.</param>
+    /// <returns>The cutoff date and time.</returns>
+    public utcdatetime cleanupDateTimeForCompany(DataAreaId _company = curExt())
+    {
+        DEV_CleanupTaskSettingsCompany  line;
+
+        if (this.PerCompanySetup)
+        {
+            line = this.getCleanupSettingsForCompany(_company);
+
+            return DEV_CleanupTaskSettings::calcCleanupDateTime(line.CleanupDateType, line.CleanupDays, line.CleanupDate);
+        }
+
+        return this.getCleanupDateTime();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isCleanupAllowedForCompany</Name>
+				<Source><![CDATA[
+    public boolean isCleanupAllowedForCompany(DataAreaId _company = curExt())
+    {
+        boolean ret;
+
+        if (!this.PerCompanySetup)
+        {
+            ret = true;
+        }
+        else if (DEV_CleanupTaskSettingsCompany::find(this.RecId, _company)
+            || DEV_CleanupTaskSettingsCompany::find(this.RecId, ''))
+        {
+            ret = true;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCleanupSettingsForCompany</Name>
+				<Source><![CDATA[
+    public DEV_CleanupTaskSettingsCompany getCleanupSettingsForCompany(DataAreaId _company = curExt())
+    {
+        DEV_CleanupTaskSettingsCompany ret;
+
+        ret = DEV_CleanupTaskSettingsCompany::find(this.RecId, _company);
+        if (!ret)
+        {
+            ret = DEV_CleanupTaskSettingsCompany::find(this.RecId, '');
+        }
+        if (! ret)
+        {
+            throw error(strFmt("Task %1. Setting for company %2 doesn't exist",
+                this.CleanupTaskName, _company));
+        }
+
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>perCompanySettings</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    public display DEV_CleanupSettingsDesc perCompanySettings()
+    {
+        #define.all('All')
+        #define.comma(', ')
+        str                             ret;
+        DEV_CleanupTaskSettingsCompany     line;
+
+        if (this.PerCompanySetup)
+        {
+            while select line
+                order by CleanupDataArea
+                where   line.CleanupTaskSettingsRecId == this.RecId
+            {
+                if (ret)
+                {
+                    ret += #comma;
+                }
+                if (line.CleanupDataArea)
+                {
+                    ret += line.CleanupDataArea;
+                }
+                else
+                {
+                    ret += #all;
+                }
+
+                ret += strFmt(": %1", line.CleanupDays);
+            }            
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Cleanup settings</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>CleanupTaskName</TitleField1>
+	<TitleField2>GroupId</TitleField2>
+	<CacheLookup>NotInTTS</CacheLookup>
+	<ClusteredIndex>CleanupTaskNameIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<PrimaryIndex>CleanupTaskNameIdx</PrimaryIndex>
+	<ReplacementKey>CleanupTaskNameIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CleanupTaskName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>GroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDays</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StepSelectRecords</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StepDeleteRecords</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CleanupTaskName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>GroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDays</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StepSelectRecords</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StepDeleteRecords</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CleanupTaskName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AdvancedSettings</Name>
+			<Label>Advanced settings</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>StepDeleteRecords</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ProgressUpdateRecords</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>MaxRunTimeHours</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AllowPerCompanySetup</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AllowDeleteByQuery</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SQLSettings</Name>
+			<Label>SQL settings</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>StepSelectRecords</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>StepLoopMaxCount</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>AllowSQLDelete</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Enabled</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupTaskName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>GroupId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>DeleteByQuery</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>PerCompanySetup</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDateType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDays</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LastBeginTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LastEndTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>durationMin</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LastUpdatedRecords</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>StatusHistory</Name>
+			<Label>Status history</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LastBeginTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LastEndTime</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>durationMin</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>LastUpdatedRecords</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>ClassGroup</Name>
+			<Label>Cleanup class</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>ClassName</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupTaskName</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>SystemGroup</Name>
+			<Label>System</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>LastSelectRows</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>ClassName</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>NotesLine</ExtendedDataType>
+			<HelpText>Class name that performs a cleanup</HelpText>
+			<Label>Class name</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>CleanupDate</Name>
+			<ExtendedDataType>TransDate</ExtendedDataType>
+			<HelpText>Data</HelpText>
+			<Label>Cleanup Date</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>CleanupDays</Name>
+			<ExtendedDataType>Days</ExtendedDataType>
+			<HelpText>Number of days from the current date to keep the data</HelpText>
+			<Label>Cleanup days</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CleanupTaskName</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>DEV_CleanUpTaskName</ExtendedDataType>
+			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>GroupId</Name>
+			<ExtendedDataType>Description</ExtendedDataType>
+			<HelpText>Cleanup group</HelpText>
+			<Label>Group</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>Enabled</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Run the task</HelpText>
+			<Label>Enabled</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>LastBeginTime</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TransDateTime</ExtendedDataType>
+			<Label>Last start date/time</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldUtcDateTime">
+			<Name>LastEndTime</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>TransDateTime</ExtendedDataType>
+			<Label>Last end date/time</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LastSelectRows</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>LastUpdatedRecords</Name>
+			<AllowEdit>No</AllowEdit>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Last deleted records</HelpText>
+			<Label>Deleted records</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>StepDeleteRecords</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Number of records to delete in one step</HelpText>
+			<Label>Delete records per step</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>ProgressUpdateRecords</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>The progress (Deleted records) is updated after this number of deleted records</HelpText>
+			<Label>Update progress every (records)</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>StepLoopMaxCount</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Max loop count for delete (0 - unlimited)</HelpText>
+			<Label>Max steps (0 - unlimited)</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldReal">
+			<Name>MaxRunTimeHours</Name>
+			<ExtendedDataType>Hours</ExtendedDataType>
+			<HelpText>Maximum run time of the task in hours. The task stops when it is reached (0 - unlimited)</HelpText>
+			<Label>Maximum run time (hours)</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>StepSelectRecords</Name>
+			<ExtendedDataType>PositiveNumber</ExtendedDataType>
+			<HelpText>Number of records to select per step(often 1m)</HelpText>
+			<Label>Select records per step</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CleanupDateType</Name>
+			<EnumType>DEV_CleanupDateType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>AllowPerCompanySetup</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Allow per company setup.</HelpText>
+			<Label>Allow per company setup</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>PerCompanySetup</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Period setup per company</HelpText>
+			<Label>By company</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>DeleteByQuery</Name>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<HelpText>Specify custom query for delete</HelpText>
+			<Label>By query</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>AllowDeleteByQuery</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<Label>Allow custom query</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>AllowSQLDelete</Name>
+			<AllowEdit>No</AllowEdit>
+			<AllowEditOnCreate>No</AllowEditOnCreate>
+			<ExtendedDataType>NoYesId</ExtendedDataType>
+			<Label>Use SQL for delete</Label>
+			<EnumType>NoYes</EnumType>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>CleanupTaskNameIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>CleanupTaskName</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations />
+	<StateMachines />
+</AxTable>

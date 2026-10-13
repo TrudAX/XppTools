@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTask_SysOutgoingEmailTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEV_CleanupDataTask_SysOutgoingEmailTable extends DEV_CleanupDataTaskBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cleanup</Name>
+				<Source><![CDATA[
+    protected void cleanup()
+    {
+        SysOutgoingEmailTable            sysOutgoingEmailTable;
+        TransDateTime                    delDate = cleanupTaskSettings.getCleanupDateTime();
+
+        while select sysOutgoingEmailTable
+            where sysOutgoingEmailTable.CreatedDateTime &&
+                  sysOutgoingEmailTable.CreatedDateTime <= delDate
+        {
+            if (!this.deleteRecord(sysOutgoingEmailTable))
+            {
+                break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    public void estimate()
+    {
+        SysOutgoingEmailTable            sysOutgoingEmailTable;
+        TransDateTime                    delDate = cleanupTaskSettings.getCleanupDateTime();
+
+        select count(RecId) from sysOutgoingEmailTable
+            where sysOutgoingEmailTable.CreatedDateTime &&
+                  sysOutgoingEmailTable.CreatedDateTime <= delDate;
+
+        info(strFmt("SysOutgoingEmailTable count for %1 date: %2", delDate, sysOutgoingEmailTable.RecId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTaskName</Name>
+				<Source><![CDATA[
+    public DEV_CleanUpTaskName getTaskName()
+    {
+        ;
+        return "SysOutgoingEmailTable";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+    {
+        ;
+        super(_taskSettings);
+        _taskSettings.CleanupDays = 31;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

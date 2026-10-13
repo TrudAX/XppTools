@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTask_IntegMessageTable</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEV_CleanupDataTask_IntegMessageTable extends DEV_CleanupDataTaskBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cleanup</Name>
+				<Source><![CDATA[
+    protected void cleanup()
+    {
+        this.cleanupByQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    public void estimate()
+    {
+        this.estimateByQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteDataByQuery</Name>
+				<Source><![CDATA[
+    protected void deleteDataByQuery(DEV_CleanupTaskSettingsQuery _settingsQuery)
+    {
+        DEVIntegMessageTable integMessageTable;
+        boolean              continueDelete;
+
+        QueryRun localQueryRun = this.initQueryRun(_settingsQuery);
+
+        while (localQueryRun.next())
+        {
+            integMessageTable = localQueryRun.get(tableNum(DEVIntegMessageTable));
+
+            DataAreaId dataAreaId = this.getValidCompany(integMessageTable.CompanyId);
+
+            changecompany(dataAreaId)
+            {
+                continueDelete = this.deleteRecord(integMessageTable);
+            }
+
+            if (!continueDelete)
+            {
+                break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTaskName</Name>
+				<Source><![CDATA[
+    public DEV_CleanUpTaskName getTaskName()
+    {
+        ;
+        return 'DEVIntegMessageTable table cleanup';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+    {
+        ;
+        super(_taskSettings);
+        _taskSettings.CleanupDays = 31;
+        _taskSettings.AllowDeleteByQuery = true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateQuery</Name>
+				<Source><![CDATA[
+    protected void updateQuery(Query _query, DEV_CleanupTaskSettingsQuery _settings)
+    {
+        TransDateTime           cleanupdDateTime = _settings.getCleanupDateTime();
+        QueryBuildDataSource    qbds = _query.dataSourceNo(1);
+        QueryBuildRange         qbr;
+
+        qbr = SysQuery::findOrCreateRange(qbds, fieldNum(DEVIntegMessageTable, CreatedDateTime));
+        qbr.value(SysQuery::range(dateNull(), cleanupdDateTime));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getQuery</Name>
+				<Source><![CDATA[
+    public Query getQuery()
+    {
+        Query ret = new Query();
+
+        ret.allowCrossCompany(true);
+        ret.addDataSource(tableNum(DEVIntegMessageTable));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

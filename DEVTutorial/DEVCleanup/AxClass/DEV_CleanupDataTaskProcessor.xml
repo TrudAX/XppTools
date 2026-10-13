@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTaskProcessor</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEV_CleanupDataTaskProcessor extends RunBaseBatch
+{
+    Integer                 dummy;
+    DEV_CleanUpTaskName     cleanUpTaskNameExternal;
+
+    QueryRun                queryRun;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        dummy
+    #endmacro
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>allowSaveLast</Name>
+				<Source><![CDATA[
+    public boolean allowSaveLast()
+    {
+        boolean ret;
+
+        ret = super();
+
+        if (cleanUpTaskNameExternal)
+        {
+            ret = false;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>caption</Name>
+				<Source><![CDATA[
+    public ClassDescription caption()
+    {
+        ClassDescription ret;
+
+        ret = super();
+
+        if (cleanUpTaskNameExternal)
+        {
+            ret += ' ' + cleanUpTaskNameExternal;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+
+        if (cleanUpTaskNameExternal)
+        {
+            dialog.addText(strFmt("Execute %1", cleanUpTaskNameExternal));
+        }
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    protected boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runTask</Name>
+				<Source><![CDATA[
+    protected void runTask(DEV_CleanupTaskSettings _cleanupTaskSettings)
+    {
+        DEV_CleanupDataTaskBase     cleanupTask = _cleanupTaskSettings.cleanupTask();
+
+        if (cleanupTask)
+        {
+            setPrefix(_cleanupTaskSettings.CleanupTaskName);
+
+            cleanupTask.run();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        this.initQuery();
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initQuery</Name>
+				<Source><![CDATA[
+    public void initQuery()
+    {
+        Query                   query = new Query();
+        QueryBuildDataSource    qbds = query.addDataSource(tablenum(DEV_CleanupTaskSettings));
+        QueryBuildRange         qBR;
+
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEV_CleanupTaskSettings, CleanupTaskName));
+        if (cleanUpTaskNameExternal)
+        {
+            qBR.value(cleanUpTaskNameExternal);
+        }
+
+        qBR = SysQuery::findOrCreateRange(qbds, fieldnum(DEV_CleanupTaskSettings, Enabled));
+        qBR.value(queryValue(NoYes::Yes));
+        qBR.status(RangeStatus::Locked);
+
+        queryRun = new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initSettingsForTask</Name>
+				<Source><![CDATA[
+    protected DEV_CleanupTaskSettings initSettingsForTask(DEV_CleanupDataTaskBase  _cleanupDataTaskBase)
+    {
+        DEV_CleanupTaskSettings     cleanupTaskSettings;
+        DEV_CleanUpTaskName         cleanUpTaskName;
+
+        cleanUpTaskName = _cleanupDataTaskBase.getTaskName();
+        if (! cleanUpTaskName)
+        {
+            throw error(strFmt("Task name is not specified for %1 class", classid2name(classidget(_cleanupDataTaskBase))));
+        }
+
+        ttsbegin;
+        cleanupTaskSettings = DEV_CleanupTaskSettings::find(cleanUpTaskName, true);
+        if (! cleanupTaskSettings.RecId)
+        {
+            cleanupTaskSettings.CleanupTaskName = cleanUpTaskName;
+            _cleanupDataTaskBase.initDefaultParameters(cleanupTaskSettings);
+            // the new tasks are not enabled by default
+            cleanupTaskSettings.Enabled = false;
+
+            if (! cleanupTaskSettings.validateWrite())
+            {
+                throw error(strFmt("Failed to init task '%1'", cleanUpTaskName));
+            }
+            cleanupTaskSettings.insert();
+        }
+        else
+        {
+            DEV_CleanupTaskSettings     cleanupTaskSettingsStatic;
+            //move static variables
+            cleanupTaskSettingsStatic.data(cleanupTaskSettings);
+            _cleanupDataTaskBase.initDefaultParameters(cleanupTaskSettingsStatic);
+
+            cleanupTaskSettings.AllowDeleteByQuery   = cleanupTaskSettingsStatic.AllowDeleteByQuery;
+            cleanupTaskSettings.AllowPerCompanySetup = cleanupTaskSettingsStatic.AllowPerCompanySetup;
+            cleanupTaskSettings.AllowSQLDelete       = cleanupTaskSettingsStatic.AllowSQLDelete;
+
+            if (!cleanupTaskSettings.ProgressUpdateRecords)
+            {
+                cleanupTaskSettings.ProgressUpdateRecords = cleanupTaskSettingsStatic.ProgressUpdateRecords;
+            }
+
+            cleanupTaskSettings.update();
+        }
+        ttscommit;
+
+        return cleanupTaskSettings;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new()
+    {
+        super();
+
+        this.initQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList, queryRun.pack()];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryRun</Name>
+				<Source><![CDATA[
+    public QueryRun queryRun()
+    {
+        return queryRun;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        QueryBuildDataSource        qBDS;
+
+        qBDS = queryRun.query().dataSourceTable(tableNum(DEV_CleanupTaskSettings));
+
+        if (cleanUpTaskNameExternal)
+        {
+            qbds.clearRanges();
+            qbds.addRange(fieldnum(DEV_CleanupTaskSettings, CleanupTaskName)).value(queryValue(cleanUpTaskNameExternal));
+        }
+
+        while (queryRun.next())
+        {
+            this.runTask(queryRun.get(tablenum(DEV_CleanupTaskSettings)));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setCleanupTaskSettingsExternal</Name>
+				<Source><![CDATA[
+    public void setCleanupTaskSettingsExternal(DEV_CleanupTaskSettings _cleanupTaskSettingsExternal )
+    {
+        cleanUpTaskNameExternal = _cleanupTaskSettingsExternal.CleanupTaskName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>showQueryValues</Name>
+				<Source><![CDATA[
+    public boolean showQueryValues()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        container  queryCon;
+
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList,queryCon] = _packedClass;
+                if (SysQuery::isPackedOk(queryCon))
+                {
+                    queryRun = new QueryRun(queryCon);
+                }
+                else
+                {
+                    this.initQuery();
+                }
+                break;
+            default:
+                return false;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEV_CleanupDataTaskProcessor construct()
+    {
+        return new DEV_CleanupDataTaskProcessor();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    public static ClassDescription description()
+    {
+        return "Cleanup historic data";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initTasksSettings</Name>
+				<Source><![CDATA[
+    public static void initTasksSettings()
+    {
+        DEV_CleanupTaskSettings         cleanupTaskSettings;
+
+        ttsbegin;
+
+        while select forupdate cleanupTaskSettings
+        {
+            if (className2Id(cleanupTaskSettings.ClassName) == 0)
+            {
+                cleanupTaskSettings.delete();
+            }
+        }
+
+        ttscommit;
+
+        DEV_CleanupDataTaskProcessor    cleanupDataTaskProcessor = new DEV_CleanupDataTaskProcessor();
+        ListEnumerator                  childListEnum;
+
+        // enumerate all child classes to init settings
+        childListEnum = new SysDictClass(classNum(DEV_CleanupDataTaskBase)).extendedBy().getEnumerator();
+
+        while (childListEnum.moveNext())
+        {
+            DictClass   dictClass = new DictClass(childListEnum.current());
+
+            // abstract classes are not tasks
+            if (!dictClass.isAbstract())
+            {
+                cleanupDataTaskProcessor.initSettingsForTask(dictClass.makeObject());
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEV_CleanupDataTaskProcessor   runObject = DEV_CleanupDataTaskProcessor::construct();
+        DEV_CleanupTaskSettings        cleanupTaskSettingsExt;
+
+        if (_args
+            && _args.record()
+            && _args.record().TableId == tablenum(DEV_CleanupTaskSettings))
+        {
+            cleanupTaskSettingsExt = _args.record();
+            runObject.setCleanupTaskSettingsExternal(cleanupTaskSettingsExt);
+        }
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+        if (FormDataUtil::getFormDataSource(cleanupTaskSettingsExt))
+        {
+            FormDataUtil::getFormDataSource(cleanupTaskSettingsExt).research(true);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runDisplaySQL</Name>
+				<Source><![CDATA[
+    static void runDisplaySQL(DEV_CleanupTaskSettings _cleanupTaskSettings)
+    {
+        setPrefix("Show SQL");
+
+        _cleanupTaskSettings.cleanupTask().displaySQL();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runEstimate</Name>
+				<Source><![CDATA[
+    static void runEstimate(DEV_CleanupTaskSettings _cleanupTaskSettings)
+    {
+        setPrefix("Show estimated rows");
+
+        _cleanupTaskSettings.cleanupTask().estimate();
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

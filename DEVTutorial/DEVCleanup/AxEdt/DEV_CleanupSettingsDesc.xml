@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEV_CleanupSettingsDesc</Name>
+	<DisplayLength>30</DisplayLength>
+	<HelpText>Per company settings.</HelpText>
+	<Label>Per company settings</Label>
+	<ArrayElements />
+	<Relations />
+	<TableReferences />
+	<StringSize>1000</StringSize>
+</AxEdt>

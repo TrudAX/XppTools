@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTask_InventSumSummarize</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEV_CleanupDataTask_InventSumSummarize extends DEV_CleanupDataTaskBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cleanup</Name>
+				<Source><![CDATA[
+    protected void cleanup()
+    {
+        InventSumSummarizeService       inventSumSummarizeService;
+        InventSumSummarizeContract      dataContract;
+        Query                           query;
+        InventSum                       inventSumMain;
+        int64                           recCount;
+        boolean                         shouldContinue = true;
+
+        while select crosscompany inventSumMain
+            group by DataAreaId
+        {
+            changeCompany(inventSumMain.dataAreaId)
+            {
+                recCount = this.countRecords(tableNum(InventSum));
+
+                inventSumSummarizeService = new InventSumSummarizeService();
+                dataContract = InventSumSummarizeContract::construct();
+                query = new Query(querystr(InventSumSummarize));
+                dataContract.parmQuery(SysOperationHelper::base64Encode(query.pack()));
+                inventSumSummarizeService.summarize(dataContract);
+
+                shouldContinue = this.addDeletedRecords(recCount - this.countRecords(tableNum(InventSum)));
+            }
+
+            if (!shouldContinue)
+            {
+                break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTaskName</Name>
+				<Source><![CDATA[
+    public DEV_CleanUpTaskName getTaskName()
+    {
+        ;
+        return 'On-hand entries aggregation by financial dimensions(Standard)';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+    {
+        ;
+        super(_taskSettings);
+        _taskSettings.CleanupDays = 31;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    public void estimate()
+    {
+        InventSum                       inventSumMain;
+        
+        info("Company, Closed, RecCount");
+    
+        while select crosscompany count(RecId) from inventSumMain
+            group by DataAreaId, Closed
+        {
+            info(strFmt("%1, %2, %3", inventSumMain.dataAreaId, inventSumMain.Closed, inventSumMain.RecId));
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

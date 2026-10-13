@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTask_BatchJob</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEV_CleanupDataTask_BatchJob extends DEV_CleanupDataTaskBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cleanup</Name>
+				<Source><![CDATA[
+    protected void cleanup()
+    {
+        BatchJob                         batchJob;
+        TransDateTime                    delDate = cleanupTaskSettings.getCleanupDateTime();
+        boolean                          continueDelete;
+
+        setPrefix("Batch job delete");
+
+        while select batchJob
+                where batchJob.OrigStartDateTime <= delDate &&
+                      batchJob.OrigStartDateTime &&
+                      batchJob.Status != BatchStatus::Hold  &&
+                      batchJob.Status != BatchStatus::Waiting
+        {
+            setPrefix(strFmt("%1 - %2", batchJob.Caption, batchJob.RecId));
+            batchJob.skipAosValidation(true);
+
+            // a record that fails to delete does not stop the task
+            continueDelete = true;
+
+            try
+            {
+                continueDelete = this.deleteRecord(batchJob);
+            }
+            catch
+            {
+                exceptionTextFallThrough();
+            }
+
+            if (!continueDelete)
+            {
+                break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    public void estimate()
+    {
+        BatchJob                         batchJob;
+        TransDateTime                    delDate = cleanupTaskSettings.getCleanupDateTime();
+
+        select count(RecId) from batchJob
+            where batchJob.OrigStartDateTime <= delDate &&
+                  batchJob.OrigStartDateTime &&
+                  batchJob.Status != BatchStatus::Hold &&
+                  batchJob.Status != BatchStatus::Waiting;
+
+        info(strFmt("BatchJob not Withhold count for %1 date: %2", delDate, batchJob.RecId));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTaskName</Name>
+				<Source><![CDATA[
+    public DEV_CleanUpTaskName getTaskName()
+    {
+        ;
+        return "BatchJob";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+    {
+        ;
+        super(_taskSettings);
+        _taskSettings.CleanupDays = 93;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

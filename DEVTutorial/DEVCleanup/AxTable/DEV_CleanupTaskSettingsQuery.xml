@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupTaskSettingsQuery</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEV_CleanupTaskSettingsQuery extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cleanupTaskSettings</Name>
+				<Source><![CDATA[
+    public DEV_CleanupTaskSettings cleanupTaskSettings(boolean _forupdate = false)
+    {
+        DEV_CleanupTaskSettings     record;
+
+        record.selectForUpdate(_forupdate);
+
+        if (this.CleanupTaskSettingsRecId)
+        {
+            select firstonly record
+                where   record.RecId == this.CleanupTaskSettingsRecId;
+        }
+
+        return record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCleanupClass</Name>
+				<Source><![CDATA[
+    public DEV_CleanupDataTaskBase getCleanupClass()
+    {
+        return this.cleanupTaskSettings().cleanupTask();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>querySetDefault</Name>
+				<Source><![CDATA[
+    public void querySetDefault()
+    {
+        DEV_CleanupDataTaskBase cleanupClass = this.getCleanupClass();
+        Query                   query;
+        SysQueryRun             queryRun;
+        container               packedCon;
+
+        if (cleanupClass)
+        {
+            query = cleanupClass.getQuery();
+            if (query)
+            {
+                queryRun = new SysQueryRun(query);
+                packedCon = queryRun.pack();
+            }
+        }
+        
+        this.QueryPacked = packedCon;
+        this.update();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>queryChangeValue</Name>
+				<Source><![CDATA[
+    public void queryChangeValue()
+    {
+        DEV_CleanupDataTaskBase cleanupClass = this.getCleanupClass();
+        Query                   query;
+        SysQueryRun             queryRun;
+        QueryRun                packedQueryRun;
+        container               packedCon;
+        boolean                 isUpdated;
+
+        if (cleanupClass)
+        {
+            packedCon = this.QueryPacked;
+            
+            if (packedCon != conNull() && SysQuery::isPackedOk(packedCon))
+            {
+                packedQueryRun = new QueryRun(packedCon);
+                query = packedQueryRun.query();
+            }
+            else
+            {
+                query = cleanupClass.getQuery();
+            }
+
+            if (query)
+            {
+                queryRun = new SysQueryRun(query);
+                queryRun.saveUserSetup(false);
+                queryRun.promptAllowQueryFilters(false);
+                if (queryRun.prompt())
+                {
+                    packedCon = queryRun.pack();
+                    isUpdated = true;
+                }
+            }
+        }
+        if (isUpdated)
+        {
+            this.QueryPacked = packedCon;
+            this.update();
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateHeaderSettings</Name>
+				<Source><![CDATA[
+    public void updateHeaderSettings()
+    {
+        DEV_CleanupTaskSettings         cleanupTaskSettings;
+        DEV_CleanupTaskSettingsQuery    settingsQueryPeriodic;
+        DEV_CleanupTaskSettingsQuery    settingsQueryToDate;
+        TransDate                       datePeriodic, dateToDate;
+        TransDate                       cleanupDate;
+
+        ttsbegin;
+
+        cleanupTaskSettings = this.cleanupTaskSettings(true);
+
+        if (cleanupTaskSettings)
+        {
+            select minof(CleanupDays), minof(RecId) from settingsQueryPeriodic
+                where   settingsQueryPeriodic.CleanupTaskSettingsRecId == cleanupTaskSettings.RecId
+                        && settingsQueryPeriodic.CleanupDateType == DEV_CleanupDateType::Periodic;
+
+            if (settingsQueryPeriodic.RecId)
+            {
+                datePeriodic = DateTimeUtil::getToday(DateTimeUtil::getUserPreferredTimeZone()) - settingsQueryPeriodic.CleanupDays;
+            }
+
+            select minof(CleanupDate), minof(RecId) from settingsQueryToDate
+                where   settingsQueryToDate.CleanupTaskSettingsRecId == cleanupTaskSettings.RecId
+                        && settingsQueryToDate.CleanupDateType == DEV_CleanupDateType::ToDate;
+            if (settingsQueryToDate.RecId)
+            {
+                dateToDate = settingsQueryToDate.CleanupDate;
+            }
+
+            if (datePeriodic || dateToDate)
+            {
+                if (datePeriodic && dateToDate)
+                {
+                    cleanupDate = min(datePeriodic, dateToDate);
+
+                    if (cleanupDate == dateToDate)
+                    {
+                        cleanupTaskSettings.CleanupDate = settingsQueryToDate.CleanupDate;
+                        cleanupTaskSettings.CleanupDateType = DEV_CleanupDateType::ToDate;
+                        cleanupTaskSettings.CleanupDays = 0;
+                    }
+                    else
+                    {
+                        cleanupTaskSettings.CleanupDate = dateNull();
+                        cleanupTaskSettings.CleanupDateType = DEV_CleanupDateType::Periodic;
+                        cleanupTaskSettings.CleanupDays = settingsQueryPeriodic.CleanupDays;
+                        
+                    }
+                }
+                else if (dateToDate)
+                {
+                    cleanupTaskSettings.CleanupDate = settingsQueryToDate.CleanupDate;
+                    cleanupTaskSettings.CleanupDateType = DEV_CleanupDateType::ToDate;
+                    cleanupTaskSettings.CleanupDays = 0;
+                }
+                else
+                {
+                    cleanupTaskSettings.CleanupDate = dateNull();
+                    cleanupTaskSettings.CleanupDateType = DEV_CleanupDateType::Periodic;
+                    cleanupTaskSettings.CleanupDays = settingsQueryPeriodic.CleanupDays;
+                }
+
+                cleanupTaskSettings.update();
+            }
+        }
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        ttsbegin;
+
+        super();
+
+        this.updateHeaderSettings();
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        ttsbegin;
+
+        super();
+
+        this.updateHeaderSettings();
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>delete</Name>
+				<Source><![CDATA[
+    public void delete()
+    {
+        ttsbegin;
+
+        super();
+
+        this.updateHeaderSettings();
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCleanupDateTime</Name>
+				<Source><![CDATA[
+    TransDateTime getCleanupDateTime()
+    {
+        return DEV_CleanupTaskSettings::calcCleanupDateTime(this.CleanupDateType, this.CleanupDays, this.CleanupDate);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPackedQuery</Name>
+				<Source><![CDATA[
+    public Query getPackedQuery(DEV_CleanupDataTaskBase _caller)
+    {
+        Query ret;
+
+        container packedCon = this.QueryPacked;
+            
+        if (packedCon != conNull() && SysQuery::isPackedOk(packedCon))
+        {
+            QueryRun packedQueryRun = new QueryRun(packedCon);
+            ret = packedQueryRun.query();
+        }
+        else if (_caller)
+        {
+            ret = _caller.getQuery();
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getPackedQueryText</Name>
+				<Source><![CDATA[
+    [SysClientCacheDataMethodAttribute(true)]
+    display Notes getPackedQueryText()
+    {
+        Query       query = this.getPackedQuery(null);
+
+        if (!query)
+        {
+            DEV_CleanupDataTaskBase cleanupClass = this.getCleanupClass();
+
+            if (cleanupClass)
+            {
+                query = cleanupClass.getQuery();
+            }
+        }
+
+        return query ? query.dataSourceNo(1).toString() : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initFromCleanupTaskSettings</Name>
+				<Source><![CDATA[
+    public void initFromCleanupTaskSettings(DEV_CleanupTaskSettings _cleanupTaskSettings)
+    {
+        this.CleanupTaskSettingsRecId   = _cleanupTaskSettings.RecId;
+        this.CleanupDateType            = _cleanupTaskSettings.CleanupDateType;
+        this.CleanupDays                = _cleanupTaskSettings.CleanupDays;
+        this.CleanupDate                = _cleanupTaskSettings.CleanupDate;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Cleanup settings per query</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>Name</TitleField1>
+	<TitleField2>CleanupDateType</TitleField2>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<ReplacementKey>CleanupTaskSettingsRecIdIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDays</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDateType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>QueryPacked</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CleanupTaskSettingsRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>Name</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDateType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDays</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDate</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDataArea</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>CleanupTaskSettingsRecId</Name>
+			<ExtendedDataType>DEV_CleanupTaskSettingsRecId</ExtendedDataType>
+			<HelpText>Cleanup settings Record Id.</HelpText>
+			<Label>Cleanup settings Record Id</Label>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>CleanupDays</Name>
+			<ExtendedDataType>Days</ExtendedDataType>
+			<HelpText>Number of days from the current date to keep the data.</HelpText>
+			<Label>Cleanup days</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CleanupDateType</Name>
+			<EnumType>DEV_CleanupDateType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>CleanupDate</Name>
+			<ExtendedDataType>TransDate</ExtendedDataType>
+			<HelpText>Data</HelpText>
+			<Label>Cleanup Date</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>Name</Name>
+			<ExtendedDataType>Description255</ExtendedDataType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldContainer">
+			<Name>QueryPacked</Name>
+			<ExtendedDataType>DEV_CleanupQueryPacked</ExtendedDataType>
+			<Visible>No</Visible>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CleanupDataArea</Name>
+			<ExtendedDataType>DataAreaId</ExtendedDataType>
+			<HelpText>Cleanup company (leave empty value for all companies).</HelpText>
+			<Label>Cleanup company</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>CleanupTaskSettingsRecIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>CleanupTaskSettingsRecId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>Name</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEV_CleanupTaskSettings</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DEV_CleanupTaskSettings</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>CleanupTaskSettingsRecId</Name>
+					<Field>CleanupTaskSettingsRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>CleanupDataArea</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>DataArea</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>CleanupDataArea</Name>
+					<Field>CleanupDataArea</Field>
+					<RelatedField>id</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

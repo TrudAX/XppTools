@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTask_BatchJobHistory</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+class DEV_CleanupDataTask_BatchJobHistory extends DEV_CleanupDataTaskBase
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cleanup</Name>
+				<Source><![CDATA[
+    protected void cleanup()
+    {
+        this.cleanupByQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    public void estimate()
+    {
+        this.estimateByQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteDataByQuery</Name>
+				<Source><![CDATA[
+    protected void deleteDataByQuery(DEV_CleanupTaskSettingsQuery _settingsQuery)
+    {
+        BatchJobHistory     batchJobHistory;
+        BatchJobUpdateTmp   jobHistoryToDelete;
+
+        QueryRun    localQueryRun   = this.initQueryRun(_settingsQuery);
+        int         idx;
+        boolean     continueDelete;
+
+        if (cleanupTaskSettings.StepDeleteRecords)
+        {
+            while (localQueryRun.next())
+            {
+                batchJobHistory = localQueryRun.get(tableNum(BatchJobHistory));
+
+                jobHistoryToDelete.clear();
+                jobHistoryToDelete.BatchJobId = batchJobHistory.RecId;
+                jobHistoryToDelete.insert();
+
+                idx ++;
+
+                if (idx >= cleanupTaskSettings.StepDeleteRecords)
+                {
+                    this.cleanupBatchJobHistory(jobHistoryToDelete);
+                    continueDelete = this.addDeletedRecords(idx);
+
+                    idx = 0;
+
+                    if (!continueDelete)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (idx)
+            {
+                this.cleanupBatchJobHistory(jobHistoryToDelete);
+                this.addDeletedRecords(idx);
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupBatchJobHistory</Name>
+				<Source><![CDATA[
+    protected void cleanupBatchJobHistory(BatchJobUpdateTmp _jobHistoryToDelete)
+    {
+        #OCCRetryCount
+
+        BatchJobHistory batchJobHistory;
+        BatchHistory batchHistory;
+        BatchConstraintsHistory batchConstraintsHistory;
+
+        batchJobHistory.skipAosValidation(true);
+        batchJobHistory.skipDataMethods(true);
+        batchJobHistory.skipEvents(true);
+        batchJobHistory.skipDatabaseLog(true);
+        batchJobHistory.skipDeleteActions(true);
+
+        batchHistory.skipAosValidation(true);
+        batchHistory.skipDataMethods(true);
+        batchHistory.skipEvents(true);
+        batchHistory.skipDatabaseLog(true);
+        batchHistory.skipDeleteActions(true);
+
+        batchConstraintsHistory.skipAosValidation(true);
+        batchConstraintsHistory.skipDataMethods(true);
+        batchConstraintsHistory.skipEvents(true);
+        batchConstraintsHistory.skipDatabaseLog(true);
+        batchConstraintsHistory.skipDeleteActions(true);
+
+        BatchUpdateStatusTmp taskHistoryToDelete;
+        insert_recordset taskHistoryToDelete (BatchId)
+            select RecId from batchHistory
+                exists join _jobHistoryToDelete
+                    where _jobHistoryToDelete.BatchJobId == batchHistory.BatchJobHistoryId;
+        
+        try
+        {
+            ttsbegin;
+            delete_from batchConstraintsHistory
+                exists join taskHistoryToDelete
+                    where taskHistoryToDelete.BatchId == batchConstraintsHistory.BatchId;
+
+            delete_from batchHistory
+                exists join taskHistoryToDelete
+                    where taskHistoryToDelete.BatchId == batchHistory.RecId;
+
+            delete_from batchJobHistory
+                exists join _jobHistoryToDelete
+                    where _jobHistoryToDelete.BatchJobId == batchJobHistory.RecId;
+            ttscommit;
+
+            _jobHistoryToDelete.clear();
+            delete_from  _jobHistoryToDelete;
+
+            taskHistoryToDelete.dispose();
+        }
+        #StandardRetryCatchBlock
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getVisibleSettingsFields</Name>
+				<Source><![CDATA[
+    public container getVisibleSettingsFields()
+    {
+        return [fieldNum(DEV_CleanupTaskSettings, StepDeleteRecords)];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTaskName</Name>
+				<Source><![CDATA[
+    public DEV_CleanUpTaskName getTaskName()
+    {
+        ;
+        return 'BatchJobHistory table cleanup';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+    {
+        ;
+        super(_taskSettings);
+        _taskSettings.CleanupDays = 31;
+        _taskSettings.AllowDeleteByQuery = true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateQuery</Name>
+				<Source><![CDATA[
+    protected void updateQuery(Query _query, DEV_CleanupTaskSettingsQuery _settings)
+    {
+        TransDateTime           cleanupdDateTime = _settings.getCleanupDateTime();
+        QueryBuildDataSource    qbds = _query.dataSourceNo(1);
+        QueryBuildRange         qbr;
+
+        qbr = SysQuery::findOrCreateRange(qbds, fieldNum(BatchJobHistory, CreatedDateTime));
+        qbr.value(SysQuery::range(dateNull(), cleanupdDateTime));       
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getQuery</Name>
+				<Source><![CDATA[
+    public Query getQuery()
+    {
+        Query ret = new Query();
+
+        ret.addDataSource(tableNum(BatchJobHistory));
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

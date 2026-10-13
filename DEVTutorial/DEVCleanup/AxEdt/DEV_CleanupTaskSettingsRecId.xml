@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtInt64">
+	<Name>DEV_CleanupTaskSettingsRecId</Name>
+	<HelpText>Cleanup settings header RecId.</HelpText>
+	<Label>Cleanup settings header RecId</Label>
+	<ReferenceTable>DEV_CleanupTaskSettings</ReferenceTable>
+	<ArrayElements />
+	<Relations />
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>RecId</RelatedField>
+			<Table>DEV_CleanupTaskSettings</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+</AxEdt>

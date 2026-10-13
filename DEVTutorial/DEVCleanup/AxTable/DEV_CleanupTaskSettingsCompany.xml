@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxTable xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupTaskSettingsCompany</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+public class DEV_CleanupTaskSettingsCompany extends common
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>find</Name>
+				<Source><![CDATA[
+    public static DEV_CleanupTaskSettingsCompany find( DEV_CleanupTaskSettingsRecId _recId,
+                                                    DataAreaId _cleanupDataArea,
+                                                    boolean _forUpdate = false)
+    {
+        DEV_CleanupTaskSettingsCompany record;
+    
+        record.selectForUpdate(_forUpdate);
+
+        if (_recId)
+        {                
+            select firstonly record
+                where   record.CleanupTaskSettingsRecId == _recId
+                        && record.CleanupDataArea == _cleanupDataArea;
+        }
+    
+        return record;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>insert</Name>
+				<Source><![CDATA[
+    public void insert()
+    {
+        ttsbegin;
+
+        super();
+
+        this.updateParentSettings();
+
+        ttscommit;
+
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>update</Name>
+				<Source><![CDATA[
+    public void update()
+    {
+        DEV_CleanupTaskSettingsCompany     orig = this.orig();
+
+        ttsbegin;
+
+        super();
+
+        if (this.commonFieldUpdated(orig))
+        {
+            this.updateParentSettings();
+        }
+
+        ttscommit;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>commonFieldUpdated</Name>
+				<Source><![CDATA[
+    public boolean commonFieldUpdated(DEV_CleanupTaskSettingsCompany _orig)
+    {
+        boolean         ret;
+
+        if (_orig.CleanupDays != this.CleanupDays
+            || _orig.CleanupDateType != this.CleanupDateType
+            || _orig.CleanupDate != this.CleanupDate)
+        {
+            ret = true;
+        }
+
+        return ret;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateParentSettings</Name>
+				<Source><![CDATA[
+    public void updateParentSettings()
+    {
+        if (!this.CleanupDataArea)
+        {
+            DEV_CleanupTaskSettings settings = this.cleanupTaskSettings(true);
+
+            if (settings)
+            {
+                settings.CleanupDays = this.CleanupDays;
+                settings.CleanupDateType = this.CleanupDateType;
+                settings.CleanupDate = this.CleanupDate;
+                settings.update();
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupTaskSettings</Name>
+				<Source><![CDATA[
+    public DEV_CleanupTaskSettings cleanupTaskSettings(boolean _forupdate = false)
+    {        
+        DEV_CleanupTaskSettings     record;
+
+        record.selectForUpdate(_forupdate);
+
+        if (this.CleanupTaskSettingsRecId)
+        {
+            select firstonly record
+                where   record.RecId == this.CleanupTaskSettingsRecId;
+        }
+
+        return record;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+	<Label>Cleanup settings per company</Label>
+	<SubscriberAccessLevel>
+		<Read>Allow</Read>
+	</SubscriberAccessLevel>
+	<TitleField1>CleanupDataArea</TitleField1>
+	<TitleField2>CleanupDays</TitleField2>
+	<CacheLookup>NotInTTS</CacheLookup>
+	<ClusteredIndex>CleanupTaskSettingsRecIdIdx</ClusteredIndex>
+	<CreatedBy>Yes</CreatedBy>
+	<CreatedDateTime>Yes</CreatedDateTime>
+	<ModifiedBy>Yes</ModifiedBy>
+	<ModifiedDateTime>Yes</ModifiedDateTime>
+	<ReplacementKey>CleanupTaskSettingsRecIdIdx</ReplacementKey>
+	<SaveDataPerCompany>No</SaveDataPerCompany>
+	<DeleteActions />
+	<FieldGroups>
+		<AxTableFieldGroup>
+			<Name>AutoReport</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CleanupTaskSettingsRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDataArea</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDays</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoLookup</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoIdentification</Name>
+			<AutoPopulate>Yes</AutoPopulate>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CleanupTaskSettingsRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDataArea</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoSummary</Name>
+			<Fields />
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>AutoBrowse</Name>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CleanupTaskSettingsRecId</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDataArea</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDateType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDays</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDate</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+		<AxTableFieldGroup>
+			<Name>Overview</Name>
+			<Label>Overview</Label>
+			<Fields>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDataArea</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDateType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDays</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>CleanupDate</DataField>
+				</AxTableFieldGroupField>
+			</Fields>
+		</AxTableFieldGroup>
+	</FieldGroups>
+	<Fields>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt64">
+			<Name>CleanupTaskSettingsRecId</Name>
+			<ExtendedDataType>DEV_CleanupTaskSettingsRecId</ExtendedDataType>
+			<HelpText>Cleanup settings Record Id.</HelpText>
+			<Label>Cleanup settings Record Id</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldString">
+			<Name>CleanupDataArea</Name>
+			<ExtendedDataType>DataAreaId</ExtendedDataType>
+			<HelpText>Cleanup company (leave empty value for all companies).</HelpText>
+			<Label>Cleanup company</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
+			<Name>CleanupDays</Name>
+			<ExtendedDataType>Days</ExtendedDataType>
+			<HelpText>Number of days from the current date to keep the data.</HelpText>
+			<Label>Cleanup days</Label>
+			<Mandatory>Yes</Mandatory>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>CleanupDateType</Name>
+			<EnumType>DEV_CleanupDateType</EnumType>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldDate">
+			<Name>CleanupDate</Name>
+			<ExtendedDataType>TransDate</ExtendedDataType>
+			<HelpText>Data</HelpText>
+			<Label>Cleanup Date</Label>
+		</AxTableField>
+	</Fields>
+	<FullTextIndexes />
+	<Indexes>
+		<AxTableIndex>
+			<Name>CleanupTaskSettingsRecIdIdx</Name>
+			<AlternateKey>Yes</AlternateKey>
+			<Fields>
+				<AxTableIndexField>
+					<DataField>CleanupTaskSettingsRecId</DataField>
+				</AxTableIndexField>
+				<AxTableIndexField>
+					<DataField>CleanupDataArea</DataField>
+				</AxTableIndexField>
+			</Fields>
+		</AxTableIndex>
+	</Indexes>
+	<Mappings />
+	<Relations>
+		<AxTableRelation xmlns=""
+			i:type="AxTableRelationForeignKey">
+			<Name>DEV_CleanupTaskSettings</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<OnDelete>Cascade</OnDelete>
+			<RelatedTable>DEV_CleanupTaskSettings</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>CleanupTaskSettingsRecId</Name>
+					<Field>CleanupTaskSettingsRecId</Field>
+					<RelatedField>RecId</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+			<Index>RecId</Index>
+		</AxTableRelation>
+		<AxTableRelation>
+			<Name>CleanupDataArea</Name>
+			<Cardinality>ZeroMore</Cardinality>
+			<RelatedTable>DataArea</RelatedTable>
+			<RelatedTableCardinality>ZeroOne</RelatedTableCardinality>
+			<RelationshipType>Association</RelationshipType>
+			<Constraints>
+				<AxTableRelationConstraint xmlns=""
+					i:type="AxTableRelationConstraintField">
+					<Name>CleanupDataArea</Name>
+					<Field>CleanupDataArea</Field>
+					<RelatedField>id</RelatedField>
+				</AxTableRelationConstraint>
+			</Constraints>
+		</AxTableRelation>
+	</Relations>
+	<StateMachines />
+</AxTable>

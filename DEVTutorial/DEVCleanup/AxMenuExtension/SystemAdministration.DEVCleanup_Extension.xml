@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxMenuExtension xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V1">
+	<Name>SystemAdministration.DEVCleanup_Extension</Name>
+	<Customizations />
+	<Elements>
+		<AxMenuExtensionElement xmlns="">
+			<Parent>Periodic</Parent>
+			<PositionType>AfterItem</PositionType>
+			<PreviousSibling>EmailProcessing</PreviousSibling>
+			<MenuElement xmlns=""
+				i:type="AxMenuElementSubMenu">
+				<Name>DEV_DataCleanup</Name>
+				<Label>Data cleanup</Label>
+				<Elements>
+					<AxMenuElement xmlns=""
+						i:type="AxMenuElementMenuItem">
+						<Name>DEV_CleanupTaskSettings</Name>
+						<MenuItemName>DEV_CleanupTaskSettings</MenuItemName>
+					</AxMenuElement>
+					<AxMenuElement xmlns=""
+						i:type="AxMenuElementMenuItem">
+						<Name>DEV_CleanupDataTaskProcessor</Name>
+						<MenuItemName>DEV_CleanupDataTaskProcessor</MenuItemName>
+						<MenuItemType>Action</MenuItemType>
+					</AxMenuElement>
+				</Elements>
+			</MenuElement>
+		</AxMenuExtensionElement>
+	</Elements>
+	<MenuElementModifications />
+	<PropertyModifications />
+</AxMenuExtension>

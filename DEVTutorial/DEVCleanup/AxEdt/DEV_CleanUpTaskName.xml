@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEdt xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns=""
+	i:type="AxEdtString">
+	<Name>DEV_CleanUpTaskName</Name>
+	<Extends>Name</Extends>
+	<HelpText>CleanUp Task Name</HelpText>
+	<Label>CleanUp Task</Label>
+	<ReferenceTable>DEV_CleanupTaskSettings</ReferenceTable>
+	<ArrayElements />
+	<Relations>
+		<AxEdtRelation>
+			<RelatedField>CleanupTaskName</RelatedField>
+			<Table>DEV_CleanupTaskSettings</Table>
+		</AxEdtRelation>
+	</Relations>
+	<TableReferences>
+		<AxEdtTableReference>
+			<RelatedField>CleanupTaskName</RelatedField>
+			<Table>DEV_CleanupTaskSettings</Table>
+		</AxEdtTableReference>
+	</TableReferences>
+	<StringSize>60</StringSize>
+</AxEdt>

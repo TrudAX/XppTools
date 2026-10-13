@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDateType</Name>
+	<Help>Cleanup date type</Help>
+	<Label>Cleanup type</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Periodic</Name>
+			<Label>Periodic</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>ToDate</Name>
+			<Label>To date</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

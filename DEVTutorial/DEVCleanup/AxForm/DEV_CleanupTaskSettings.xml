@@ -1,0 +1,1369 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEV_CleanupTaskSettings</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+[Form]
+public class DEV_CleanupTaskSettings extends FormRun
+{
+    container   initialNotVisibleFields;
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        super();
+    
+        DEV_CleanupDataTaskProcessor::initTasksSettings();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fieldsEnabled</Name>
+				<Source><![CDATA[
+    public void fieldsEnabled()
+    {
+        DEV_CleanupDataTaskBase     cleanupTask   = DEV_CleanupTaskSettings.cleanupTask();
+        container                   visibleFields = cleanupTask ? cleanupTask.getVisibleSettingsFields() : conNull();
+        FormDataObject              fdo;
+        int                         i;
+
+        // the fields hidden by default are shown only for the tasks that use them
+        for (i = 1; i <= conLen(initialNotVisibleFields); i++)
+        {
+            fdo = DEV_CleanupTaskSettings_ds.object(conPeek(initialNotVisibleFields, i));
+            if (fdo)
+            {
+                fdo.visible(false);
+            }
+        }
+
+        for (i = 1; i <= conLen(visibleFields); i++)
+        {
+            fdo = DEV_CleanupTaskSettings_ds.object(conPeek(visibleFields, i));
+            if (fdo)
+            {
+                fdo.visible(true);
+            }
+        }
+
+        DEV_CleanupTaskSettings_ds.object(fieldNum(DEV_CleanupTaskSettings, PerCompanySetup)).allowEdit(DEV_CleanupTaskSettings.AllowPerCompanySetup);
+        DEV_CleanupTaskSettings_ds.object(fieldNum(DEV_CleanupTaskSettings, DeleteByQuery)).allowEdit(DEV_CleanupTaskSettings.AllowDeleteByQuery);
+        DEV_CleanupTaskSettingsQuery_ds.object(fieldNum(DEV_CleanupTaskSettingsQuery, CleanupDataArea)).visible(DEV_CleanupTaskSettings.AllowPerCompanySetup);
+        
+        TabPageQuery.visible(DEV_CleanupTaskSettings.AllowDeleteByQuery);
+        TabPageCompany.visible(DEV_CleanupTaskSettings.AllowPerCompanySetup && !DEV_CleanupTaskSettings.AllowDeleteByQuery);
+        DisplaySQLButton.visible(DEV_CleanupTaskSettings.AllowSQLDelete);
+        SQLSettings.visible(DEV_CleanupTaskSettings.AllowSQLDelete);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>dsGetNotVisibleFields</Name>
+				<Source><![CDATA[
+    private container dsGetNotVisibleFields(FormDataSource _formDataSource)
+    {
+        DictTable       dictTable = new DictTable(_formDataSource.table());
+        DictField       dictField;
+        FormDataObject  fdo;
+        container       res;
+        int             i, j;
+
+        for (i = 1; i <= dictTable.fieldCnt(); i++)
+        {
+            dictField = new DictField(dictTable.id(), dictTable.fieldCnt2Id(i));
+
+            if (!dictField.isSystem() && dictField.allowEdit())
+            {
+                for (j = 1; j <= dictField.arraySize(); j++)
+                {
+                    fdo = _formDataSource.object(fieldId2ext(dictField.id(), j));
+
+                    if (fdo && !fdo.visible())
+                    {
+                        res += fieldId2ext(dictField.id(), j);
+                    }
+                }
+            }
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="">
+			<DataSource>
+				<Name>DEV_CleanupTaskSettings</Name>
+				<Methods>
+					<Method>
+						<Name>init</Name>
+						<Source><![CDATA[
+        public void init()
+        {
+            super();
+
+            initialNotVisibleFields = element.dsGetNotVisibleFields(DEV_CleanupTaskSettings_ds);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>active</Name>
+						<Source><![CDATA[
+        public int active()
+        {
+            int ret;
+        
+            ret = super();
+
+            element.fieldsEnabled();
+        
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields>
+					<Field>
+						<DataField>AllowDeleteByQuery</DataField>
+						<Methods>
+							<Method>
+								<Name>modified</Name>
+								<Source><![CDATA[
+            public void modified()
+            {
+                super();
+
+                DEV_CleanupTaskSettings_ds.write();
+                DEV_CleanupTaskSettings_ds.active();
+            }
+
+]]></Source>
+							</Method>
+						</Methods>
+					</Field>
+				</Fields>
+			</DataSource>
+			<DataSource>
+				<Name>DEV_CleanupTaskSettingsCompany</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            super();
+
+            DEV_CleanupTaskSettingsCompany.CleanupDateType = DEV_CleanupTaskSettings.CleanupDateType;
+            DEV_CleanupTaskSettingsCompany.CleanupDays = DEV_CleanupTaskSettings.CleanupDays;
+            DEV_CleanupTaskSettingsCompany.CleanupDate = DEV_CleanupTaskSettings.CleanupDate;
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        public void write()
+        {
+            super();
+
+            DEV_CleanupTaskSettings_DS.reread();
+            DEV_CleanupTaskSettings_DS.refresh();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>delete</Name>
+						<Source><![CDATA[
+        public void delete()
+        {
+            super();
+
+            DEV_CleanupTaskSettings_DS.reread();
+            DEV_CleanupTaskSettings_DS.refresh();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+			<DataSource>
+				<Name>DEV_CleanupTaskSettingsQuery</Name>
+				<Methods>
+					<Method>
+						<Name>initValue</Name>
+						<Source><![CDATA[
+        public void initValue()
+        {
+            super();
+    
+            DEV_CleanupTaskSettingsQuery.CleanupDataArea = curExt();
+            DEV_CleanupTaskSettingsQuery.initFromCleanupTaskSettings(DEV_CleanupTaskSettings);
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>delete</Name>
+						<Source><![CDATA[
+        public void delete()
+        {
+            super();
+        
+            DEV_CleanupTaskSettings_DS.reread();
+            DEV_CleanupTaskSettings_DS.refresh();
+        }
+
+]]></Source>
+					</Method>
+					<Method>
+						<Name>write</Name>
+						<Source><![CDATA[
+        public void write()
+        {
+            super();
+
+            DEV_CleanupTaskSettings_DS.reread();
+            DEV_CleanupTaskSettings_DS.refresh();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+				<Fields />
+			</DataSource>
+		</DataSources>
+		<DataControls xmlns="">
+			<Control>
+				<Name>EstimateButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            DEV_CleanupDataTaskProcessor::runEstimate(DEV_CleanupTaskSettings);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>DisplaySQLButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            DEV_CleanupDataTaskProcessor::runDisplaySQL(DEV_CleanupTaskSettings);
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BatchJob</Name>
+				<Type>MenuFunctionButton</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        void clicked()
+        {
+            // To remove dynalink
+            this.menufunction().run(new Args());
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>QuerySetDefaultButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            DEV_CleanupTaskSettingsQuery.querySetDefault();
+
+            DEV_CleanupTaskSettingsQuery_ds.reread();
+            DEV_CleanupTaskSettingsQuery_ds.refresh();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>QueryChangeButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            DataAreaId dataAreaId = DEV_CleanupTaskSettingsQuery.CleanupDataArea ? DEV_CleanupTaskSettingsQuery.CleanupDataArea
+                                     : curExt();
+
+            changecompany(dataAreaId)
+            {
+                DEV_CleanupTaskSettingsQuery.queryChangeValue();
+            }
+
+            DEV_CleanupTaskSettingsQuery_ds.reread();
+            DEV_CleanupTaskSettingsQuery_ds.refresh();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>DEV_CleanupTaskSettings</Name>
+			<Table>DEV_CleanupTaskSettings</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>AllowDeleteByQuery</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AllowPerCompanySetup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>AllowSQLDelete</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ClassName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupDate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupDateType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupDays</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupTaskName</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>createdBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>createdDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>DeleteByQuery</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Enabled</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GroupId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LastBeginTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LastEndTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LastSelectRows</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>LastUpdatedRecords</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>MaxRunTimeHours</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>modifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>PerCompanySetup</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ProgressUpdateRecords</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StepDeleteRecords</DataField>
+					<Visible>No</Visible>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StepLoopMaxCount</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StepSelectRecords</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>DEV_CleanupTaskSettingsCompany</Name>
+			<Table>DEV_CleanupTaskSettingsCompany</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CleanupDataArea</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupDate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupDateType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupDays</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupTaskSettingsRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>DEV_CleanupTaskSettings</JoinSource>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>DEV_CleanupTaskSettingsQuery</Name>
+			<Table>DEV_CleanupTaskSettingsQuery</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>CleanupDataArea</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupDate</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupDateType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupDays</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CleanupTaskSettingsRecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>CreatedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedBy</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ModifiedDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Name</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Partition</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>QueryPacked</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<JoinSource>DEV_CleanupTaskSettings</JoinSource>
+			<InsertIfEmpty>No</InsertIfEmpty>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">Cleanup task settings</Caption>
+		<DataSource xmlns="">DEV_CleanupTaskSettings</DataSource>
+		<HeightMode xmlns="">Column</HeightMode>
+		<Pattern xmlns="">Task</Pattern>
+		<PatternVersion xmlns="">1.2</PatternVersion>
+		<SetCompany xmlns="">No</SetCompany>
+		<TitleDataSource xmlns="">DEV_CleanupTaskSettings</TitleDataSource>
+		<UseCaptionFromMenuItem xmlns="">Yes</UseCaptionFromMenuItem>
+		<WidthMode xmlns="">Column</WidthMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane_ButtonGroup</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ButtonGroup</Name>
+						<ElementPosition>1431655764</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>Auto</HeightMode>
+						<Type>ButtonGroup</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>Auto</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>EstimateButton</Name>
+								<ElementPosition>858993458</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>Estimate number of records</HelpText>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Estimate</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>DisplaySQLButton</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<ElementPosition>1288490187</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<HelpText>Display task SQL</HelpText>
+								<Type>Button</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<NeedsRecord>Yes</NeedsRecord>
+								<Text>Display SQL</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEV_CleanupDataTask</Name>
+								<ElementPosition>1717986916</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<HeightMode>Auto</HeightMode>
+								<Type>MenuFunctionButton</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<WidthMode>Auto</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>DEV_CleanupDataTaskProcessor</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+								<Text>Execute selected</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>BatchJob</Name>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<MenuItemName>BatchJob</MenuItemName>
+							</AxFormControl>
+						</Controls>
+						<ArrangeMethod>Vertical</ArrangeMethod>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>Tab</Name>
+				<AlignControl>No</AlignControl>
+				<ElementPosition>715827882</ElementPosition>
+				<FilterExpression>%1</FilterExpression>
+				<Type>Tab</Type>
+				<VerticalSpacing>-1</VerticalSpacing>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageOverview</Name>
+						<ElementPosition>1073741822</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>Grid</Name>
+								<ElementPosition>1431655764</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Grid</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormGroupControl">
+										<Name>Overview</Name>
+										<ElementPosition>1431655764</ElementPosition>
+										<FilterExpression>%1</FilterExpression>
+										<HeightMode>Auto</HeightMode>
+										<Type>Group</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<WidthMode>Auto</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Overview_Enabled</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>CheckBox</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>Enabled</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview_CleanupTaskName</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>String</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CleanupTaskName</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormStringControl">
+												<Name>Overview_GroupId</Name>
+												<Type>String</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>GroupId</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Overview_DeleteByQuery</Name>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>DeleteByQuery</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCheckBoxControl">
+												<Name>Overview_PerCompanySetup</Name>
+												<Type>CheckBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>PerCompanySetup</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormComboBoxControl">
+												<Name>Overview_CleanupDateType</Name>
+												<Type>ComboBox</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CleanupDateType</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+												<Items />
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormIntegerControl">
+												<Name>Overview_CleanupDays</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Integer</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CleanupDays</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormDateControl">
+												<Name>Overview_CleanupDate</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Date</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>CleanupDate</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormDateTimeControl">
+												<Name>Overview_LastBeginTime</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>DateTime</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>LastBeginTime</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormDateTimeControl">
+												<Name>Overview_LastEndTime</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>DateTime</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>LastEndTime</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormRealControl">
+												<Name>Overview_M_durationMin</Name>
+												<AllowEdit>No</AllowEdit>
+												<ElementPosition>1717986912</ElementPosition>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<HelpText>Last execution duration(Min)</HelpText>
+												<Type>Real</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataMethod>durationMin</DataMethod>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+												<Label>Last duration(Min)</Label>
+												<NoOfDecimals>-1</NoOfDecimals>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormIntegerControl">
+												<Name>Overview_LastUpdatedRecords</Name>
+												<FilterExpression>%1</FilterExpression>
+												<HeightMode>Auto</HeightMode>
+												<Type>Integer</Type>
+												<VerticalSpacing>-1</VerticalSpacing>
+												<WidthMode>Auto</WidthMode>
+												<FormControlExtension
+													i:nil="true" />
+												<DataField>LastUpdatedRecords</DataField>
+												<DataSource>DEV_CleanupTaskSettings</DataSource>
+											</AxFormControl>
+										</Controls>
+										<BackgroundColor>WindowBackground</BackgroundColor>
+										<DataGroup>Overview</DataGroup>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>DEV_CleanupTaskSettings</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FooterGroup</Name>
+								<Pattern>FillText</Pattern>
+								<PatternVersion>UX7 1.0</PatternVersion>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>Overview_perCompanySettingsCopy1</Name>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>String</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>perCompanySettings</DataMethod>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Caption>@SYS9039</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageGenral</Name>
+						<ElementPosition>1610612733</ElementPosition>
+						<FilterExpression>%1</FilterExpression>
+						<HeightMode>SizeToAvailable</HeightMode>
+						<Pattern>FieldsFieldGroups</Pattern>
+						<PatternVersion>1.1</PatternVersion>
+						<Type>TabPage</Type>
+						<VerticalSpacing>-1</VerticalSpacing>
+						<WidthMode>SizeToAvailable</WidthMode>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>StatusHistory</Name>
+								<ElementPosition>1073741822</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateTimeControl">
+										<Name>StatusHistory_LastBeginTime</Name>
+										<Type>DateTime</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>LastBeginTime</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateTimeControl">
+										<Name>StatusHistory_LastEndTime</Name>
+										<Type>DateTime</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>LastEndTime</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormRealControl">
+										<Name>StatusHistory_durationMin</Name>
+										<HelpText>Last execution duration(Min)</HelpText>
+										<Type>Real</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>durationMin</DataMethod>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+										<Label>Last duration(Min)</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>StatusHistory_LastUpdatedRecords</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>LastUpdatedRecords</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>StatusHistory</DataGroup>
+								<DataSource>DEV_CleanupTaskSettings</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>AdvancedSettings</Name>
+								<ElementPosition>1610612733</ElementPosition>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>AdvancedSettings_StepDeleteRecords</Name>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Integer</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>StepDeleteRecords</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>AdvancedSettings_ProgressUpdateRecords</Name>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Integer</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ProgressUpdateRecords</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormRealControl">
+										<Name>AdvancedSettings_MaxRunTimeHours</Name>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Real</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>MaxRunTimeHours</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>AdvancedSettings_AllowPerCompanySetup</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>AllowPerCompanySetup</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>AdvancedSettings_AllowDeleteByQuery</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>AllowDeleteByQuery</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>AdvancedSettings</DataGroup>
+								<DataSource>DEV_CleanupTaskSettings</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>SQLSettings</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<FilterExpression>%1</FilterExpression>
+								<Type>Group</Type>
+								<VerticalSpacing>-1</VerticalSpacing>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>SQLSettings_StepSelectRecords</Name>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Integer</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>StepSelectRecords</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>SQLSettings_StepLoopMaxCount</Name>
+										<FilterExpression>%1</FilterExpression>
+										<Type>Integer</Type>
+										<VerticalSpacing>-1</VerticalSpacing>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>StepLoopMaxCount</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormCheckBoxControl">
+										<Name>SQLSettings_AllowSQLDelete</Name>
+										<Type>CheckBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>AllowSQLDelete</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>SQLSettings</DataGroup>
+								<DataSource>DEV_CleanupTaskSettings</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>ClassGroup</Name>
+								<Type>Group</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ClassGroup_ClassName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>ClassName</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>ClassGroup_CleanupTaskName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CleanupTaskName</DataField>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+									</AxFormControl>
+								</Controls>
+								<Breakable>No</Breakable>
+								<DataGroup>ClassGroup</DataGroup>
+								<DataSource>DEV_CleanupTaskSettings</DataSource>
+							</AxFormControl>
+						</Controls>
+						<ColumnsMode>Fill</ColumnsMode>
+						<Caption>@SYS2952</Caption>
+						<Scrollbars>Auto</Scrollbars>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageCompany</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>ActionPaneCompany</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>ActionPaneLinesFormButtonGroup</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>AddLineCommanButton</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>New</Command>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>DeleteLineCommandButton</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+											</AxFormControl>
+										</Controls>
+										<DataSource>DEV_CleanupTaskSettingsCompany</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>DEV_CleanupTaskSettingsCompany</DataSource>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>GridCompany</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>GridLines_CleanupDataArea</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CleanupDataArea</DataField>
+										<DataSource>DEV_CleanupTaskSettingsCompany</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>GridLines_CleanupDateType</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CleanupDateType</DataField>
+										<DataSource>DEV_CleanupTaskSettingsCompany</DataSource>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>GridLines_CleanupDays</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CleanupDays</DataField>
+										<DataSource>DEV_CleanupTaskSettingsCompany</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateControl">
+										<Name>GridLines_CleanupDate</Name>
+										<Type>Date</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CleanupDate</DataField>
+										<DataSource>DEV_CleanupTaskSettingsCompany</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Overview</DataGroup>
+								<DataSource>DEV_CleanupTaskSettingsCompany</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FooterGroupCompany</Name>
+								<Pattern>FillText</Pattern>
+								<PatternVersion>UX7 1.0</PatternVersion>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>perCompanySettings</Name>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>String</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>perCompanySettings</DataMethod>
+										<DataSource>DEV_CleanupTaskSettings</DataSource>
+										<Label>Query text</Label>
+										<MultiLine>Yes</MultiLine>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Caption>Per company settings</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TabPageQuery</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<Pattern>ToolbarList</Pattern>
+						<PatternVersion>1.2</PatternVersion>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormActionPaneControl">
+								<Name>ActionPaneQuery</Name>
+								<Type>ActionPane</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>ActionPaneQueryFormButtonGroup</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>AddLineCommanButtonQuery</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>New</Command>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormCommandButtonControl">
+												<Name>DeleteLineCommandButtonQuery</Name>
+												<Type>CommandButton</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<Command>DeleteRecord</Command>
+											</AxFormControl>
+										</Controls>
+										<DataSource>DEV_CleanupTaskSettingsQuery</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormButtonGroupControl">
+										<Name>FormButtonGroupQuery</Name>
+										<Type>ButtonGroup</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<Controls>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>QuerySetDefaultButton</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<NeedsRecord>Yes</NeedsRecord>
+												<Text>Set default</Text>
+											</AxFormControl>
+											<AxFormControl xmlns=""
+												i:type="AxFormButtonControl">
+												<Name>QueryChangeButton</Name>
+												<Type>Button</Type>
+												<FormControlExtension
+													i:nil="true" />
+												<NeedsRecord>Yes</NeedsRecord>
+												<Text>Change</Text>
+											</AxFormControl>
+										</Controls>
+									</AxFormControl>
+								</Controls>
+								<DataSource>DEV_CleanupTaskSettingsQuery</DataSource>
+								<Style>Strip</Style>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>GridQuery</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>GridQuery_Name</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Name</DataField>
+										<DataSource>DEV_CleanupTaskSettingsQuery</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>GridQuery_CleanupDateType</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CleanupDateType</DataField>
+										<DataSource>DEV_CleanupTaskSettingsQuery</DataSource>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>GridQuery_CleanupDays</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CleanupDays</DataField>
+										<DataSource>DEV_CleanupTaskSettingsQuery</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateControl">
+										<Name>GridQuery_CleanupDate</Name>
+										<Type>Date</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CleanupDate</DataField>
+										<DataSource>DEV_CleanupTaskSettingsQuery</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>GridQuery_CleanupDataArea</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>CleanupDataArea</DataField>
+										<DataSource>DEV_CleanupTaskSettingsQuery</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataGroup>Overview</DataGroup>
+								<DataSource>DEV_CleanupTaskSettingsQuery</DataSource>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormGroupControl">
+								<Name>FooterGroupQuery</Name>
+								<Pattern>FillText</Pattern>
+								<PatternVersion>UX7 1.0</PatternVersion>
+								<Type>Group</Type>
+								<WidthMode>SizeToAvailable</WidthMode>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>getPackedQueryText</Name>
+										<HeightMode>SizeToAvailable</HeightMode>
+										<Type>String</Type>
+										<WidthMode>SizeToAvailable</WidthMode>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>getPackedQueryText</DataMethod>
+										<DataSource>DEV_CleanupTaskSettingsQuery</DataSource>
+										<Label>Query text</Label>
+										<MultiLine>Yes</MultiLine>
+									</AxFormControl>
+								</Controls>
+							</AxFormControl>
+						</Controls>
+						<Caption>Per query settings</Caption>
+					</AxFormControl>
+				</Controls>
+				<AlignChild>No</AlignChild>
+				<ArrangeMethod>Vertical</ArrangeMethod>
+				<DataSource>DEV_CleanupTaskSettings</DataSource>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>

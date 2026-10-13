@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataSQLHelper</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Direct SQL delete for a cleanup task (AllowSQLDelete = Yes).
+/// </summary>
+/// <remarks>
+/// runCleanup() repeats steps until no records are left or StepLoopMaxCount is reached.
+/// Each step selects up to StepSelectRecords records into #tmpSelectBuffer and deletes them
+/// in parts of StepDeleteRecords records; #tmpDeleteBuffer holds the records of one part.
+///
+/// Example of a task:
+/// <code>
+/// public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+/// {
+///     super(_taskSettings);
+///     _taskSettings.AllowSQLDelete = NoYes::Yes;
+/// }
+///
+/// public container getVisibleSettingsFields()
+/// {
+///     return [fieldNum(DEV_CleanupTaskSettings, StepDeleteRecords)];
+/// }
+///
+/// protected void cleanup()
+/// {
+///     DEV_CleanupDataSQLHelper::construct(this).runCleanup(this.selectSQL(), 'RECID', this.deleteSQL());
+/// }
+///
+/// public void estimate()
+/// {
+///     DEV_CleanupDataSQLHelper::construct(this).estimate(this.selectSQL());
+/// }
+///
+/// public void displaySQL()
+/// {
+///     DEV_CleanupDataSQLHelper sqlHelper = DEV_CleanupDataSQLHelper::construct(this);
+///
+///     sqlHelper.parmDisplayOnly(true);
+///     sqlHelper.runCleanup(this.selectSQL(), 'RECID', this.deleteSQL());
+/// }
+///
+/// // FROM and WHERE of the records to delete
+/// private str selectSQL()
+/// {
+///     return ' FROM MYLOGTABLE WHERE ' + DEV_CleanupDataSQLHelper::construct(this).getDateCondition('CREATEDDATETIME');
+/// }
+///
+/// // deletes the records of one part
+/// private str deleteSQL()
+/// {
+///     return '    DELETE FROM MYLOGTABLE WHERE RECID IN (SELECT RECID FROM #tmpDeleteBuffer); \n';
+/// }
+/// </code>
+/// </remarks>
+class DEV_CleanupDataSQLHelper
+{
+    DEV_CleanupDataTaskBase     task;
+    DEV_CleanupTaskSettings     cleanupTaskSettings;
+    Connection                  connection;
+
+    boolean         displayOnly;
+    boolean         isIgnoreCompany;
+    str             sMainTableFieldList;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new(DEV_CleanupDataTaskBase _task)
+    {
+        task                = _task;
+        cleanupTaskSettings = _task.parmCleanupTaskSettings();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEV_CleanupDataSQLHelper construct(DEV_CleanupDataTaskBase _task)
+    {
+        return new DEV_CleanupDataSQLHelper(_task);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmDisplayOnly</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// When true, the SQL is shown instead of run (Display SQL).
+    /// </summary>
+    public boolean parmDisplayOnly(boolean _displayOnly = displayOnly)
+    {
+        displayOnly = _displayOnly;
+        return displayOnly;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmIsIgnoreCompany</Name>
+				<Source><![CDATA[
+    public NoYesId parmIsIgnoreCompany(NoYesId _isIgnoreCompany = isIgnoreCompany)
+    {
+        isIgnoreCompany = _isIgnoreCompany;
+        return isIgnoreCompany;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>runCleanup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deletes the records in steps. With parmDisplayOnly(true) it only shows the SQL of the first step.
+    /// </summary>
+    /// <param name = "_selectSQL">FROM and WHERE of the records to delete.</param>
+    /// <param name = "_fieldList">Fields copied to the temporary tables; must contain RECID.</param>
+    /// <param name = "_deleteSQL">SQL that deletes the records in #tmpDeleteBuffer.</param>
+    public void runCleanup(str _selectSQL, str _fieldList, str _deleteSQL)
+    {
+        str     sSQL;
+        int     lastRowsProcessed;
+        int     loopNumber;
+        boolean continueDelete;
+
+        sMainTableFieldList = _fieldList;
+
+        do
+        {
+            sSQL  = this.buildSelectBufferSelectInto(_selectSQL);
+            sSQL += this.buildDeleteBufferSelectIntoStart();
+            sSQL += _deleteSQL;
+            sSQL += this.buildDeleteBufferSelectIntoEnd();
+
+            this.executeUpdate(sSQL);
+
+            if (displayOnly)
+            {
+                break;
+            }
+
+            lastRowsProcessed = this.getLastProcessedRecords();
+            continueDelete    = task.addDeletedRecords(lastRowsProcessed);
+
+            loopNumber++;
+        }
+        while (continueDelete && this.checkContinueLoop(lastRowsProcessed, loopNumber));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Shows the count SQL and the number of records it returns.
+    /// </summary>
+    /// <param name = "_selectSQL">FROM and WHERE of the records to delete.</param>
+    public void estimate(str _selectSQL)
+    {
+        str     sSQL = 'SELECT COUNT(*) ' + _selectSQL;
+
+        info(sSQL);
+        info(strFmt("Number of records: %1", this.executeQuery(sSQL)));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getDateCondition</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// SQL condition on a date or date-time column: up to and including the cutoff date of the task, and after 2000-01-01.
+    /// </summary>
+    /// <param name = "_fieldName">The SQL column name.</param>
+    /// <returns>The SQL condition.</returns>
+    public str getDateCondition(str _fieldName)
+    {
+        return strFmt("%1 <= %2 AND %1 > '2000-01-01'", _fieldName, this.getCutoffDateTimeSQL());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getCutoffDateTimeSQL</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Cutoff date and time of the task as a SQL literal, in UTC.
+    /// </summary>
+    /// <returns>The SQL literal.</returns>
+    public str getCutoffDateTimeSQL()
+    {
+        return strFmt("'%1'", DateTimeUtil::toStr(cleanupTaskSettings.getCleanupDateTime()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeQuery</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Runs a SQL query and returns the integer in the first column of the first row.
+    /// </summary>
+    /// <param name = "_sqlStr">The SQL query.</param>
+    /// <returns>The value of the first column; 0 when only displayed.</returns>
+    public int executeQuery(str _sqlStr)
+    {
+        int         res;
+        ResultSet   resultSet;
+        Statement   statement;
+
+        if (displayOnly)
+        {
+            info("SQL query");
+            info(_sqlStr);
+            return 0;
+        }
+
+        statement = this.getConnection().createStatement();
+
+        // assert SQL statement execute permission
+        new SqlStatementExecutePermission(_sqlStr).assert();
+
+        //BP Deviation documented
+        resultSet = statement.executeQueryWithParameters(_sqlStr, SqlParams::create());
+        if (resultSet.next())
+        {
+            res = resultSet.getInt(1);
+        }
+
+        // limit the scope of the assert call
+        CodeAccessPermission::revertAssert();
+
+        statement.close();
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>executeUpdate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Runs a SQL statement that changes data, or only shows it with parmDisplayOnly(true).
+    /// </summary>
+    /// <param name = "_sqlStr">The SQL statement.</param>
+    public void executeUpdate(str _sqlStr)
+    {
+        Statement   statement;
+
+        if (displayOnly)
+        {
+            info("SQL query");
+            info(_sqlStr);
+            return;
+        }
+
+        statement = this.getConnection().createStatement();
+
+        // assert SQL statement execute permission
+        new SqlStatementExecutePermission(_sqlStr).assert();
+
+        //BP Deviation documented
+        statement.executeUpdateWithParameters(_sqlStr, SqlParams::create());
+
+        // limit the scope of the assert call
+        CodeAccessPermission::revertAssert();
+
+        statement.close();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getConnection</Name>
+				<Source><![CDATA[
+    private Connection getConnection()
+    {
+        if (!connection)
+        {
+            connection = new Connection();
+        }
+
+        return connection;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>checkContinueLoop</Name>
+				<Source><![CDATA[
+    private boolean checkContinueLoop(int _recCount, int _loopNumber)
+    {
+        if (cleanupTaskSettings.StepLoopMaxCount > 0
+            && _loopNumber >= cleanupTaskSettings.StepLoopMaxCount)
+        {
+            return false;
+        }
+
+        return _recCount > 0
+               && _recCount == cleanupTaskSettings.StepSelectRecords;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getLastProcessedRecords</Name>
+				<Source><![CDATA[
+    private int getLastProcessedRecords()
+    {
+        // buildSelectBufferSelectInto() saves the selected row count in LastSelectRows
+        return DEV_CleanupTaskSettings::find(cleanupTaskSettings.CleanupTaskName).LastSelectRows;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildBeginDropTmpTables</Name>
+				<Source><![CDATA[
+    protected str buildBeginDropTmpTables()
+    {
+        str             sSQL;
+
+        sSQL =  'IF OBJECT_ID(\'tempdb..#tmpSelectBuffer\') IS NOT NULL DROP TABLE #tmpSelectBuffer; \n ';
+        sSQL += 'IF OBJECT_ID(\'tempdb..#tmpDeleteBuffer\') IS NOT NULL DROP TABLE #tmpDeleteBuffer; \n ';
+
+        return sSQL;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildDeleteBufferSelectIntoEnd</Name>
+				<Source><![CDATA[
+    public str buildDeleteBufferSelectIntoEnd()
+    {
+        str             sSQL;
+
+        sSQL += 'delete from #tmpSelectBuffer from #tmpSelectBuffer as dt inner join #tmpDeleteBuffer as dl on dl.RECID =dt.RECID; \n';
+
+        sSQL += 'END  \n';
+        sSQL += 'DROP TABLE #tmpSelectBuffer;  \n';
+        sSQL += 'DROP TABLE #tmpDeleteBuffer;  \n';
+
+        return sSQL;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildDeleteBufferSelectIntoStart</Name>
+				<Source><![CDATA[
+    public str buildDeleteBufferSelectIntoStart()
+    {
+        str             sSQL;
+
+        sSQL += strFmt('select top 1 %1 into #tmpDeleteBuffer FROM #tmpSelectBuffer; \n', sMainTableFieldList);
+
+        sSQL += 'set @step= 0; \n';
+        sSQL += strFmt('WHILE (@step < %1) BEGIN \n',  int2str(any2int(roundUp(cleanupTaskSettings.StepSelectRecords / cleanupTaskSettings.StepDeleteRecords, 1))));
+
+        sSQL += '    SET @step = @step + 1 \n';
+        sSQL +=        '    TRUNCATE TABLE #tmpDeleteBuffer; \n';
+        sSQL += strFmt('    INSERT INTO #tmpDeleteBuffer(%2) SELECT TOP %1 %2 FROM  #tmpSelectBuffer; \n', cleanupTaskSettings.StepDeleteRecords, sMainTableFieldList);
+        sSQL += '    IF (@@ROWCOUNT = 0) break; \n';
+
+        return sSQL;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildSelectBufferSelectInto</Name>
+				<Source><![CDATA[
+    public str buildSelectBufferSelectInto(str _estimatedWhereSQL)
+    {
+        str             sSQL;
+
+        sSQL = '';
+        sSQL += ' \n declare @lastSelectRows int; \n';
+        sSQL += 'declare @step           int; \n';
+        sSQL += this.buildBeginDropTmpTables();
+        sSQL += strFmt(' select top %1 %2 into #tmpSelectBuffer \n', int2str(cleanupTaskSettings.StepSelectRecords), sMainTableFieldList);
+        sSQL += _estimatedWhereSQL;
+
+        sSQL += '\n SET @lastSelectRows = @@ROWCOUNT; \n';
+        sSQL += strFmt('UPDATE %1 SET %2 = @lastSelectRows WHERE %3=N\'%4\';  \n ',
+               tablestr(DEV_CleanupTaskSettings),
+               fieldstr(DEV_CleanupTaskSettings, LastSelectRows),
+               fieldstr(DEV_CleanupTaskSettings, CleanupTaskName),
+               cleanupTaskSettings.CleanupTaskName);
+
+        sSQL += 'CREATE NONCLUSTERED INDEX [##_RECID] ON #tmpSelectBuffer (RECID ASC); \n';
+
+        return sSQL;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildTmpDeleteCompany</Name>
+				<Source><![CDATA[
+    public str buildTmpDeleteCompany(str _mainTable, str _tmpTable, container _linkedFields, str _additionCondition = '' )
+    {
+        str res;
+
+        res += strFmt('    delete FROM [dbo].%1 ', _mainTable);
+
+        res += this.buildTmpSelectCompany(_mainTable, _tmpTable, _linkedFields, _additionCondition);
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildTmpExistsJoinCompany</Name>
+				<Source><![CDATA[
+    public str buildTmpExistsJoinCompany(str _mainTable, str _tmpTable, container _linkedFields )
+    {
+        str res;
+        int i;
+
+        res += strFmt(' FROM [dbo].%1  AS MainTable \n', _mainTable);
+
+        res += strFmt('    WHERE EXISTS (SELECT \'x\' FROM %1 AS tmpT WHERE  ', _tmpTable);
+        for (i = 1; i <= conlen(_linkedFields) ; i+=2 )
+        {
+            res += strFmt('MainTable.%1 = tmpT.%2 AND ', conpeek(_linkedFields, i), conpeek(_linkedFields, i + 1));
+        }
+        if (! isIgnoreCompany)
+        {
+            res += 'MainTable.DataAreaId = tmpT.DataAreaId AND MainTable.Partition = tmpT.Partition';
+        }
+        else
+        {
+            res += ' 1=1 ';
+        }
+        res += ');  \n';
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildTmpSelectCompany</Name>
+				<Source><![CDATA[
+    protected str buildTmpSelectCompany(str _mainTable, str _tmpTable, container _linkedFields, str _additionCondition = '' )
+    {
+        str res;
+        int i;
+
+        res += strFmt(' FROM [dbo].%1  AS MainTable \n', _mainTable);
+        res += strFmt('    INNER JOIN %1 AS tmpT ON ', _tmpTable);
+        for (i = 1; i <= conlen(_linkedFields); i+=2 )
+        {
+            res += strFmt('MainTable.%1 = tmpT.%2 AND ', conpeek(_linkedFields, i), conpeek(_linkedFields, i + 1));
+        }
+        if (! isIgnoreCompany)
+        {
+            res += 'MainTable.DataAreaId = tmpT.DataAreaId AND MainTable.Partition = tmpT.Partition';
+        }
+        else
+        {
+            res += ' 1=1 ';
+        }
+
+        if (_additionCondition)
+        {
+            res += strFmt(' \n WHERE %1 ', _additionCondition);
+        }
+        res += ' ; \n';
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>tmpDeleteBuffer</Name>
+				<Source><![CDATA[
+    public str tmpDeleteBuffer()
+    {
+        return '#tmpDeleteBuffer';
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

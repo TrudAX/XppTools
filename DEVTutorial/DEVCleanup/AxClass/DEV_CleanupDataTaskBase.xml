@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTaskBase</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Base class for a cleanup task on the Cleanup settings form (DEV_CleanupTaskSettings).
+/// A settings record is created automatically for every non-abstract class that extends this one.
+/// </summary>
+/// <remarks>
+/// Implement:
+///   getTaskName()   Unique task name, the key of the settings record. Do not rename it.
+///   cleanup()       Deletes the data. Called by run(), which logs the start/end time and the deleted count.
+///   estimate()      Shows (info) what cleanup() would delete. Must not change data.
+/// Optional:
+///   initDefaultParameters()  Default days/steps and which options the form allows
+///                            (AllowDeleteByQuery, AllowPerCompanySetup, AllowSQLDelete).
+///   displaySQL()             SQL tasks only: shows the SQL instead of running it.
+///   getVisibleSettingsFields() Settings fields hidden on the form by default that the task uses, e.g. StepDeleteRecords.
+///
+/// How to write cleanup() for each kind of task:
+/// 1. X++ delete       while select the records and call this.deleteRecord(buffer) for each one.
+///                     For company tables use crosscompany and changecompany.
+///                     Example: DEV_CleanupDataTask_SysOutgoingEmailTable, BLU_CleanupDataTask_TMSRouteSegmentContainer
+/// 2. Standard class   In each company call the standard cleanup and pass countRecords() (current company)
+///                     before minus after to addDeletedRecords().
+///                     Example: DEV_CleanupDataTask_InventSumWHS
+/// 3. User query       Set AllowDeleteByQuery = Yes, override getQuery() and updateQuery(), and call
+///                     cleanupByQuery() / estimateByQuery(). Override deleteDataByQuery() only when a record
+///                     needs more than deleteRecord().
+///                     Example: DEV_CleanupDataTask_ReturnSalesOrders, DEV_CleanupDataTask_BatchJobHistory
+/// 4. SQL delete       Set AllowSQLDelete = Yes and use DEV_CleanupDataSQLHelper in cleanup(), estimate()
+///                     and displaySQL(). See DEV_CleanupDataSQLHelper for an example.
+///
+/// Maximum run time (MaxRunTimeHours, 0 - unlimited) is optional for a task: deleteRecord() and addDeletedRecords()
+/// return false when it is reached, and the task can stop its loop then or ignore it.
+/// </remarks>
+abstract class DEV_CleanupDataTaskBase
+{
+    DEV_CleanupTaskSettings         cleanupTaskSettings;
+
+    utcdatetime runStartTime;
+    boolean     maxRunTimeReached;
+    int64       deletedNotLogged;
+    Set         setCompany;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public final void run()
+    {
+        this.logBegin();
+
+        runStartTime = DateTimeUtil::utcNow();
+
+        try
+        {
+            this.cleanup();
+        }
+        catch
+        {
+            // the end time stays empty, so the failed run is visible on the form
+            this.flushDeletedRecords();
+
+            throw error(strFmt("Cleanup task '%1' failed", cleanupTaskSettings.CleanupTaskName));
+        }
+
+        this.logEnd();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanup</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deletes the data. Called by run().
+    /// </summary>
+    protected abstract void cleanup()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Shows what cleanup() would delete. Must not change data.
+    /// </summary>
+    public abstract void estimate()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>displaySQL</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Shows the SQL that cleanup() would run. Only SQL tasks override it.
+    /// </summary>
+    public void displaySQL()
+    {
+        info(strFmt("Task '%1' does not use SQL", cleanupTaskSettings.CleanupTaskName));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTaskName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Unique task name, the key of the settings record. Do not rename it.
+    /// </summary>
+    public abstract DEV_CleanUpTaskName getTaskName()
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the default settings of a new task, and the Allow* options every time the form opens.
+    /// </summary>
+    public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+    {
+        _taskSettings.CleanupDays           = 93;
+        _taskSettings.StepDeleteRecords     = 5000;
+        _taskSettings.StepSelectRecords     = 50000;
+        _taskSettings.ProgressUpdateRecords = 5000;
+        _taskSettings.ClassName             = classId2name(classIdget(this));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getVisibleSettingsFields</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Fields of DEV_CleanupTaskSettings that are hidden on the form by default and used by this task,
+    /// e.g. [fieldNum(DEV_CleanupTaskSettings, StepDeleteRecords)].
+    /// </summary>
+    public container getVisibleSettingsFields()
+    {
+        return conNull();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isMaxRunTimeReached</Name>
+				<Source><![CDATA[
+    private boolean isMaxRunTimeReached()
+    {
+        if (!maxRunTimeReached
+            && runStartTime
+            && cleanupTaskSettings.MaxRunTimeHours > 0
+            && DateTimeUtil::getDifference(DateTimeUtil::utcNow(), runStartTime) >= cleanupTaskSettings.MaxRunTimeHours * 3600)
+        {
+            maxRunTimeReached = true;
+
+            info(strFmt("Maximum run time of %1 hours is reached.", cleanupTaskSettings.MaxRunTimeHours));
+        }
+
+        return maxRunTimeReached;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteRecord</Name>
+				<Source><![CDATA[
+    protected boolean deleteRecord(Common _record)
+    {
+        boolean     shouldContinue;
+
+        _record.skipTTSCheck(true);
+
+        ttsbegin;
+        _record.delete();
+        ttscommit;
+
+        shouldContinue = this.addDeletedRecords(1);
+
+        return shouldContinue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDeletedRecords</Name>
+				<Source><![CDATA[
+    public boolean addDeletedRecords(int64 _recordCount)
+    {
+        boolean     shouldContinue = true;
+
+        deletedNotLogged += _recordCount;
+
+        if (deletedNotLogged >= cleanupTaskSettings.ProgressUpdateRecords)
+        {
+            this.flushDeletedRecords();
+        }
+
+        if (this.isMaxRunTimeReached())
+        {
+            shouldContinue = false;
+        }
+
+        return shouldContinue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>countRecords</Name>
+				<Source><![CDATA[
+    protected int64 countRecords(TableId _tableId)
+    {
+        Common  common = new DictTable(_tableId).makeRecord();
+
+        select count(RecId) from common;
+
+        return common.RecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getValidCompany</Name>
+				<Source><![CDATA[
+    public DataAreaId getValidCompany(DataAreaId _dataAreaId)
+    {
+        if (!setCompany)
+        {
+            setCompany = new Set(Types::String);
+
+            DataArea dataArea;
+
+            while select dataArea
+            {
+                setCompany.add(dataArea.Id);
+            }
+        }
+
+        return setCompany.in(_dataAreaId) ? _dataAreaId : curExt();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getQuery</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Default query of a task with AllowDeleteByQuery = Yes. The form also uses it as the starting query.
+    /// </summary>
+    public Query getQuery()
+    {
+        return null;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>updateQuery</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Adds the cutoff date range to the query before it runs.
+    /// </summary>
+    protected void updateQuery(Query _query, DEV_CleanupTaskSettingsQuery _settingsQuery)
+    {
+        throw error(Error::missingOverload(funcName()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initQueryRun</Name>
+				<Source><![CDATA[
+    protected QueryRun initQueryRun(DEV_CleanupTaskSettingsQuery _settingsQuery)
+    {
+        Query   query = _settingsQuery.getPackedQuery(this);
+
+        this.updateQuery(query, _settingsQuery);
+
+        return new QueryRun(query);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>cleanupByQuery</Name>
+				<Source><![CDATA[
+    protected void cleanupByQuery()
+    {
+        DEV_CleanupTaskSettingsQuery    settingsQuery;
+        DataAreaId                      dataAreaId;
+
+        if (cleanupTaskSettings.DeleteByQuery)
+        {
+            while select settingsQuery
+                where   settingsQuery.CleanupTaskSettingsRecId == cleanupTaskSettings.RecId
+            {
+                dataAreaId = this.getValidCompany(settingsQuery.CleanupDataArea);
+
+                changecompany(dataAreaId)
+                {
+                    this.deleteDataByQuery(settingsQuery);
+                }
+            }
+        }
+        else
+        {
+            settingsQuery.initFromCleanupTaskSettings(cleanupTaskSettings);
+
+            this.deleteDataByQuery(settingsQuery);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimateByQuery</Name>
+				<Source><![CDATA[
+    protected void estimateByQuery()
+    {
+        DEV_CleanupTaskSettingsQuery    settingsQuery;
+        DataAreaId                      dataAreaId;
+
+        info("Company, Query name, RecCount, Query text");
+
+        if (cleanupTaskSettings.DeleteByQuery)
+        {
+            while select settingsQuery
+                where   settingsQuery.CleanupTaskSettingsRecId == cleanupTaskSettings.RecId
+            {
+                dataAreaId = this.getValidCompany(settingsQuery.CleanupDataArea);
+
+                changecompany(dataAreaId)
+                {
+                    this.estimateDataByQuery(settingsQuery);
+                }
+            }
+        }
+        else
+        {
+            settingsQuery.initFromCleanupTaskSettings(cleanupTaskSettings);
+
+            this.estimateDataByQuery(settingsQuery);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimateDataByQuery</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Shows the record count and the query text of the query, in the current company.
+    /// </summary>
+    protected void estimateDataByQuery(DEV_CleanupTaskSettingsQuery _settingsQuery)
+    {
+        QueryRun    queryRun = this.initQueryRun(_settingsQuery);
+
+        info(strFmt("%1, %2, %3, %4", curExt(), _settingsQuery.Name, SysQuery::countTotal(queryRun), queryRun.query().dataSourceNo(1).toString()));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteDataByQuery</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Deletes every record of the first data source of the query, in the current company.
+    /// Override it when a record needs more than deleteRecord(), for example a delete in another company.
+    /// </summary>
+    protected void deleteDataByQuery(DEV_CleanupTaskSettingsQuery _settingsQuery)
+    {
+        QueryRun    queryRun = this.initQueryRun(_settingsQuery);
+        TableId     tableId  = queryRun.query().dataSourceNo(1).table();
+
+        while (queryRun.next())
+        {
+            if (!this.deleteRecord(queryRun.get(tableId)))
+            {
+                break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCleanupTaskSettings</Name>
+				<Source><![CDATA[
+    public DEV_CleanupTaskSettings parmCleanupTaskSettings(DEV_CleanupTaskSettings _cleanupTaskSettings = cleanupTaskSettings)
+    {
+        cleanupTaskSettings = _cleanupTaskSettings;
+        return cleanupTaskSettings;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logBegin</Name>
+				<Source><![CDATA[
+    private void logBegin()
+    {
+        ttsbegin;
+
+        cleanupTaskSettings = DEV_CleanupTaskSettings::find(cleanupTaskSettings.CleanupTaskName, true);
+
+        cleanupTaskSettings.LastBeginTime      = DateTimeUtil::getSystemDateTime();
+        cleanupTaskSettings.LastEndTime        = utcDateTimeNull();
+        cleanupTaskSettings.LastUpdatedRecords = 0;
+        cleanupTaskSettings.update();
+
+        ttscommit;
+
+        deletedNotLogged = 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>logEnd</Name>
+				<Source><![CDATA[
+    private void logEnd()
+    {
+        ttsbegin;
+
+        cleanupTaskSettings = DEV_CleanupTaskSettings::find(cleanupTaskSettings.CleanupTaskName, true);
+
+        cleanupTaskSettings.LastEndTime         = DateTimeUtil::getSystemDateTime();
+        cleanupTaskSettings.LastUpdatedRecords += any2int(deletedNotLogged);
+        cleanupTaskSettings.update();
+
+        ttscommit;
+
+        deletedNotLogged = 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>flushDeletedRecords</Name>
+				<Source><![CDATA[
+    private void flushDeletedRecords()
+    {
+        if (!deletedNotLogged)
+        {
+            return;
+        }
+
+        ttsbegin;
+
+        cleanupTaskSettings = DEV_CleanupTaskSettings::find(cleanupTaskSettings.CleanupTaskName, true);
+
+        cleanupTaskSettings.LastUpdatedRecords += any2int(deletedNotLogged);
+        cleanupTaskSettings.update();
+
+        ttscommit;
+
+        deletedNotLogged = 0;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEV_CleanupDataTask_InventSumLicensePlate</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Deletes closed on-hand records with a license plate for items where the license plate is the lowest
+/// reservation hierarchy level. The standard warehouse on-hand cleanup keeps them when the location has
+/// recent closed records, because it checks reservations above the license plate level.
+/// All other on-hand records are left to the standard cleanup.
+/// With StepDeleteRecords more than 1 the records are deleted in steps of StepDeleteRecords records.
+/// </summary>
+class DEV_CleanupDataTask_InventSumLicensePlate extends DEV_CleanupDataTaskBase
+{
+    #define.MaxSkippedRecords(10)
+
+    int                             skippedRecords;
+
+    // records of one delete step
+    DEV_CleanupTmpSelectCriteria    tmpInventSum;
+    DEV_CleanupTmpSelectCriteria    tmpInventReserve;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>cleanup</Name>
+				<Source><![CDATA[
+    protected void cleanup()
+    {
+        InventSum                           inventSumCompany, inventSum, inventSumInUse;
+        WHSReservationHierarchyItem         hierarchyItem;
+        WHSReservationHierarchyElement      elementLP, elementBelow;
+        TransDateTime                       delDate         = cleanupTaskSettings.getCleanupDateTime();
+        boolean                             isDeleteInSteps = cleanupTaskSettings.StepDeleteRecords > 1;
+        int                                 recordsInStep;
+        boolean                             shouldContinue  = true;
+        RecordInsertList                    tmpInventSumInsertList = new RecordInsertList(tableNum(DEV_CleanupTmpSelectCriteria), true, true, true, false, true, tmpInventSum);
+
+        // reservation hierarchies where the license plate is the lowest level
+        while select ReservationHierarchy from elementLP
+            where elementLP.DimensionFieldId == fieldNum(InventDim, LicensePlateId)
+            notexists join elementBelow
+                where elementBelow.ReservationHierarchy      == elementLP.ReservationHierarchy
+                   && elementBelow.ReservationHierarchyLevel >  elementLP.ReservationHierarchyLevel
+        {
+            inventSumCompany = null;
+            while select crosscompany DataAreaId from inventSumCompany
+                group by DataAreaId
+            {
+                changeCompany(inventSumCompany.DataAreaId)
+                {
+                    recordsInStep = 0;
+
+                    inventSum      = null;
+                    inventSumInUse = null;
+                    while select forceliterals firstfast inventSum
+                        where inventSum.LicensePlateId != ''
+                           && inventSum.Closed == NoYes::Yes
+                           && inventSum.ModifiedDateTime
+                           && inventSum.ModifiedDateTime <= delDate
+                        exists join hierarchyItem
+                            where hierarchyItem.ItemDataAreaId       == inventSum.DataAreaId
+                               && hierarchyItem.ItemId               == inventSum.ItemId
+                               && hierarchyItem.ReservationHierarchy == elementLP.ReservationHierarchy
+                        // skip license plates still in use or used during the cleanup period (any item)
+                        notexists join inventSumInUse
+                            where inventSumInUse.LicensePlateId == inventSum.LicensePlateId
+                               && (inventSumInUse.Closed           == NoYes::No
+                                || inventSumInUse.ModifiedDateTime >  delDate)
+                    {
+                        if (isDeleteInSteps)
+                        {
+                            tmpInventSum.clear();
+                            tmpInventSum.ItemId         = inventSum.ItemId;
+                            tmpInventSum.InventDimId    = inventSum.InventDimId;
+                            tmpInventSum.LicensePlateId = inventSum.LicensePlateId;
+                            tmpInventSumInsertList.add(tmpInventSum);
+
+                            recordsInStep++;
+
+                            if (recordsInStep >= cleanupTaskSettings.StepDeleteRecords)
+                            {
+                                tmpInventSumInsertList.insertDatabase();
+
+                                shouldContinue = this.deleteStep();
+                                recordsInStep  = 0;
+                            }
+                        }
+                        else
+                        {
+                            shouldContinue = this.deleteSingleRecord(inventSum);
+                        }
+
+                        if (!shouldContinue)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (shouldContinue && recordsInStep)
+                    {
+                        tmpInventSumInsertList.insertDatabase();
+
+                        shouldContinue = this.deleteStep();
+                    }
+                }
+
+                if (!shouldContinue)
+                {
+                    break;
+                }
+            }
+
+            if (!shouldContinue)
+            {
+                break;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteStep</Name>
+				<Source><![CDATA[
+    private boolean deleteStep()
+    {
+        InventSum           inventSum;
+        WHSInventReserve    whsInventReserve;
+        boolean             shouldContinue = true;
+
+        // no transaction: warehouse reservations are deleted first, on-hand records that are left are deleted on the next run
+        try
+        {
+            // warehouse reservation records of the items on the license plates
+            insert_recordset tmpInventReserve (ItemId, InventDimId)
+                select ItemId, InventDimId from whsInventReserve
+                    exists join tmpInventSum
+                        where tmpInventSum.ItemId         == whsInventReserve.ItemId
+                           && tmpInventSum.LicensePlateId == whsInventReserve.LicensePlateId;
+
+
+            tmpInventReserve.clear();
+            // a quantity for the item on the license plate means the license plate is still in use
+            select firstonly ItemId, LicensePlateId from whsInventReserve
+                where (whsInventReserve.AvailOrdered     != 0
+                    || whsInventReserve.AvailPhysical    != 0
+                    || whsInventReserve.ReservOrdered    != 0
+                    || whsInventReserve.ReservPhysical   != 0
+                    || whsInventReserve.CWAvailOrdered   != 0
+                    || whsInventReserve.CWAvailPhysical  != 0
+                    || whsInventReserve.CWReservOrdered  != 0
+                    || whsInventReserve.CWReservPhysical != 0)
+                exists join tmpInventReserve
+                    where tmpInventReserve.ItemId      == whsInventReserve.ItemId
+                       && tmpInventReserve.InventDimId == whsInventReserve.InventDimId;
+
+            if (whsInventReserve.RecId)
+            {
+                throw error(strFmt("Item %1, license plate %2: warehouse reservation quantity is not 0, the step is skipped", whsInventReserve.ItemId, whsInventReserve.LicensePlateId));
+            }
+            tmpInventReserve.clear();
+            // WHSInventReserve clustered index: ItemId, InventDimId
+            delete_from whsInventReserve
+                exists join tmpInventReserve
+                    where tmpInventReserve.ItemId      == whsInventReserve.ItemId
+                       && tmpInventReserve.InventDimId == whsInventReserve.InventDimId;
+
+            tmpInventSum.clear();
+            inventSum.skipDatabaseLog(true);
+            inventSum.skipDataMethods(true);
+            inventSum.skipDeleteActions(true);
+            inventSum.skipTTSCheck(true);
+            inventSum.skipEvents(true);
+            // InventSum clustered index: ItemId, InventDimId
+            delete_from inventSum
+                where inventSum.Closed == NoYes::Yes
+                exists join tmpInventSum
+                    where tmpInventSum.ItemId      == inventSum.ItemId
+                       && tmpInventSum.InventDimId == inventSum.InventDimId;
+
+            shouldContinue = this.addDeletedRecords(inventSum.RowCount());
+        }
+        catch (Exception::Error)
+        {
+            this.addSkippedRecord();
+        }
+
+        delete_from tmpInventSum;
+        delete_from tmpInventReserve;
+
+        return shouldContinue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>deleteSingleRecord</Name>
+				<Source><![CDATA[
+    private boolean deleteSingleRecord(InventSum _inventSum)
+    {
+        WHSInventReserve    whsInventReserve;
+        boolean             shouldContinue = true;
+
+        try
+        {
+            ttsbegin;
+
+            while select forupdate whsInventReserve
+                where whsInventReserve.ItemId         == _inventSum.ItemId
+                   && whsInventReserve.LicensePlateId == _inventSum.LicensePlateId
+            {
+                // a quantity for the item on this license plate means the license plate is still in use
+                if (whsInventReserve.AvailOrdered        != 0
+                    || whsInventReserve.AvailPhysical    != 0
+                    || whsInventReserve.ReservOrdered    != 0
+                    || whsInventReserve.ReservPhysical   != 0
+                    || whsInventReserve.CWAvailOrdered   != 0
+                    || whsInventReserve.CWAvailPhysical  != 0
+                    || whsInventReserve.CWReservOrdered  != 0
+                    || whsInventReserve.CWReservPhysical != 0)
+                {
+                    throw error(strFmt("Item %1, license plate %2: warehouse reservation quantity is not 0, skipped", _inventSum.ItemId, _inventSum.LicensePlateId));
+                }
+
+                whsInventReserve.delete();
+            }
+
+            shouldContinue = this.deleteRecord(_inventSum);
+
+            ttscommit;
+        }
+        catch (Exception::Error)
+        {
+            this.addSkippedRecord();
+        }
+
+        return shouldContinue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addSkippedRecord</Name>
+				<Source><![CDATA[
+    private void addSkippedRecord()
+    {
+        skippedRecords++;
+
+        if (skippedRecords > #MaxSkippedRecords)
+        {
+            throw error(strFmt("More than %1 records or steps were skipped, cleanup stopped", #MaxSkippedRecords));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>estimate</Name>
+				<Source><![CDATA[
+    public void estimate()
+    {
+        InventSum                           inventSum, inventSumInUse;
+        WHSReservationHierarchy             hierarchy;
+        WHSReservationHierarchyItem         hierarchyItem;
+        WHSReservationHierarchyElement      elementLP, elementBelow;
+        TransDateTime                       delDate = cleanupTaskSettings.getCleanupDateTime();
+
+        info(strFmt("Closed on-hand records with license plate up to %1", delDate));
+        info("Reservation hierarchy, Company, RecCount");
+
+        while select ReservationHierarchy from elementLP
+            where elementLP.DimensionFieldId == fieldNum(InventDim, LicensePlateId)
+            join Name from hierarchy
+                where hierarchy.RecId == elementLP.ReservationHierarchy
+            notexists join elementBelow
+                where elementBelow.ReservationHierarchy      == elementLP.ReservationHierarchy
+                   && elementBelow.ReservationHierarchyLevel >  elementLP.ReservationHierarchyLevel
+        {
+            inventSum = null;
+            while select crosscompany count(RecId) from inventSum
+                group by DataAreaId
+                where inventSum.LicensePlateId != ''
+                   && inventSum.Closed == NoYes::Yes
+                   && inventSum.ModifiedDateTime
+                   && inventSum.ModifiedDateTime <= delDate
+                exists join hierarchyItem
+                    where hierarchyItem.ItemDataAreaId       == inventSum.DataAreaId
+                       && hierarchyItem.ItemId               == inventSum.ItemId
+                       && hierarchyItem.ReservationHierarchy == elementLP.ReservationHierarchy
+                notexists join inventSumInUse
+                    where inventSumInUse.DataAreaId     == inventSum.DataAreaId
+                       && inventSumInUse.LicensePlateId == inventSum.LicensePlateId
+                       && (inventSumInUse.Closed           == NoYes::No
+                        || inventSumInUse.ModifiedDateTime >  delDate)
+            {
+                info(strFmt("%1, %2, %3", hierarchy.Name, inventSum.DataAreaId, inventSum.RecId));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getTaskName</Name>
+				<Source><![CDATA[
+    public DEV_CleanUpTaskName getTaskName()
+    {
+        return "On-hand entries cleanup by license plate";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getVisibleSettingsFields</Name>
+				<Source><![CDATA[
+    public container getVisibleSettingsFields()
+    {
+        return [fieldNum(DEV_CleanupTaskSettings, StepDeleteRecords)];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initDefaultParameters</Name>
+				<Source><![CDATA[
+    public void initDefaultParameters(DEV_CleanupTaskSettings _taskSettings)
+    {
+        super(_taskSettings);
+        _taskSettings.CleanupDays       = 62;
+        _taskSettings.StepDeleteRecords = 100;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>
