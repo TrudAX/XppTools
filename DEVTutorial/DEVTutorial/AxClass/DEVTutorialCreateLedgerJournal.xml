@@ -339,14 +339,14 @@ class DEVTutorialCreateLedgerJournal
             dim = DEVDimensionHelper::setValueToDefaultDimension(dim, DEVDimensionHelper::BusinessUnit(), combinationAccount.getLevelValue('BusinessUnit'));
             dim = DEVDimensionHelper::setValueToDefaultDimension(dim, DEVDimensionHelper::CostCenter(),     combinationAccount.getLevelValue('CostCenter'));
             ledgerJournalTrans.LedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
-                                              LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(combinationAccount.getLevelValue('Account')), dim);       
+                LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountIdAndCOA(combinationAccount.getLevelValue('Account'), LedgerChartOfAccounts::current()), dim);
         
             ledgerJournalTrans.OffsetAccountType      = LedgerJournalACType::Ledger;
 
             dim = DEVDimensionHelper::setValueToDefaultDimension(0,   DEVDimensionHelper::BusinessUnit(), combinationAccountOffset.getLevelValue('BusinessUnit'));
             dim = DEVDimensionHelper::setValueToDefaultDimension(dim, DEVDimensionHelper::CostCenter(),     combinationAccountOffset.getLevelValue('CostCenter'));
             ledgerJournalTrans.OffsetLedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
-                                              LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(combinationAccountOffset.getLevelValue('Account')), dim);
+                LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountIdAndCOA(combinationAccountOffset.getLevelValue('Account'), LedgerChartOfAccounts::current()), dim);
         
             ledgerJournalTrans.CurrencyCode           =   "USD";
             ledgerJournalTrans.AmountCurCredit        =   combinationAccount.getCurElement();

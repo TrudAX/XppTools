@@ -160,7 +160,7 @@ class DEVIntegTutorialImportLedgerJourJSON extends DEVIntegProcessMessageBase
                              DEVDimensionHelper::CostCenter(),   tutorialLedgerJourLinesStaging.CostCenter ] );
                         
             ledgerJournalTrans.LedgerDimension = LedgerDimensionFacade::serviceCreateLedgerDimension(
-                                              LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountId(tutorialLedgerJourLinesStaging.MainAccount), dim);
+                LedgerDefaultAccountHelper::getDefaultAccountFromMainAccountIdAndCOA(tutorialLedgerJourLinesStaging.MainAccount, LedgerChartOfAccounts::current()), dim);
         
             if (!ledgerJournalTrans.LedgerDimension)
             {

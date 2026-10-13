@@ -156,7 +156,7 @@ public class DEVLicenseLogCleanup extends RunBaseBatch implements BatchRetryable
 						  licenseElementUsageLogUpd.ObjectName    == licenseElementUsageLog.ObjectName &&
                           licenseElementUsageLogUpd.CompanyId     == licenseElementUsageLog.CompanyId;
 
-                numberOfRecords += licenseElementUsageLogUpd.RowCount();
+                numberOfRecords += any2Int(licenseElementUsageLogUpd.RowCount());
                 ttscommit;
 			}
             info(strFmt("Compacted %1 records ", numberOfRecords));
@@ -177,7 +177,7 @@ public class DEVLicenseLogCleanup extends RunBaseBatch implements BatchRetryable
                           licenseWriteLogUpd.CompanyId     == licenseWriteLog.CompanyId  &&
                           licenseWriteLogUpd.TableName     == licenseWriteLog.TableName;
 
-                numberOfRecords += licenseWriteLogUpd.RowCount();
+                numberOfRecords += any2Int(licenseWriteLogUpd.RowCount());
                 ttscommit;
             }
             info(strFmt("Compacted %1 write log records", numberOfRecords));

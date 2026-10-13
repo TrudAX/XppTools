@@ -712,6 +712,8 @@ public class DEVIntegMessageTypeTableOutbound extends FormRun
 			<AxFormControl xmlns=""
 				i:type="AxFormGroupControl">
 				<Name>DetailsHeaderGroup</Name>
+				<Pattern>FieldsFieldGroups</Pattern>
+				<PatternVersion>1.1</PatternVersion>
 				<Type>Group</Type>
 				<WidthMode>SizeToAvailable</WidthMode>
 				<FormControlExtension
