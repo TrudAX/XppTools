@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialArcadeJson</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Minimal JSON writer for the arcade quiz. The payloads are small, so plain string building keeps it simple:
+/// <c>DEVTutorialArcadeJson::object([DEVTutorialArcadeJson::pair('score', int2Str(10))])</c> returns {"score":10}.
+/// </summary>
+public final class DEVTutorialArcadeJson
+{
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>quote</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a JSON string literal.
+    /// </summary>
+    public static str quote(str _value)
+    {
+        str value = strReplace(_value, "\\", "\\\\");
+
+        value = strReplace(value, "\"", "\\\"");
+        value = strReplace(value, "\r", "\\r");
+        value = strReplace(value, "\n", "\\n");
+        value = strReplace(value, "\t", "\\t");
+
+        return "\"" + value + "\"";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pair</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns "name":value; the value must already be JSON.
+    /// </summary>
+    public static str pair(str _name, str _jsonValue)
+    {
+        return DEVTutorialArcadeJson::quote(_name) + ':' + _jsonValue;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>object</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a JSON object from pairs.
+    /// </summary>
+    public static str object(container _pairs)
+    {
+        return '{' + DEVTutorialArcadeJson::joinValues(_pairs) + '}';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>array</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a JSON array from values that are already JSON.
+    /// </summary>
+    public static str array(container _values)
+    {
+        return '[' + DEVTutorialArcadeJson::joinValues(_values) + ']';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stringArray</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a JSON array of strings.
+    /// </summary>
+    public static str stringArray(container _strings)
+    {
+        container values;
+        int       i;
+
+        for (i = 1; i <= conLen(_strings); i++)
+        {
+            values += DEVTutorialArcadeJson::quote(any2Str(conPeek(_strings, i)));
+        }
+
+        return DEVTutorialArcadeJson::array(values);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>bool</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns a JSON boolean.
+    /// </summary>
+    public static str bool(boolean _value)
+    {
+        return _value ? 'true' : 'false';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>joinValues</Name>
+				<Source><![CDATA[
+    private static str joinValues(container _values)
+    {
+        str json;
+        int i;
+
+        for (i = 1; i <= conLen(_values); i++)
+        {
+            json += (i > 1 ? ',' : '') + any2Str(conPeek(_values, i));
+        }
+
+        return json;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

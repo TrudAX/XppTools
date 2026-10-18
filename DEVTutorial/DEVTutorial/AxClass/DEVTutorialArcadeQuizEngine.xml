@@ -1,0 +1,1759 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialArcadeQuizEngine</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Server side of the D365 Data Quiz: generates multiple choice questions from live data, checks the answers and scores them.
+/// </summary>
+/// <remarks>
+/// Every public method named q... is a question generator. It returns a question, or null when the environment has no
+/// data for it, so the quiz adapts to the data of each environment. The browser never receives the correct answer
+/// before it has answered, and every value it sends is validated here.
+/// </remarks>
+public class DEVTutorialArcadeQuizEngine
+{
+    public const int Seconds = 20;
+    public const int MaxQuestions = 20;
+    public const int MinMonthRecords = 5;
+
+    Array   questions;
+    int     total;
+    int     current;
+    int     score;
+    int     streak;
+    int     correctCount;
+    boolean fiftyUsed;
+    str     quizId;
+
+    // months used by the month based questions (the latest month with enough records), read once per quiz
+    date    invoiceMonthCache;
+    date    paymentMonthCache;
+    date    orderMonthCache;
+
+    // wrong-answer candidates, read once per quiz and shared by the generators
+    container customerNameCache;
+    container vendorNameCache;
+    container itemNameCache;
+    container workerNameCache;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVTutorialArcadeQuizEngine construct()
+    {
+        return new DEVTutorialArcadeQuizEngine();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmScore</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the score calculated by the server.
+    /// </summary>
+    public int parmScore()
+    {
+        return score;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>start</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Starts a quiz.
+    /// </summary>
+    /// <param name = "_count">Requested number of questions.</param>
+    /// <returns>JSON: quizId, total and the first question.</returns>
+    public str start(int _count)
+    {
+        int                           questionCount = max(3, min(DEVTutorialArcadeQuizEngine::MaxQuestions, _count));
+        Array                         pool          = this.buildPool(questionCount);
+        DEVTutorialArcadeQuizQuestion question;
+        int                           i;
+
+        total = min(questionCount, pool.lastIndex());
+        if (!total)
+        {
+            return DEVTutorialArcadeQuizEngine::errorJson("No data was found for the quiz in this environment.");
+        }
+
+        questions = new Array(Types::Class);
+        for (i = 1; i <= total; i++)
+        {
+            question = pool.value(i);
+            question.parmQuestionNum(i);
+            question.parmQuestionId(strFmt('Q%1', i));
+            questions.value(i, question);
+        }
+
+        quizId       = guid2Str(newGuid());
+        current      = 1;
+        score        = 0;
+        streak       = 0;
+        correctCount = 0;
+        fiftyUsed    = false;
+
+        return DEVTutorialArcadeJson::object([
+            DEVTutorialArcadeJson::pair('quizId', DEVTutorialArcadeJson::quote(quizId)),
+            DEVTutorialArcadeJson::pair('total', int2Str(total)),
+            DEVTutorialArcadeJson::pair('question', this.currentQuestion().toJson(total))]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>answer</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks the answer to the current question and scores it.
+    /// </summary>
+    /// <param name = "_questionId">Id of the question the browser answered.</param>
+    /// <param name = "_answer">0-based option, -1 when the time ran out.</param>
+    /// <param name = "_ms">Milliseconds the player needed.</param>
+    /// <returns>JSON: correct, correctIndex, points, score, streak, explanation, query, last.</returns>
+    public str answer(str _questionId, int _answer, int _ms)
+    {
+        DEVTutorialArcadeQuizQuestion question = this.currentQuestion();
+        int     answer = _answer >= 0 && _answer <= 3 ? _answer : -1;
+        int     ms     = max(0, min(DEVTutorialArcadeQuizEngine::Seconds * 1000, _ms));
+        boolean isCorrect;
+        int     points;
+        real    remaining, multiplier;
+
+        if (!question || question.parmQuestionId() != _questionId || question.parmAnswered())
+        {
+            return DEVTutorialArcadeQuizEngine::errorJson("Unknown or already answered question.");
+        }
+
+        isCorrect = answer == question.parmCorrectIndex();
+        if (isCorrect)
+        {
+            streak++;
+            correctCount++;
+            remaining  = DEVTutorialArcadeQuizEngine::Seconds - ms / 1000;
+            multiplier = streak >= 5 ? 2.0 : (streak >= 3 ? 1.5 : 1.0);
+            points     = real2int(round((100 + remaining * 5) * multiplier * (question.parmFiftyUsed() ? 0.5 : 1.0), 1));
+            score     += points;
+        }
+        else
+        {
+            streak = 0;
+        }
+
+        question.parmAnswered(true);
+        question.parmAnswer(answer);
+        question.parmPoints(points);
+
+        return DEVTutorialArcadeJson::object([
+            DEVTutorialArcadeJson::pair('correct', DEVTutorialArcadeJson::bool(isCorrect)),
+            DEVTutorialArcadeJson::pair('correctIndex', int2Str(question.parmCorrectIndex())),
+            DEVTutorialArcadeJson::pair('points', int2Str(points)),
+            DEVTutorialArcadeJson::pair('score', int2Str(score)),
+            DEVTutorialArcadeJson::pair('streak', int2Str(streak)),
+            DEVTutorialArcadeJson::pair('explanation', DEVTutorialArcadeJson::quote(question.parmExplanation())),
+            DEVTutorialArcadeJson::pair('query', DEVTutorialArcadeJson::quote(question.parmXppQuery())),
+            DEVTutorialArcadeJson::pair('last', DEVTutorialArcadeJson::bool(current >= total))]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>nextQuestion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Moves to the next question.
+    /// </summary>
+    /// <returns>JSON: the next question, or done = true.</returns>
+    public str nextQuestion()
+    {
+        DEVTutorialArcadeQuizQuestion question = this.currentQuestion();
+
+        if (!question || !question.parmAnswered())
+        {
+            return DEVTutorialArcadeQuizEngine::errorJson("Answer the current question first.");
+        }
+
+        current++;
+        if (current > total)
+        {
+            return DEVTutorialArcadeJson::object([DEVTutorialArcadeJson::pair('done', 'true')]);
+        }
+
+        return DEVTutorialArcadeJson::object([DEVTutorialArcadeJson::pair('question', this.currentQuestion().toJson(total))]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fiftyFifty</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The 50:50 joker (once per quiz): removes two wrong options.
+    /// </summary>
+    /// <param name = "_questionId">Id of the current question.</param>
+    /// <returns>JSON: remove = two 0-based option indexes.</returns>
+    public str fiftyFifty(str _questionId)
+    {
+        DEVTutorialArcadeQuizQuestion question = this.currentQuestion();
+        container wrong;
+        int       i;
+
+        if (fiftyUsed || !question || question.parmQuestionId() != _questionId || question.parmAnswered())
+        {
+            return DEVTutorialArcadeQuizEngine::errorJson("The 50:50 joker is not available.");
+        }
+
+        fiftyUsed = true;
+        question.parmFiftyUsed(true);
+        for (i = 0; i <= 3; i++)
+        {
+            if (i != question.parmCorrectIndex())
+            {
+                wrong += i;
+            }
+        }
+        wrong = DEVTutorialArcadeQuizEngine::shuffle(wrong);
+
+        return DEVTutorialArcadeJson::object([
+            DEVTutorialArcadeJson::pair('remove', DEVTutorialArcadeJson::array([int2Str(conPeek(wrong, 1)), int2Str(conPeek(wrong, 2))]))]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>finish</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the result of the quiz.
+    /// </summary>
+    /// <returns>JSON: score, correct, total, title and a review of every question.</returns>
+    public str finish()
+    {
+        DEVTutorialArcadeQuizQuestion question;
+        container review;
+        int       i;
+        int       pct = total ? correctCount * 100 div total : 0;
+
+        for (i = 1; i <= total; i++)
+        {
+            question = questions.value(i);
+            review += DEVTutorialArcadeJson::object([
+                DEVTutorialArcadeJson::pair('text', DEVTutorialArcadeJson::quote(question.parmText())),
+                DEVTutorialArcadeJson::pair('correct', DEVTutorialArcadeJson::bool(question.parmAnswer() == question.parmCorrectIndex())),
+                DEVTutorialArcadeJson::pair('answer', DEVTutorialArcadeJson::quote(question.parmAnswer() >= 0 ? question.choiceText(question.parmAnswer()) : '(no answer)')),
+                DEVTutorialArcadeJson::pair('right', DEVTutorialArcadeJson::quote(question.choiceText(question.parmCorrectIndex()))),
+                DEVTutorialArcadeJson::pair('points', int2Str(question.parmPoints()))]);
+        }
+
+        return DEVTutorialArcadeJson::object([
+            DEVTutorialArcadeJson::pair('score', int2Str(score)),
+            DEVTutorialArcadeJson::pair('correct', int2Str(correctCount)),
+            DEVTutorialArcadeJson::pair('total', int2Str(total)),
+            DEVTutorialArcadeJson::pair('title', DEVTutorialArcadeJson::quote(DEVTutorialArcadeQuizEngine::title(pct))),
+            DEVTutorialArcadeJson::pair('review', DEVTutorialArcadeJson::array(review))]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>currentQuestion</Name>
+				<Source><![CDATA[
+    private DEVTutorialArcadeQuizQuestion currentQuestion()
+    {
+        DEVTutorialArcadeQuizQuestion question;
+
+        if (questions && current >= 1 && current <= total)
+        {
+            question = questions.value(current);
+        }
+
+        return question;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>buildPool</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Runs the question generators in random order until enough questions with data are found.
+    /// </summary>
+    /// <param name = "_wanted">Number of questions needed.</param>
+    private Array buildPool(int _wanted)
+    {
+        container generators = DEVTutorialArcadeQuizEngine::shuffle([
+            methodStr(DEVTutorialArcadeQuizEngine, qCompanyCount),
+            methodStr(DEVTutorialArcadeQuizEngine, qAccountingCurrency),
+            methodStr(DEVTutorialArcadeQuizEngine, qCompanyMostCustomers),
+            methodStr(DEVTutorialArcadeQuizEngine, qWarehouseCount),
+            methodStr(DEVTutorialArcadeQuizEngine, qLastCustomer),
+            methodStr(DEVTutorialArcadeQuizEngine, qCustomerCount),
+            methodStr(DEVTutorialArcadeQuizEngine, qCustGroupMost),
+            methodStr(DEVTutorialArcadeQuizEngine, qCustHighestCredit),
+            methodStr(DEVTutorialArcadeQuizEngine, qLastVendor),
+            methodStr(DEVTutorialArcadeQuizEngine, qVendorCount),
+            methodStr(DEVTutorialArcadeQuizEngine, qVendGroupMost),
+            methodStr(DEVTutorialArcadeQuizEngine, qItemCount),
+            methodStr(DEVTutorialArcadeQuizEngine, qItemHighestPrice),
+            methodStr(DEVTutorialArcadeQuizEngine, qItemGroupCount),
+            methodStr(DEVTutorialArcadeQuizEngine, qSalesOrdersInMonth),
+            methodStr(DEVTutorialArcadeQuizEngine, qLastOrderLines),
+            methodStr(DEVTutorialArcadeQuizEngine, qInvoiceCountMonth),
+            methodStr(DEVTutorialArcadeQuizEngine, qInvoiceTotalMonth),
+            methodStr(DEVTutorialArcadeQuizEngine, qLargestInvoiceMonth),
+            methodStr(DEVTutorialArcadeQuizEngine, qTopInvoiceCustomerMonth),
+            methodStr(DEVTutorialArcadeQuizEngine, qTopItemMonth),
+            methodStr(DEVTutorialArcadeQuizEngine, qOpenPurchOrders),
+            methodStr(DEVTutorialArcadeQuizEngine, qTopVendorPurchOrders),
+            methodStr(DEVTutorialArcadeQuizEngine, qCustPaymentsMonth),
+            methodStr(DEVTutorialArcadeQuizEngine, qTopPayingCustomer),
+            methodStr(DEVTutorialArcadeQuizEngine, qLastVendPayment),
+            methodStr(DEVTutorialArcadeQuizEngine, qWorkerCount),
+            methodStr(DEVTutorialArcadeQuizEngine, qLastHired),
+            methodStr(DEVTutorialArcadeQuizEngine, qEnabledUsers),
+            methodStr(DEVTutorialArcadeQuizEngine, qNewestUser),
+            methodStr(DEVTutorialArcadeQuizEngine, qBatchJobsActive),
+            methodStr(DEVTutorialArcadeQuizEngine, qMainAccountCount),
+            methodStr(DEVTutorialArcadeQuizEngine, qCurrencyCount)]);
+        DictClass                     dictClass = new DictClass(classNum(DEVTutorialArcadeQuizEngine));
+        Array                         pool      = new Array(Types::Class);
+        DEVTutorialArcadeQuizQuestion question;
+        int                           i, n;
+
+        for (i = 1; i <= conLen(generators) && n < _wanted; i++)
+        {
+            try
+            {
+                question = dictClass.callObject(conPeek(generators, i), this);
+                if (question)
+                {
+                    n++;
+                    pool.value(n, question);
+                }
+            }
+            catch
+            {
+                // a question whose data is missing or not accessible is simply skipped
+            }
+        }
+
+        return pool;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>numberQuestion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a question with a numeric answer and three plausible wrong numbers.
+    /// </summary>
+    private DEVTutorialArcadeQuizQuestion numberQuestion(str _category, str _text, real _value, str _explanation, str _xppQuery)
+    {
+        container factors = [0.55, 0.7, 0.8, 1.25, 1.4, 1.65, 1.9];
+        str       correctText = DEVTutorialArcadeQuizEngine::formatNumber(_value);
+        container wrong;
+        real      candidate;
+        str       candidateText;
+        int       guard;
+
+        while (conLen(wrong) < 3 && guard < 200)
+        {
+            guard++;
+            if (abs(_value) < 12)
+            {
+                candidate = _value + DEVTutorialArcadeQuizEngine::random(9) - 5;
+            }
+            else
+            {
+                // not rounded to tens: the right answer must not be the only "unround" number
+                candidate = _value * conPeek(factors, DEVTutorialArcadeQuizEngine::random(conLen(factors)));
+                candidate = round(candidate, 1.0);
+            }
+            candidateText = DEVTutorialArcadeQuizEngine::formatNumber(candidate);
+            if (candidate >= 0 && candidateText != correctText && !conFind(wrong, candidateText))
+            {
+                wrong += candidateText;
+            }
+        }
+
+        return DEVTutorialArcadeQuizQuestion::construct(_category, _text, correctText, wrong, _explanation, _xppQuery);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>choiceQuestion</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a question whose wrong answers are picked from other values of the same kind.
+    /// </summary>
+    /// <returns>The question; null when there are fewer than three other values.</returns>
+    private DEVTutorialArcadeQuizQuestion choiceQuestion(str _category, str _text, str _correct, container _candidates, str _explanation, str _xppQuery)
+    {
+        container pool = DEVTutorialArcadeQuizEngine::shuffle(_candidates);
+        container wrong;
+        str       option;
+        int       i;
+
+        for (i = 1; i <= conLen(pool) && conLen(wrong) < 3; i++)
+        {
+            option = conPeek(pool, i);
+            if (option && option != _correct && !conFind(wrong, option))
+            {
+                wrong += option;
+            }
+        }
+
+        if (conLen(wrong) < 3)
+        {
+            return null;
+        }
+
+        return DEVTutorialArcadeQuizQuestion::construct(_category, _text, _correct, wrong, _explanation, _xppQuery);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qCompanyCount</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qCompanyCount()
+    {
+        CompanyInfo companyInfo;
+        int         n;
+
+        select count(RecId) from companyInfo;
+        n = int642int(companyInfo.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('ORGANIZATION', "How many legal entities (companies) are set up in this environment?", n,
+            strFmt("CompanyInfo holds %1 legal entities.", n),
+            'select count(RecId) from companyInfo;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qAccountingCurrency</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qAccountingCurrency()
+    {
+        CurrencyCode currencyCode = Ledger::accountingCurrency(CompanyInfo::current());
+
+        if (!currencyCode)
+        {
+            return null;
+        }
+
+        return this.choiceQuestion('ORGANIZATION', strFmt("What is the accounting currency of company %1?", curExt()), currencyCode,
+            ['USD', 'EUR', 'GBP', 'CAD', 'JPY', 'CHF', 'AUD', 'DKK', 'CNY', 'SEK'],
+            strFmt("The ledger of %1 uses %2 as its accounting currency.", curExt(), currencyCode),
+            'Ledger::accountingCurrency(CompanyInfo::current())');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qCompanyMostCustomers</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qCompanyMostCustomers()
+    {
+        CustTable  custTable;
+        DataArea   dataArea;
+        DataAreaId bestCompany;
+        int64      bestCount;
+        int64      runnerUp;
+        container  companies;
+
+        while select crosscompany count(RecId) from custTable
+            group by DataAreaId
+        {
+            if (custTable.RecId > bestCount)
+            {
+                runnerUp = bestCount;
+                bestCount   = custTable.RecId;
+                bestCompany = strUpr(custTable.DataAreaId);   // DataAreaId is lower case; DataArea.id is not
+            }
+            else if (custTable.RecId > runnerUp)
+            {
+                runnerUp = custTable.RecId;
+            }
+        }
+        if (!bestCompany || bestCount == runnerUp)
+        {
+            return null;
+        }
+
+        while select id from dataArea
+            where dataArea.isVirtual == NoYes::No
+        {
+            companies += strUpr(dataArea.id);
+        }
+
+        return this.choiceQuestion('ORGANIZATION', "Which company has the most customers?", bestCompany, companies,
+            strFmt("%1 has %2 customers, more than any other company.", bestCompany, bestCount),
+            'select crosscompany count(RecId) from custTable group by DataAreaId;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qWarehouseCount</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qWarehouseCount()
+    {
+        InventLocation inventLocation;
+        int            n;
+
+        select count(RecId) from inventLocation;
+        n = int642int(inventLocation.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('ORGANIZATION', strFmt("How many warehouses does %1 have?", curExt()), n,
+            strFmt("InventLocation in %1 contains %2 warehouses.", curExt(), n),
+            'select count(RecId) from inventLocation;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qLastCustomer</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qLastCustomer()
+    {
+        CustTable custTable;
+
+        select firstonly custTable
+            order by RecId desc;
+        if (!custTable.RecId)
+        {
+            return null;
+        }
+
+        return this.choiceQuestion('CUSTOMERS', strFmt("Which customer was created most recently in %1?", curExt()),
+            this.custText(custTable.AccountNum), this.customerNames(),
+            strFmt("The newest CustTable record is %1, created on %2.", this.custText(custTable.AccountNum), DateTimeUtil::date(custTable.CreatedDateTime)),
+            'select firstonly custTable order by RecId desc;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qCustomerCount</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qCustomerCount()
+    {
+        CustTable custTable;
+        int       n;
+
+        select count(RecId) from custTable;
+        n = int642int(custTable.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('CUSTOMERS', strFmt("How many customers are there in %1?", curExt()), n,
+            strFmt("CustTable in %1 has %2 records.", curExt(), n),
+            'select count(RecId) from custTable;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qCustGroupMost</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qCustGroupMost()
+    {
+        CustTable   custTable;
+        CustGroup   custGroup;
+        CustGroupId bestGroup;
+        int64       bestCount;
+        int64       runnerUp;
+        container   groups;
+
+        while select count(RecId) from custTable
+            group by CustGroup
+        {
+            if (custTable.RecId > bestCount)
+            {
+                runnerUp = bestCount;
+                bestCount = custTable.RecId;
+                bestGroup = custTable.CustGroup;
+            }
+            else if (custTable.RecId > runnerUp)
+            {
+                runnerUp = custTable.RecId;
+            }
+        }
+        if (!bestGroup || bestCount == runnerUp)
+        {
+            return null;
+        }
+
+        while select custGroup
+        {
+            groups += this.groupText(custGroup.CustGroup, custGroup.Name);
+        }
+
+        return this.choiceQuestion('CUSTOMERS', strFmt("Which customer group has the most customers in %1?", curExt()),
+            this.groupText(bestGroup, CustGroup::find(bestGroup).Name), groups,
+            strFmt("Customer group %1 contains %2 customers.", bestGroup, bestCount),
+            'select count(RecId) from custTable group by CustGroup;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qCustHighestCredit</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qCustHighestCredit()
+    {
+        CustTable custTable, secondCust;
+
+        select firstonly custTable
+            order by CreditMax desc
+            where custTable.CreditMax > 0;
+        if (!custTable.RecId)
+        {
+            return null;
+        }
+        select firstonly CreditMax from secondCust
+            order by CreditMax desc
+            where secondCust.RecId != custTable.RecId;
+        if (secondCust.CreditMax == custTable.CreditMax)
+        {
+            return null;   // no unique winner
+        }
+
+        return this.choiceQuestion('CUSTOMERS', strFmt("Which customer has the highest credit limit in %1?", curExt()),
+            this.custText(custTable.AccountNum), this.customerNames(),
+            strFmt("%1 has a credit limit of %2.", this.custText(custTable.AccountNum), DEVTutorialArcadeQuizEngine::formatNumber(custTable.CreditMax)),
+            'select firstonly custTable order by CreditMax desc;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qLastVendor</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qLastVendor()
+    {
+        VendTable vendTable;
+
+        select firstonly vendTable
+            order by RecId desc;
+        if (!vendTable.RecId)
+        {
+            return null;
+        }
+
+        return this.choiceQuestion('VENDORS', strFmt("Which vendor was created most recently in %1?", curExt()),
+            this.vendText(vendTable.AccountNum), this.vendorNames(),
+            strFmt("The newest VendTable record is %1, created on %2.", this.vendText(vendTable.AccountNum), DateTimeUtil::date(vendTable.CreatedDateTime)),
+            'select firstonly vendTable order by RecId desc;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qVendorCount</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qVendorCount()
+    {
+        VendTable vendTable;
+        int       n;
+
+        select count(RecId) from vendTable;
+        n = int642int(vendTable.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('VENDORS', strFmt("How many vendors are there in %1?", curExt()), n,
+            strFmt("VendTable in %1 has %2 records.", curExt(), n),
+            'select count(RecId) from vendTable;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qVendGroupMost</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qVendGroupMost()
+    {
+        VendTable   vendTable;
+        VendGroup   vendGroup;
+        VendGroupId bestGroup;
+        int64       bestCount;
+        int64       runnerUp;
+        container   groups;
+
+        while select count(RecId) from vendTable
+            group by VendGroup
+        {
+            if (vendTable.RecId > bestCount)
+            {
+                runnerUp = bestCount;
+                bestCount = vendTable.RecId;
+                bestGroup = vendTable.VendGroup;
+            }
+            else if (vendTable.RecId > runnerUp)
+            {
+                runnerUp = vendTable.RecId;
+            }
+        }
+        if (!bestGroup || bestCount == runnerUp)
+        {
+            return null;
+        }
+
+        while select vendGroup
+        {
+            groups += this.groupText(vendGroup.VendGroup, vendGroup.Name);
+        }
+
+        return this.choiceQuestion('VENDORS', strFmt("Which vendor group is the largest in %1?", curExt()),
+            this.groupText(bestGroup, VendGroup::find(bestGroup).Name), groups,
+            strFmt("Vendor group %1 contains %2 vendors.", bestGroup, bestCount),
+            'select count(RecId) from vendTable group by VendGroup;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qItemCount</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qItemCount()
+    {
+        InventTable inventTable;
+        int         n;
+
+        select count(RecId) from inventTable;
+        n = int642int(inventTable.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('PRODUCTS', strFmt("How many released products does %1 have?", curExt()), n,
+            strFmt("InventTable in %1 has %2 released products.", curExt(), n),
+            'select count(RecId) from inventTable;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qItemHighestPrice</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qItemHighestPrice()
+    {
+        InventTableModule inventTableModule, secondPrice;
+
+        select firstonly inventTableModule
+            order by Price desc
+            where inventTableModule.ModuleType == ModuleInventPurchSales::Sales
+               && inventTableModule.Price      > 0;
+        if (!inventTableModule.RecId)
+        {
+            return null;
+        }
+        select firstonly Price from secondPrice
+            order by Price desc
+            where secondPrice.ModuleType == ModuleInventPurchSales::Sales
+               && secondPrice.RecId      != inventTableModule.RecId;
+        if (secondPrice.Price == inventTableModule.Price)
+        {
+            return null;   // no unique winner
+        }
+
+        return this.choiceQuestion('PRODUCTS', strFmt("Which released product has the highest sales price in %1?", curExt()),
+            this.itemText(inventTableModule.ItemId), this.itemNames(),
+            strFmt("%1 has a sales price of %2.", this.itemText(inventTableModule.ItemId), DEVTutorialArcadeQuizEngine::formatNumber(inventTableModule.Price)),
+            'select firstonly inventTableModule order by Price desc where inventTableModule.ModuleType == ModuleInventPurchSales::Sales;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qItemGroupCount</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qItemGroupCount()
+    {
+        InventItemGroup inventItemGroup;
+        int             n;
+
+        select count(RecId) from inventItemGroup;
+        n = int642int(inventItemGroup.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('PRODUCTS', strFmt("How many item groups are defined in %1?", curExt()), n,
+            strFmt("InventItemGroup in %1 has %2 records.", curExt(), n),
+            'select count(RecId) from inventItemGroup;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qSalesOrdersInMonth</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qSalesOrdersInMonth()
+    {
+        SalesTable  salesTable;
+        date        lastDate;
+        utcdatetime fromDateTime, toDateTime;
+        int         n;
+
+        lastDate = this.lastOrderMonth();
+        if (lastDate == dateNull())
+        {
+            return null;
+        }
+        fromDateTime = DateTimeUtil::newDateTime(dateStartMth(lastDate), 0);
+        toDateTime   = DateTimeUtil::newDateTime(endMth(lastDate), 86399);
+
+        select count(RecId) from salesTable
+            where salesTable.CreatedDateTime >= fromDateTime
+               && salesTable.CreatedDateTime <= toDateTime;
+        n = int642int(salesTable.RecId);
+
+        return this.numberQuestion('SALES', strFmt("How many sales orders were created in %1?", this.monthText(lastDate)), n,
+            strFmt("%1 sales orders were created in %2.", n, this.monthText(lastDate)),
+            'select count(RecId) from salesTable where salesTable.CreatedDateTime >= monthStart && salesTable.CreatedDateTime <= monthEnd;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qLastOrderLines</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qLastOrderLines()
+    {
+        SalesTable salesTable;
+        SalesLine  salesLine;
+        int        n;
+
+        select firstonly salesTable
+            order by RecId desc;
+        if (!salesTable.RecId)
+        {
+            return null;
+        }
+
+        select count(RecId) from salesLine
+            where salesLine.SalesId == salesTable.SalesId;
+        n = int642int(salesLine.RecId);
+
+        return this.numberQuestion('SALES', strFmt("How many lines does the latest sales order %1 have?", salesTable.SalesId), n,
+            strFmt("Sales order %1 of customer %2 has %3 lines.", salesTable.SalesId, salesTable.CustAccount, n),
+            'select count(RecId) from salesLine where salesLine.SalesId == salesTable.SalesId;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qInvoiceCountMonth</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qInvoiceCountMonth()
+    {
+        CustInvoiceJour custInvoiceJour;
+        date            lastDate = this.lastInvoiceDate();
+        int             n;
+
+        if (lastDate == dateNull())
+        {
+            return null;
+        }
+
+        select count(RecId) from custInvoiceJour
+            where custInvoiceJour.InvoiceDate >= dateStartMth(lastDate)
+               && custInvoiceJour.InvoiceDate <= endMth(lastDate);
+        n = int642int(custInvoiceJour.RecId);
+
+        return this.numberQuestion('SALES', strFmt("How many sales invoices were posted in %1?", this.monthText(lastDate)), n,
+            strFmt("CustInvoiceJour has %1 invoices dated %2.", n, this.monthText(lastDate)),
+            'select count(RecId) from custInvoiceJour where custInvoiceJour.InvoiceDate >= monthStart && custInvoiceJour.InvoiceDate <= monthEnd;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qInvoiceTotalMonth</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qInvoiceTotalMonth()
+    {
+        CustInvoiceJour custInvoiceJour;
+        date            lastDate = this.lastInvoiceDate();
+
+        if (lastDate == dateNull())
+        {
+            return null;
+        }
+
+        select sum(InvoiceAmountMST) from custInvoiceJour
+            where custInvoiceJour.InvoiceDate >= dateStartMth(lastDate)
+               && custInvoiceJour.InvoiceDate <= endMth(lastDate);
+
+        return this.numberQuestion('SALES', strFmt("What was the total amount of sales invoices in %1 (%2)?", this.monthText(lastDate), Ledger::accountingCurrency()),
+            custInvoiceJour.InvoiceAmountMST,
+            strFmt("The invoices of %1 add up to %2 %3.", this.monthText(lastDate), DEVTutorialArcadeQuizEngine::formatNumber(custInvoiceJour.InvoiceAmountMST), Ledger::accountingCurrency()),
+            'select sum(InvoiceAmountMST) from custInvoiceJour where custInvoiceJour.InvoiceDate >= monthStart && custInvoiceJour.InvoiceDate <= monthEnd;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qLargestInvoiceMonth</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qLargestInvoiceMonth()
+    {
+        CustInvoiceJour custInvoiceJour;
+        date            lastDate = this.lastInvoiceDate();
+
+        if (lastDate == dateNull())
+        {
+            return null;
+        }
+
+        select firstonly custInvoiceJour
+            order by InvoiceAmountMST desc
+            where custInvoiceJour.InvoiceDate >= dateStartMth(lastDate)
+               && custInvoiceJour.InvoiceDate <= endMth(lastDate);
+
+        return this.numberQuestion('SALES', strFmt("What was the largest single sales invoice in %1 (%2)?", this.monthText(lastDate), Ledger::accountingCurrency()),
+            custInvoiceJour.InvoiceAmountMST,
+            strFmt("Invoice %1 for customer %2 was the largest: %3.", custInvoiceJour.InvoiceId, custInvoiceJour.InvoiceAccount, DEVTutorialArcadeQuizEngine::formatNumber(custInvoiceJour.InvoiceAmountMST)),
+            'select firstonly custInvoiceJour order by InvoiceAmountMST desc where custInvoiceJour.InvoiceDate >= monthStart && custInvoiceJour.InvoiceDate <= monthEnd;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qTopInvoiceCustomerMonth</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qTopInvoiceCustomerMonth()
+    {
+        CustInvoiceJour custInvoiceJour;
+        date            lastDate = this.lastInvoiceDate();
+        CustInvoiceAccount bestAccount;
+        int64           bestCount;
+        int64           runnerUp;
+
+        if (lastDate == dateNull())
+        {
+            return null;
+        }
+
+        while select count(RecId) from custInvoiceJour
+            group by InvoiceAccount
+            where custInvoiceJour.InvoiceDate >= dateStartMth(lastDate)
+               && custInvoiceJour.InvoiceDate <= endMth(lastDate)
+        {
+            if (custInvoiceJour.RecId > bestCount)
+            {
+                runnerUp = bestCount;
+                bestCount   = custInvoiceJour.RecId;
+                bestAccount = custInvoiceJour.InvoiceAccount;
+            }
+            else if (custInvoiceJour.RecId > runnerUp)
+            {
+                runnerUp = custInvoiceJour.RecId;
+            }
+        }
+        if (!bestAccount || bestCount == runnerUp)
+        {
+            return null;
+        }
+
+        return this.choiceQuestion('SALES', strFmt("Which customer received the most sales invoices in %1?", this.monthText(lastDate)),
+            this.custText(bestAccount), this.customerNames(),
+            strFmt("%1 received %2 invoices in %3.", this.custText(bestAccount), bestCount, this.monthText(lastDate)),
+            'select count(RecId) from custInvoiceJour group by InvoiceAccount where custInvoiceJour.InvoiceDate >= monthStart && custInvoiceJour.InvoiceDate <= monthEnd;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qTopItemMonth</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qTopItemMonth()
+    {
+        CustInvoiceTrans custInvoiceTrans;
+        date             lastDate = this.lastInvoiceDate();
+        ItemId           bestItem;
+        real             bestQty;
+        real             runnerUp;
+
+        if (lastDate == dateNull())
+        {
+            return null;
+        }
+
+        while select sum(Qty) from custInvoiceTrans
+            group by ItemId
+            where custInvoiceTrans.InvoiceDate >= dateStartMth(lastDate)
+               && custInvoiceTrans.InvoiceDate <= endMth(lastDate)
+               && custInvoiceTrans.ItemId      != ''
+        {
+            if (custInvoiceTrans.Qty > bestQty)
+            {
+                runnerUp = bestQty;
+                bestQty  = custInvoiceTrans.Qty;
+                bestItem = custInvoiceTrans.ItemId;
+            }
+            else if (custInvoiceTrans.Qty > runnerUp)
+            {
+                runnerUp = custInvoiceTrans.Qty;
+            }
+        }
+        if (!bestItem || bestQty == runnerUp)
+        {
+            return null;
+        }
+
+        return this.choiceQuestion('SALES', strFmt("Which item was sold the most (quantity) in %1?", this.monthText(lastDate)),
+            this.itemText(bestItem), this.itemNames(),
+            strFmt("%1 was invoiced %2 times in %3.", this.itemText(bestItem), DEVTutorialArcadeQuizEngine::formatNumber(bestQty), this.monthText(lastDate)),
+            'select sum(Qty) from custInvoiceTrans group by ItemId where custInvoiceTrans.InvoiceDate >= monthStart && custInvoiceTrans.InvoiceDate <= monthEnd;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qOpenPurchOrders</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qOpenPurchOrders()
+    {
+        PurchTable purchTable;
+        int        n;
+
+        select count(RecId) from purchTable
+            where purchTable.PurchStatus == PurchStatus::Backorder;
+        n = int642int(purchTable.RecId);
+
+        return this.numberQuestion('PURCHASING', strFmt("How many purchase orders are still open (backorder) in %1?", curExt()), n,
+            strFmt("%1 PurchTable records have the status Open order (Backorder).", n),
+            'select count(RecId) from purchTable where purchTable.PurchStatus == PurchStatus::Backorder;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qTopVendorPurchOrders</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qTopVendorPurchOrders()
+    {
+        PurchTable  purchTable;
+        VendAccount bestAccount;
+        int64       bestCount;
+        int64       runnerUp;
+
+        while select count(RecId) from purchTable
+            group by OrderAccount
+        {
+            if (purchTable.RecId > bestCount)
+            {
+                runnerUp = bestCount;
+                bestCount   = purchTable.RecId;
+                bestAccount = purchTable.OrderAccount;
+            }
+            else if (purchTable.RecId > runnerUp)
+            {
+                runnerUp = purchTable.RecId;
+            }
+        }
+        if (!bestAccount || bestCount == runnerUp)
+        {
+            return null;
+        }
+
+        return this.choiceQuestion('PURCHASING', strFmt("Which vendor has the most purchase orders in %1?", curExt()),
+            this.vendText(bestAccount), this.vendorNames(),
+            strFmt("%1 has %2 purchase orders.", this.vendText(bestAccount), bestCount),
+            'select count(RecId) from purchTable group by OrderAccount;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qCustPaymentsMonth</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qCustPaymentsMonth()
+    {
+        CustTrans custTrans;
+        date      lastDate;
+
+        lastDate = this.lastPaymentDate();
+        if (lastDate == dateNull())
+        {
+            return null;
+        }
+
+        select sum(AmountMST) from custTrans
+            where custTrans.TransType == LedgerTransType::Payment
+               && custTrans.TransDate >= dateStartMth(lastDate)
+               && custTrans.TransDate <= endMth(lastDate);
+
+        return this.numberQuestion('PAYMENTS', strFmt("How much did customers pay in %1 (%2)?", this.monthText(lastDate), Ledger::accountingCurrency()),
+            abs(custTrans.AmountMST),
+            strFmt("Customer payments (CustTrans, type Payment) in %1 total %2.", this.monthText(lastDate), DEVTutorialArcadeQuizEngine::formatNumber(abs(custTrans.AmountMST))),
+            'select sum(AmountMST) from custTrans where custTrans.TransType == LedgerTransType::Payment && custTrans.TransDate >= monthStart;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qTopPayingCustomer</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qTopPayingCustomer()
+    {
+        CustTrans     custTrans;
+        date          lastDate;
+        CustAccount   bestAccount;
+        real          bestAmount;
+        real          runnerUp;
+
+        lastDate = this.lastPaymentDate();
+        if (lastDate == dateNull())
+        {
+            return null;
+        }
+
+        while select sum(AmountMST) from custTrans
+            group by AccountNum
+            where custTrans.TransType == LedgerTransType::Payment
+               && custTrans.TransDate >= dateStartMth(lastDate)
+               && custTrans.TransDate <= endMth(lastDate)
+        {
+            if (abs(custTrans.AmountMST) > bestAmount)
+            {
+                runnerUp = bestAmount;
+                bestAmount  = abs(custTrans.AmountMST);
+                bestAccount = custTrans.AccountNum;
+            }
+            else if (abs(custTrans.AmountMST) > runnerUp)
+            {
+                runnerUp = abs(custTrans.AmountMST);
+            }
+        }
+        if (!bestAccount || bestAmount == runnerUp)
+        {
+            return null;
+        }
+
+        return this.choiceQuestion('PAYMENTS', strFmt("Which customer paid the most in %1?", this.monthText(lastDate)),
+            this.custText(bestAccount), this.customerNames(),
+            strFmt("%1 paid %2 in %3.", this.custText(bestAccount), DEVTutorialArcadeQuizEngine::formatNumber(bestAmount), this.monthText(lastDate)),
+            'select sum(AmountMST) from custTrans group by AccountNum where custTrans.TransType == LedgerTransType::Payment;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qLastVendPayment</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qLastVendPayment()
+    {
+        VendTrans vendTrans;
+
+        select firstonly vendTrans
+            order by RecId desc
+            where vendTrans.TransType == LedgerTransType::Payment;
+        if (!vendTrans.RecId)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('PAYMENTS', strFmt("What was the amount of the most recent vendor payment (%1)?", Ledger::accountingCurrency()),
+            abs(vendTrans.AmountMST),
+            strFmt("The last vendor payment was %1 to %2 on %3.", DEVTutorialArcadeQuizEngine::formatNumber(abs(vendTrans.AmountMST)), vendTrans.AccountNum, vendTrans.TransDate),
+            'select firstonly vendTrans order by RecId desc where vendTrans.TransType == LedgerTransType::Payment;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qWorkerCount</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qWorkerCount()
+    {
+        HcmWorker hcmWorker;
+        int       n;
+
+        select count(RecId) from hcmWorker;
+        n = int642int(hcmWorker.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('PEOPLE', "How many workers are registered in this environment?", n,
+            strFmt("HcmWorker has %1 records.", n),
+            'select count(RecId) from hcmWorker;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qLastHired</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qLastHired()
+    {
+        HcmEmployment hcmEmployment, sameDay;
+        str           workerName;
+
+        select firstonly hcmEmployment
+            order by ValidFrom desc;
+        if (!hcmEmployment.RecId)
+        {
+            return null;
+        }
+        select count(RecId) from sameDay
+            where sameDay.ValidFrom == hcmEmployment.ValidFrom;
+        if (sameDay.RecId > 1)
+        {
+            return null;   // several workers started at the same moment
+        }
+        workerName = HcmWorker::find(hcmEmployment.Worker).name();
+
+        return this.choiceQuestion('PEOPLE', "Who was hired most recently?", workerName, this.workerNames(),
+            strFmt("%1 has the latest employment start date: %2.", workerName, DateTimeUtil::date(hcmEmployment.ValidFrom)),
+            'select firstonly hcmEmployment order by ValidFrom desc;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qEnabledUsers</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qEnabledUsers()
+    {
+        UserInfo userInfo;
+        int      n;
+
+        select count(RecId) from userInfo
+            where userInfo.enable == 1;
+        n = int642int(userInfo.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('SYSTEM', "How many enabled users does this environment have?", n,
+            strFmt("UserInfo has %1 enabled users.", n),
+            'select count(RecId) from userInfo where userInfo.enable == 1;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qNewestUser</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qNewestUser()
+    {
+        UserInfo  userInfo;
+        str       newest;
+        container users;
+
+        select firstonly userInfo
+            order by RecId desc
+            where userInfo.enable == 1;
+        if (!userInfo.RecId)
+        {
+            return null;
+        }
+        newest = userInfo.id;
+
+        while select id from userInfo
+            where userInfo.enable == 1
+        {
+            users += userInfo.id;
+            if (conLen(users) >= 60)
+            {
+                break;
+            }
+        }
+
+        return this.choiceQuestion('SYSTEM', "Which user account was added most recently?", newest, users,
+            strFmt("The newest enabled UserInfo record is \"%1\".", newest),
+            'select firstonly userInfo order by RecId desc where userInfo.enable == 1;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qBatchJobsActive</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qBatchJobsActive()
+    {
+        BatchJob batchJob;
+        int      n;
+
+        select count(RecId) from batchJob
+            where batchJob.Status == BatchStatus::Waiting
+               || batchJob.Status == BatchStatus::Executing;
+        n = int642int(batchJob.RecId);
+
+        return this.numberQuestion('SYSTEM', "How many batch jobs are waiting or executing right now?", n,
+            strFmt("%1 BatchJob records have the status Waiting or Executing.", n),
+            'select count(RecId) from batchJob where batchJob.Status == BatchStatus::Waiting || batchJob.Status == BatchStatus::Executing;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qMainAccountCount</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qMainAccountCount()
+    {
+        MainAccount mainAccount;
+        Ledger      ledger;
+        int         n;
+
+        select count(RecId) from mainAccount
+            exists join ledger
+            where ledger.ChartOfAccounts       == mainAccount.LedgerChartOfAccounts
+               && ledger.PrimaryForLegalEntity == CompanyInfo::current();
+        n = int642int(mainAccount.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('FINANCE', strFmt("How many main accounts are in the chart of accounts of %1?", curExt()), n,
+            strFmt("The chart of accounts of %1 has %2 main accounts.", curExt(), n),
+            'select count(RecId) from mainAccount exists join ledger where ledger.ChartOfAccounts == mainAccount.LedgerChartOfAccounts && ledger.PrimaryForLegalEntity == CompanyInfo::current();');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>qCurrencyCount</Name>
+				<Source><![CDATA[
+    public DEVTutorialArcadeQuizQuestion qCurrencyCount()
+    {
+        Currency currency;
+        int      n;
+
+        select count(RecId) from currency;
+        n = int642int(currency.RecId);
+        if (!n)
+        {
+            return null;
+        }
+
+        return this.numberQuestion('FINANCE', "How many currencies are defined in this environment?", n,
+            strFmt("The Currency table holds %1 currency codes.", n),
+            'select count(RecId) from currency;');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastInvoiceDate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the date of the latest sales invoice; the invoice questions use its month.
+    /// </summary>
+    private date lastInvoiceDate()
+    {
+        CustInvoiceJour custInvoiceJour;
+        date            monthStart;
+        int             i;
+
+        if (invoiceMonthCache == dateNull())
+        {
+            select maxof(InvoiceDate) from custInvoiceJour;
+            monthStart = dateStartMth(custInvoiceJour.InvoiceDate);
+            invoiceMonthCache = monthStart;
+
+            // prefer the latest month with enough invoices, so the questions are meaningful
+            for (i = 1; i <= 24 && monthStart > dateNull(); i++)
+            {
+                select count(RecId) from custInvoiceJour
+                    where custInvoiceJour.InvoiceDate >= monthStart
+                       && custInvoiceJour.InvoiceDate <= endMth(monthStart);
+                if (custInvoiceJour.RecId >= DEVTutorialArcadeQuizEngine::MinMonthRecords)
+                {
+                    invoiceMonthCache = monthStart;
+                    break;
+                }
+                monthStart = dateStartMth(prevMth(monthStart));
+            }
+        }
+
+        return invoiceMonthCache;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastPaymentDate</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the latest month with at least MinMonthRecords customer payments.
+    /// </summary>
+    private date lastPaymentDate()
+    {
+        CustTrans custTrans;
+        date      monthStart;
+        int       i;
+
+        if (paymentMonthCache == dateNull())
+        {
+            select maxof(TransDate) from custTrans
+                where custTrans.TransType == LedgerTransType::Payment;
+            monthStart = dateStartMth(custTrans.TransDate);
+            paymentMonthCache = monthStart;
+
+            for (i = 1; i <= 24 && monthStart > dateNull(); i++)
+            {
+                select count(RecId) from custTrans
+                    where custTrans.TransType == LedgerTransType::Payment
+                       && custTrans.TransDate >= monthStart
+                       && custTrans.TransDate <= endMth(monthStart);
+                if (custTrans.RecId >= DEVTutorialArcadeQuizEngine::MinMonthRecords)
+                {
+                    paymentMonthCache = monthStart;
+                    break;
+                }
+                monthStart = dateStartMth(prevMth(monthStart));
+            }
+        }
+
+        return paymentMonthCache;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>lastOrderMonth</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the latest month with at least MinMonthRecords new sales orders.
+    /// </summary>
+    private date lastOrderMonth()
+    {
+        SalesTable  salesTable;
+        date        monthStart;
+        utcdatetime fromDateTime, toDateTime;
+        int         i;
+
+        if (orderMonthCache == dateNull())
+        {
+            select maxof(CreatedDateTime) from salesTable;
+            if (salesTable.CreatedDateTime == utcDateTimeNull())
+            {
+                return dateNull();
+            }
+            monthStart = dateStartMth(DateTimeUtil::date(salesTable.CreatedDateTime));
+            orderMonthCache = monthStart;
+
+            for (i = 1; i <= 24 && monthStart > dateNull(); i++)
+            {
+                fromDateTime = DateTimeUtil::newDateTime(monthStart, 0);
+                toDateTime   = DateTimeUtil::newDateTime(endMth(monthStart), 86399);
+                select count(RecId) from salesTable
+                    where salesTable.CreatedDateTime >= fromDateTime
+                       && salesTable.CreatedDateTime <= toDateTime;
+                if (salesTable.RecId >= DEVTutorialArcadeQuizEngine::MinMonthRecords)
+                {
+                    orderMonthCache = monthStart;
+                    break;
+                }
+                monthStart = dateStartMth(prevMth(monthStart));
+            }
+        }
+
+        return orderMonthCache;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>monthText</Name>
+				<Source><![CDATA[
+    private str monthText(date _date)
+    {
+        return strFmt('%1 %2', mthName(mthOfYr(_date)), year(_date));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>groupText</Name>
+				<Source><![CDATA[
+    private str groupText(str _id, str _name)
+    {
+        return _name ? strFmt('%1 - %2', _id, _name) : _id;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>custText</Name>
+				<Source><![CDATA[
+    private str custText(CustAccount _accountNum)
+    {
+        return strFmt('%1 %2', _accountNum, CustTable::find(_accountNum).name());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>vendText</Name>
+				<Source><![CDATA[
+    private str vendText(VendAccount _accountNum)
+    {
+        return strFmt('%1 %2', _accountNum, VendTable::find(_accountNum).name());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>itemText</Name>
+				<Source><![CDATA[
+    private str itemText(ItemId _itemId)
+    {
+        return strFmt('%1 %2', _itemId, InventTable::find(_itemId).defaultProductName());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>customerNames</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets customers to use as wrong answers.
+    /// </summary>
+    private container customerNames()
+    {
+        CustTable custTable;
+
+        if (!conLen(customerNameCache))
+        {
+            while select custTable
+            {
+                customerNameCache += strFmt('%1 %2', custTable.AccountNum, custTable.name());
+                if (conLen(customerNameCache) >= 40)
+                {
+                    break;
+                }
+            }
+        }
+
+        return customerNameCache;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>vendorNames</Name>
+				<Source><![CDATA[
+    private container vendorNames()
+    {
+        VendTable vendTable;
+
+        if (!conLen(vendorNameCache))
+        {
+            while select vendTable
+            {
+                vendorNameCache += strFmt('%1 %2', vendTable.AccountNum, vendTable.name());
+                if (conLen(vendorNameCache) >= 40)
+                {
+                    break;
+                }
+            }
+        }
+
+        return vendorNameCache;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>itemNames</Name>
+				<Source><![CDATA[
+    private container itemNames()
+    {
+        InventTable inventTable;
+
+        if (!conLen(itemNameCache))
+        {
+            while select inventTable
+            {
+                itemNameCache += strFmt('%1 %2', inventTable.ItemId, inventTable.defaultProductName());
+                if (conLen(itemNameCache) >= 40)
+                {
+                    break;
+                }
+            }
+        }
+
+        return itemNameCache;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>workerNames</Name>
+				<Source><![CDATA[
+    private container workerNames()
+    {
+        HcmWorker hcmWorker;
+
+        if (!conLen(workerNameCache))
+        {
+            while select hcmWorker
+            {
+                workerNameCache += hcmWorker.name();
+                if (conLen(workerNameCache) >= 40)
+                {
+                    break;
+                }
+            }
+        }
+
+        return workerNameCache;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatNumber</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Formats a number without decimals and with thousands separators, e.g. 1,284,530.
+    /// </summary>
+    public static str formatNumber(real _value)
+    {
+        return num2Str(round(_value, 1), 0, 0, 1, 2);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>title</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the rank shown at the end of the quiz.
+    /// </summary>
+    public static str title(int _percent)
+    {
+        if (_percent >= 100)
+        {
+            return 'D365 WIZARD';
+        }
+        if (_percent >= 80)
+        {
+            return 'DATA GURU';
+        }
+        if (_percent >= 60)
+        {
+            return 'POWER USER';
+        }
+        if (_percent >= 40)
+        {
+            return 'KEY USER';
+        }
+
+        return 'NEW HIRE';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>errorJson</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns an error response; the quiz shows the message.
+    /// </summary>
+    public static str errorJson(str _message)
+    {
+        return DEVTutorialArcadeJson::object([DEVTutorialArcadeJson::pair('error', DEVTutorialArcadeJson::quote(_message))]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>random</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets a random number from 1 to _max.
+    /// </summary>
+    public static int random(int _max)
+    {
+        return _max > 1 ? (xGlobal::randomPositiveInt32() mod _max) + 1 : 1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>shuffle</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the values of a container in random order.
+    /// </summary>
+    public static container shuffle(container _values)
+    {
+        container values = _values;
+        anytype   value;
+        int       i, j;
+
+        for (i = conLen(values); i > 1; i--)
+        {
+            j     = DEVTutorialArcadeQuizEngine::random(i);
+            value = conPeek(values, i);
+            values = conPoke(values, i, conPeek(values, j));
+            values = conPoke(values, j, value);
+        }
+
+        return values;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>shuffleArray</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Shuffles an array of objects in place.
+    /// </summary>
+    public static Array shuffleArray(Array _values)
+    {
+        Object value;
+        int    i, j;
+
+        for (i = _values.lastIndex(); i > 1; i--)
+        {
+            j     = DEVTutorialArcadeQuizEngine::random(i);
+            value = _values.value(i);
+            _values.value(i, _values.value(j));
+            _values.value(j, value);
+        }
+
+        return _values;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

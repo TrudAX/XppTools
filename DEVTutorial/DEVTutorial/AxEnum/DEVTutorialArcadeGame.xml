@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialArcadeGame</Name>
+	<Label>Game</Label>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>Tank</Name>
+			<Label>Tank Siege</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Galaxy</Name>
+			<Label>Galaxy Strike</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Bricks</Name>
+			<Label>Brick Blaster</Label>
+			<Value>2</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Mines</Name>
+			<Label>Minesweeper</Label>
+			<Value>3</Value>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>Quiz</Name>
+			<Label>D365 Data Quiz</Label>
+			<Value>4</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

@@ -1,0 +1,6 @@
+<link href="/resources/styles/DEVTutorialArcade.css" rel="stylesheet" type="text/css" />
+<script src="/resources/scripts/DEVTutorialArcade.js"></script>
+<!-- Template of the X++ extensible control DEVTutorialArcadeControl; the id must match the template id set in X++.
+     The element must stay completely empty (no whitespace): the game builds its own DOM inside it, so it is marked data-dyn-container="true".
+     DEVTutorialArcade.js = DEVArcadeShell.js + the five games + DEVTutorialArcadeControl.js (built by tools/build-d365.js) -->
+<div id="DEVTutorialArcadeControl" class="devtutorialarcade" data-dyn-container="true" data-dyn-bind="visible: $data.Visible, sizing: $dyn.layout.sizing($data)"></div>

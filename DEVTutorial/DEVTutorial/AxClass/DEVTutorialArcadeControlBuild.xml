@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialArcadeControlBuild</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Design-time (build) class of <c>DEVTutorialArcadeControl</c>: adds "DEV Tutorial Arcade" to the form designer.
+/// </summary>
+[FormDesignControlAttribute("DEV Tutorial Arcade")]
+class DEVTutorialArcadeControlBuild extends FormBuildControl
+{
+    DEVTutorialArcadeGame game;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>game</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets or sets the game shown when the form opens.
+    /// </summary>
+    /// <param name = "_game">The game.</param>
+    /// <returns>The game.</returns>
+    [FormDesignPropertyAttribute("Game", "Data")]
+    public DEVTutorialArcadeGame game(DEVTutorialArcadeGame _game = game)
+    {
+        if (!prmIsDefault(_game))
+        {
+            game = _game;
+        }
+
+        return game;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialArcadeQuizQuestion</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// One question of the D365 Data Quiz. The correct option stays on the server: <c>toJson</c> does not include it.
+/// </summary>
+public class DEVTutorialArcadeQuizQuestion
+{
+    str       questionId;
+    int       questionNum;
+    str       category;
+    str       text;
+    container choices;
+    int       correctIndex;
+    str       explanation;
+    str       xppQuery;
+    boolean   answered;
+    int       answer;
+    boolean   fiftyUsed;
+    int       points;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    protected void new()
+    {
+        answer = -1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Creates a question with the right answer and three wrong ones in random order.
+    /// </summary>
+    /// <param name = "_category">Category shown above the question, e.g. SALES.</param>
+    /// <param name = "_text">The question.</param>
+    /// <param name = "_correct">The right answer.</param>
+    /// <param name = "_wrong">Three wrong answers.</param>
+    /// <param name = "_explanation">Shown after answering.</param>
+    /// <param name = "_xppQuery">The X++ statement that produced the answer, shown after answering.</param>
+    /// <returns>The question.</returns>
+    public static DEVTutorialArcadeQuizQuestion construct(str _category, str _text, str _correct, container _wrong, str _explanation, str _xppQuery)
+    {
+        DEVTutorialArcadeQuizQuestion question = new DEVTutorialArcadeQuizQuestion();
+        container options = [_correct];
+        int i;
+
+        for (i = 1; i <= 3; i++)
+        {
+            options += conPeek(_wrong, i);
+        }
+        options = DEVTutorialArcadeQuizEngine::shuffle(options);
+
+        question.category     = _category;
+        question.text         = _text;
+        question.choices      = options;
+        question.correctIndex = conFind(options, _correct) - 1;
+        question.explanation  = _explanation;
+        question.xppQuery     = _xppQuery;
+
+        return question;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>toJson</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Returns the question for the browser, without the correct answer.
+    /// </summary>
+    /// <param name = "_total">Number of questions in the quiz.</param>
+    /// <returns>JSON: id, index, total, category, text, options, seconds.</returns>
+    public str toJson(int _total)
+    {
+        return DEVTutorialArcadeJson::object([
+            DEVTutorialArcadeJson::pair('id', DEVTutorialArcadeJson::quote(questionId)),
+            DEVTutorialArcadeJson::pair('index', int2Str(questionNum)),
+            DEVTutorialArcadeJson::pair('total', int2Str(_total)),
+            DEVTutorialArcadeJson::pair('category', DEVTutorialArcadeJson::quote(category)),
+            DEVTutorialArcadeJson::pair('text', DEVTutorialArcadeJson::quote(text)),
+            DEVTutorialArcadeJson::pair('options', DEVTutorialArcadeJson::stringArray(choices)),
+            DEVTutorialArcadeJson::pair('seconds', int2Str(DEVTutorialArcadeQuizEngine::Seconds))]);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>choiceText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the text of an option.
+    /// </summary>
+    /// <param name = "_index">0-based option index.</param>
+    /// <returns>The option text; empty for an invalid index.</returns>
+    public str choiceText(int _index)
+    {
+        return _index >= 0 && _index < conLen(choices) ? any2Str(conPeek(choices, _index + 1)) : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQuestionId</Name>
+				<Source><![CDATA[
+    public str parmQuestionId(str _questionId = questionId)
+    {
+        questionId = _questionId;
+        return questionId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmQuestionNum</Name>
+				<Source><![CDATA[
+    public int parmQuestionNum(int _questionNum = questionNum)
+    {
+        questionNum = _questionNum;
+        return questionNum;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmText</Name>
+				<Source><![CDATA[
+    public str parmText()
+    {
+        return text;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCorrectIndex</Name>
+				<Source><![CDATA[
+    public int parmCorrectIndex()
+    {
+        return correctIndex;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmExplanation</Name>
+				<Source><![CDATA[
+    public str parmExplanation()
+    {
+        return explanation;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmXppQuery</Name>
+				<Source><![CDATA[
+    public str parmXppQuery()
+    {
+        return xppQuery;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAnswered</Name>
+				<Source><![CDATA[
+    public boolean parmAnswered(boolean _answered = answered)
+    {
+        answered = _answered;
+        return answered;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmAnswer</Name>
+				<Source><![CDATA[
+    public int parmAnswer(int _answer = answer)
+    {
+        answer = _answer;
+        return answer;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmFiftyUsed</Name>
+				<Source><![CDATA[
+    public boolean parmFiftyUsed(boolean _fiftyUsed = fiftyUsed)
+    {
+        fiftyUsed = _fiftyUsed;
+        return fiftyUsed;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmPoints</Name>
+				<Source><![CDATA[
+    public int parmPoints(int _points = points)
+    {
+        points = _points;
+        return points;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

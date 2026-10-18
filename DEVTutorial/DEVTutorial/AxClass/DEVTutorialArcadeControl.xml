@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVTutorialArcadeControl</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Extensible control that hosts the DEV Arcade HTML5 games and connects them to X++ tables.
+/// Client side: AxResource DEVTutorialArcadeControlHTM, DEVTutorialArcadeJS, DEVTutorialArcadeCSS.
+/// </summary>
+/// <remarks>
+/// X++ -> JS (properties): GameId, HighScore, GameCommand.
+/// JS -> X++ (commands):   GameStarted, ScoreChanged, GameOver (table DEVTutorialArcadeSession)
+///                         QuizStart, QuizAnswer, QuizNext, QuizFiftyFifty, QuizFinish (DEVTutorialArcadeQuizEngine).
+/// The form reacts through the delegates onSessionStarted, onScoreChanged and onSessionEnded.
+/// </remarks>
+[FormControlAttribute('DEVTutorialArcadeControl', '/resources/html/DEVTutorialArcadeControl', classStr(DEVTutorialArcadeControlBuild))]
+class DEVTutorialArcadeControl extends FormTemplateControl
+{
+    public const int MaxScore = 10000000;
+
+    FormProperty gameIdProperty;
+    FormProperty highScoreProperty;
+    FormProperty gameCommandProperty;
+
+    DEVTutorialArcadeGame       game;
+    RecId                       sessionRecId;
+    int                         currentScore;
+    int                         commandSeq;
+    DEVTutorialArcadeQuizEngine quiz;
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>new</Name>
+				<Source><![CDATA[
+    public void new(FormBuildControl _build, FormRun _formRun)
+    {
+        super(_build, _formRun);
+
+        this.setTemplateId('DEVTutorialArcadeControl');
+        this.setResourceBundleName('/resources/html/DEVTutorialArcadeControl');
+
+        gameIdProperty      = this.addProperty(methodStr(DEVTutorialArcadeControl, parmGameId), Types::String);
+        highScoreProperty   = this.addProperty(methodStr(DEVTutorialArcadeControl, parmHighScore), Types::Integer);
+        gameCommandProperty = this.addProperty(methodStr(DEVTutorialArcadeControl, parmGameCommand), Types::String);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>applyBuild</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Shows the game selected in the form designer.
+    /// </summary>
+    public void applyBuild()
+    {
+        DEVTutorialArcadeControlBuild build;
+
+        super();
+
+        build = this.build();
+        this.parmGame(build ? build.game() : DEVTutorialArcadeGame::Tank);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGame</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets or sets the game. Setting it closes a running session and loads the game in the browser.
+    /// </summary>
+    /// <param name = "_game">The game.</param>
+    /// <returns>The current game.</returns>
+    public DEVTutorialArcadeGame parmGame(DEVTutorialArcadeGame _game = game)
+    {
+        if (!prmIsDefault(_game))
+        {
+            this.stopSession();
+            game = _game;
+            quiz = null;
+            this.parmHighScore(DEVTutorialArcadeSession::bestScore(game));
+            this.parmGameId(DEVTutorialArcadeControl::gameId(game));
+        }
+
+        return game;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGameId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// X++ -> JS: id of the game to show (tank, galaxy, bricks, mines, quiz). Read only on the client.
+    /// </summary>
+    [FormPropertyAttribute(FormPropertyKind::Value, 'GameId', true)]
+    public str parmGameId(str _gameId = gameIdProperty.parmValue())
+    {
+        if (!prmIsDefault(_gameId))
+        {
+            gameIdProperty.setValueOrBinding(_gameId);
+        }
+
+        return gameIdProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmHighScore</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// X++ -> JS: personal best of the current user, read from table DEVTutorialArcadeSession. Read only on the client.
+    /// </summary>
+    [FormPropertyAttribute(FormPropertyKind::Value, 'HighScore', true)]
+    public int parmHighScore(int _highScore = highScoreProperty.parmValue())
+    {
+        if (!prmIsDefault(_highScore))
+        {
+            highScoreProperty.setValueOrBinding(_highScore);
+        }
+
+        return highScoreProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmGameCommand</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// X++ -> JS: command for the game as "action|sequence"; the sequence makes every request a new value. Read only on the client.
+    /// </summary>
+    [FormPropertyAttribute(FormPropertyKind::Value, 'GameCommand', true)]
+    public str parmGameCommand(str _gameCommand = gameCommandProperty.parmValue())
+    {
+        if (!prmIsDefault(_gameCommand))
+        {
+            gameCommandProperty.setValueOrBinding(_gameCommand);
+        }
+
+        return gameCommandProperty.parmValue();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmSessionRecId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the running session; 0 when no game is running.
+    /// </summary>
+    public RecId parmSessionRecId()
+    {
+        return sessionRecId;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmCurrentScore</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the last score received from the game.
+    /// </summary>
+    public int parmCurrentScore()
+    {
+        return currentScore;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendCommand</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sends a command to the game through the GameCommand property.
+    /// </summary>
+    /// <param name = "_action">start, toggle, stop, restart, mute or unmute.</param>
+    protected void sendCommand(str _action)
+    {
+        commandSeq++;
+        this.parmGameCommand(strFmt('%1|%2', _action, commandSeq));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>startGame</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Starts a new round; the game then calls the GameStarted command.
+    /// </summary>
+    public void startGame()
+    {
+        this.sendCommand('start');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>togglePause</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Pauses or resumes the game.
+    /// </summary>
+    public void togglePause()
+    {
+        this.sendCommand('toggle');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stopGame</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Ends the round; the game then calls the GameOver command.
+    /// </summary>
+    public void stopGame()
+    {
+        this.sendCommand('stop');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>stopSession</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Saves a running session as stopped, e.g. when the game is switched or the form is closed.
+    /// </summary>
+    public void stopSession()
+    {
+        RecId recId = sessionRecId;
+
+        if (recId)
+        {
+            sessionRecId = 0;
+            DEVTutorialArcadeSession::endSession(recId, currentScore, DEVTutorialArcadeSessionStatus::Stopped, '{"reason":"closed"}');
+            this.onSessionEnded(recId, currentScore, false);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>gameStarted</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// JS -> X++: a round has started. Inserts the session record.
+    /// </summary>
+    /// <returns>The record ID of the session; the game shows it.</returns>
+    [FormCommandAttribute('GameStarted')]
+    public str gameStarted()
+    {
+        this.stopSession();
+        currentScore = 0;
+        sessionRecId = DEVTutorialArcadeSession::startSession(game);
+
+        this.onSessionStarted(sessionRecId);
+
+        return int642Str(sessionRecId);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>scoreChanged</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// JS -> X++: the score changed (sent at most every 1.5 seconds). Writes the live score to the session record.
+    /// </summary>
+    /// <param name = "_score">The score, as a string.</param>
+    [FormCommandAttribute('ScoreChanged')]
+    public void scoreChanged(str _score)
+    {
+        currentScore = DEVTutorialArcadeControl::parseScore(_score);
+
+        if (sessionRecId)
+        {
+            DEVTutorialArcadeSession::updateScore(sessionRecId, currentScore);
+            this.onScoreChanged(sessionRecId, currentScore);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>gameOver</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// JS -> X++: the round has ended. Saves the result and compares it with the personal best.
+    /// </summary>
+    /// <param name = "_score">The final score, as a string.</param>
+    /// <param name = "_details">Result details from the game (JSON), e.g. {"reason":"gameover","stage":3}.</param>
+    /// <returns>NEWBEST when the score is a new personal best; the game then shows "NEW RECORD!".</returns>
+    [FormCommandAttribute('GameOver')]
+    public str gameOver(str _score, str _details)
+    {
+        RecId                          recId     = sessionRecId;
+        int                            score     = DEVTutorialArcadeControl::parseScore(_score);
+        int                            bestScore = DEVTutorialArcadeSession::bestScore(game);
+        DEVTutorialArcadeSessionStatus status    = DEVTutorialArcadeSessionStatus::Finished;
+        boolean                        newBest;
+
+        if (game == DEVTutorialArcadeGame::Quiz && quiz)
+        {
+            score = quiz.parmScore();   // the quiz is scored by X++, the browser value is not trusted
+        }
+        if (strScan(_details, '"reason":"stopped"', 1, strLen(_details)) || strScan(_details, '"reason":"restarted"', 1, strLen(_details)))
+        {
+            status = DEVTutorialArcadeSessionStatus::Stopped;
+        }
+
+        currentScore = score;
+        sessionRecId = 0;
+        if (recId)
+        {
+            DEVTutorialArcadeSession::endSession(recId, score, status, _details);
+        }
+
+        newBest = score > bestScore;
+        if (newBest)
+        {
+            this.parmHighScore(score);
+        }
+        this.onSessionEnded(recId, score, newBest);
+
+        return newBest ? 'NEWBEST' : '';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>quizStart</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// JS -> X++: starts a quiz; X++ generates the questions from live data.
+    /// </summary>
+    [FormCommandAttribute('QuizStart')]
+    public str quizStart(str _count)
+    {
+        quiz = DEVTutorialArcadeQuizEngine::construct();
+
+        return quiz.start(str2Int(_count));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>quizAnswer</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// JS -> X++: checks an answer. Only now the browser learns the correct option.
+    /// </summary>
+    [FormCommandAttribute('QuizAnswer')]
+    public str quizAnswer(str _questionId, str _answer, str _ms)
+    {
+        return quiz ? quiz.answer(_questionId, str2Int(_answer), str2Int(_ms)) : DEVTutorialArcadeQuizEngine::errorJson('The quiz has not started');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>quizNext</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// JS -> X++: moves to the next question.
+    /// </summary>
+    [FormCommandAttribute('QuizNext')]
+    public str quizNext()
+    {
+        return quiz ? quiz.nextQuestion() : DEVTutorialArcadeQuizEngine::errorJson('The quiz has not started');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>quizFiftyFifty</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// JS -> X++: the 50:50 joker; X++ picks two wrong answers to remove.
+    /// </summary>
+    [FormCommandAttribute('QuizFiftyFifty')]
+    public str quizFiftyFifty(str _questionId)
+    {
+        return quiz ? quiz.fiftyFifty(_questionId) : DEVTutorialArcadeQuizEngine::errorJson('The quiz has not started');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>quizFinish</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// JS -> X++: final result and review of the quiz.
+    /// </summary>
+    [FormCommandAttribute('QuizFinish')]
+    public str quizFinish()
+    {
+        return quiz ? quiz.finish() : DEVTutorialArcadeQuizEngine::errorJson('The quiz has not started');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onSessionStarted</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Raised after the session record has been inserted.
+    /// </summary>
+    /// <param name = "_sessionRecId">The new session.</param>
+    delegate void onSessionStarted(RecId _sessionRecId)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onScoreChanged</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Raised after the live score has been written to the session record.
+    /// </summary>
+    /// <param name = "_sessionRecId">The session.</param>
+    /// <param name = "_score">The score.</param>
+    delegate void onScoreChanged(RecId _sessionRecId, int _score)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onSessionEnded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Raised after the result has been saved.
+    /// </summary>
+    /// <param name = "_sessionRecId">The session; 0 when the round had no session.</param>
+    /// <param name = "_score">The final score.</param>
+    /// <param name = "_newBest">true for a new personal best.</param>
+    delegate void onSessionEnded(RecId _sessionRecId, int _score, boolean _newBest)
+    {
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>gameId</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the JavaScript id of a game.
+    /// </summary>
+    /// <param name = "_game">The game.</param>
+    /// <returns>The id used by DEVArcade.registerGame in the JavaScript.</returns>
+    public static str gameId(DEVTutorialArcadeGame _game)
+    {
+        switch (_game)
+        {
+            case DEVTutorialArcadeGame::Galaxy: return 'galaxy';
+            case DEVTutorialArcadeGame::Bricks: return 'bricks';
+            case DEVTutorialArcadeGame::Mines:  return 'mines';
+            case DEVTutorialArcadeGame::Quiz:   return 'quiz';
+        }
+
+        return 'tank';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parseScore</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Converts a score sent by the browser. Command arguments come from the client and must be validated.
+    /// </summary>
+    private static int parseScore(str _value)
+    {
+        return max(0, min(DEVTutorialArcadeControl::MaxScore, str2Int(_value)));
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

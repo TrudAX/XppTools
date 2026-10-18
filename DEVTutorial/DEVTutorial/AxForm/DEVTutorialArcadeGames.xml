@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxForm xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V6">
+	<Name>DEVTutorialArcadeGames</Name>
+	<SourceCode>
+		<Methods xmlns="">
+			<Method>
+				<Name>classDeclaration</Name>
+				<Source><![CDATA[
+/// <summary>
+/// DEV Tutorial Arcade: five HTML5 games in the extensible control <c>DEVTutorialArcadeControl</c>,
+/// connected to the X++ table <c>DEVTutorialArcadeSession</c>.
+/// </summary>
+/// <remarks>
+/// Form -> game: the action pane buttons call GameControl.startGame() / togglePause() / stopGame(),
+///               the game selector calls GameControl.parmGame().
+/// Game -> form: the control writes the session record and raises onSessionStarted / onScoreChanged / onSessionEnded;
+///               the handlers below refresh the live score and the score grids.
+/// </remarks>
+[Form]
+public class DEVTutorialArcadeGames extends FormRun
+{
+    QueryBuildRange topGameRange;
+    QueryBuildRange myGameRange;
+}
+]]></Source>
+			</Method>
+			<Method>
+				<Name>init</Name>
+				<Source><![CDATA[
+    public void init()
+    {
+        QueryBuildDataSource qbds;
+
+        super();
+
+        qbds = TopScores_ds.queryBuildDataSource();
+        topGameRange = qbds.addRange(fieldNum(DEVTutorialArcadeSession, Game));
+        qbds.addRange(fieldNum(DEVTutorialArcadeSession, Status)).value(queryValue(DEVTutorialArcadeSessionStatus::Finished));
+        qbds.addSortField(fieldNum(DEVTutorialArcadeSession, Score), SortOrder::Descending);
+
+        qbds = MySessions_ds.queryBuildDataSource();
+        myGameRange = qbds.addRange(fieldNum(DEVTutorialArcadeSession, Game));
+        qbds.addRange(fieldNum(DEVTutorialArcadeSession, UserId)).value(queryValue(curUserId()));
+        qbds.addSortField(fieldNum(DEVTutorialArcadeSession, RecId), SortOrder::Descending);
+
+        GameSelector.selection(GameControl.parmGame());
+        element.setGameRanges();
+
+        // game -> X++: the control saves the session and tells the form through its delegates
+        GameControl.onSessionStarted += eventhandler(element.sessionStarted);
+        GameControl.onScoreChanged   += eventhandler(element.scoreChanged);
+        GameControl.onSessionEnded   += eventhandler(element.sessionEnded);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>close</Name>
+				<Source><![CDATA[
+    public void close()
+    {
+        // a round that is still running is saved as stopped
+        GameControl.onSessionEnded -= eventhandler(element.sessionEnded);
+        GameControl.stopSession();
+
+        super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setGameRanges</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Filters the score grids on the selected game.
+    /// </summary>
+    public void setGameRanges()
+    {
+        DEVTutorialArcadeGame game = GameControl.parmGame();
+
+        topGameRange.value(queryValue(game));
+        myGameRange.value(queryValue(game));
+        BestScoreCtrl.value(DEVTutorialArcadeSession::bestScore(game));
+        LiveScoreCtrl.value(0);
+        GameNumCtrl.value(0);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>refreshScores</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Re-reads both score grids.
+    /// </summary>
+    public void refreshScores()
+    {
+        TopScores_ds.executeQuery();
+        MySessions_ds.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sessionStarted</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Subscribed to <c>DEVTutorialArcadeControl.onSessionStarted</c>: the game inserted a session record.
+    /// </summary>
+    public void sessionStarted(RecId _sessionRecId)
+    {
+        GameNumCtrl.value(DEVTutorialArcadeSession::find(_sessionRecId).GameNum);
+        LiveScoreCtrl.value(0);
+        MySessions_ds.executeQuery();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>scoreChanged</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Subscribed to <c>DEVTutorialArcadeControl.onScoreChanged</c>: the live score was written to the session record.
+    /// </summary>
+    public void scoreChanged(RecId _sessionRecId, int _score)
+    {
+        LiveScoreCtrl.value(_score);
+        MySessions_ds.research(true);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sessionEnded</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Subscribed to <c>DEVTutorialArcadeControl.onSessionEnded</c>: the result was saved.
+    /// </summary>
+    public void sessionEnded(RecId _sessionRecId, int _score, boolean _newBest)
+    {
+        DEVTutorialArcadeGame game = GameControl.parmGame();
+
+        LiveScoreCtrl.value(_score);
+        BestScoreCtrl.value(DEVTutorialArcadeSession::bestScore(game));
+        element.refreshScores();
+
+        if (_newBest)
+        {
+            info(strFmt("New personal best in %1: %2 points, saved in table DEVTutorialArcadeSession.", game, _score));
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+		<DataSources xmlns="" />
+		<DataControls xmlns="">
+			<Control>
+				<Name>StartGameButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            GameControl.startGame();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>PauseGameButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            GameControl.togglePause();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>StopGameButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            GameControl.stopGame();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>RefreshButton</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+
+            element.refreshScores();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>GameSelector</Name>
+				<Type>ComboBox</Type>
+				<Methods>
+					<Method>
+						<Name>modified</Name>
+						<Source><![CDATA[
+        public boolean modified()
+        {
+            boolean               ret  = super();
+            DEVTutorialArcadeGame game = this.selection();
+
+            GameControl.parmGame(game);
+            element.setGameRanges();
+            element.refreshScores();
+
+            return ret;
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+		</DataControls>
+		<Members xmlns="" />
+	</SourceCode>
+	<DataSources>
+		<AxFormDataSource xmlns="">
+			<Name>TopScores</Name>
+			<Table>DEVTutorialArcadeSession</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Details</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EndDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Game</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GameNum</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Score</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StartDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Status</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UserId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowDelete>No</AllowDelete>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+		<AxFormDataSource xmlns="">
+			<Name>MySessions</Name>
+			<Table>DEVTutorialArcadeSession</Table>
+			<Fields>
+				<AxFormDataSourceField>
+					<DataField>Details</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>EndDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Game</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>GameNum</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>RecId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Score</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>StartDateTime</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>Status</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>TableId</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>UserId</DataField>
+				</AxFormDataSourceField>
+			</Fields>
+			<ReferencedDataSources />
+			<AllowCreate>No</AllowCreate>
+			<AllowEdit>No</AllowEdit>
+			<DataSourceLinks />
+			<DerivedDataSources />
+		</AxFormDataSource>
+	</DataSources>
+	<Design>
+		<Caption xmlns="">X++ Arcade Games</Caption>
+		<Pattern xmlns="">Custom</Pattern>
+		<ViewEditMode xmlns="">Edit</ViewEditMode>
+		<Controls xmlns="">
+			<AxFormControl xmlns=""
+				i:type="AxFormActionPaneControl">
+				<Name>ActionPane</Name>
+				<Type>ActionPane</Type>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>GameButtonGroup</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>StartGameButton</Name>
+								<HelpText>X++ sets the GameCommand property; the game starts and calls the GameStarted command</HelpText>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Start game</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>PauseGameButton</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Pause / resume</Text>
+							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>StopGameButton</Name>
+								<HelpText>Ends the round; the game calls the GameOver command and the result is saved as Stopped</HelpText>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Stop game</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormButtonGroupControl">
+						<Name>ScoresButtonGroup</Name>
+						<Type>ButtonGroup</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>RefreshButton</Name>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>Refresh scores</Text>
+							</AxFormControl>
+						</Controls>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormGroupControl">
+				<Name>HeaderGroup</Name>
+				<Type>Group</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormComboBoxControl">
+						<Name>GameSelector</Name>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>Switching the game sets the GameId property of the control; a running round is saved as Stopped</HelpText>
+						<Type>ComboBox</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<EnumType>DEVTutorialArcadeGame</EnumType>
+						<Label>Game</Label>
+						<Items />
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormIntegerControl">
+						<Name>LiveScoreCtrl</Name>
+						<AllowEdit>No</AllowEdit>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>Sent by the game through the ScoreChanged command and written to the session record</HelpText>
+						<Type>Integer</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>Live score</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormIntegerControl">
+						<Name>GameNumCtrl</Name>
+						<AllowEdit>No</AllowEdit>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>Your round number for this game, read from DEVTutorialArcadeSession.GameNum of the record the game created</HelpText>
+						<Type>Integer</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>Game no.</Label>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormIntegerControl">
+						<Name>BestScoreCtrl</Name>
+						<AllowEdit>No</AllowEdit>
+						<AutoDeclaration>Yes</AutoDeclaration>
+						<HelpText>DEVTutorialArcadeSession::bestScore(); also sent to the game as the HighScore property</HelpText>
+						<Type>Integer</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Label>My best</Label>
+					</AxFormControl>
+				</Controls>
+				<Columns>4</Columns>
+			</AxFormControl>
+			<AxFormControl>
+				<Name>GameControl</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension>
+					<Name>DEVTutorialArcadeControl</Name>
+					<ExtensionComponents />
+					<ExtensionProperties>
+						<AxFormControlExtensionProperty>
+							<Name>game</Name>
+							<Type>Enum</Type>
+							<TypeName>DEVTutorialArcadeGame</TypeName>
+							<Value>Tank</Value>
+						</AxFormControlExtensionProperty>
+					</ExtensionProperties>
+				</FormControlExtension>
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormTabControl">
+				<Name>ScoresTab</Name>
+				<Type>Tab</Type>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<Controls>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>TopScoresPage</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>TopScoresGrid</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>TopScores_userName</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>userName</DataMethod>
+										<DataSource>TopScores</DataSource>
+										<Label>Player</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>TopScores_Score</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Score</DataField>
+										<DataSource>TopScores</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>TopScores_durationText</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>durationText</DataMethod>
+										<DataSource>TopScores</DataSource>
+										<Label>Play time</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateTimeControl">
+										<Name>TopScores_StartDateTime</Name>
+										<Type>DateTime</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>StartDateTime</DataField>
+										<DataSource>TopScores</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>TopScores_Details</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Details</DataField>
+										<DataSource>TopScores</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>TopScores</DataSource>
+								<Style>SimpleReadOnly</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>Top scores</Caption>
+					</AxFormControl>
+					<AxFormControl xmlns=""
+						i:type="AxFormTabPageControl">
+						<Name>MySessionsPage</Name>
+						<Type>TabPage</Type>
+						<FormControlExtension
+							i:nil="true" />
+						<Controls>
+							<AxFormControl xmlns=""
+								i:type="AxFormGridControl">
+								<Name>MySessionsGrid</Name>
+								<Type>Grid</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Controls>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>MySessions_GameNum</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>GameNum</DataField>
+										<DataSource>MySessions</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormDateTimeControl">
+										<Name>MySessions_StartDateTime</Name>
+										<Type>DateTime</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>StartDateTime</DataField>
+										<DataSource>MySessions</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormIntegerControl">
+										<Name>MySessions_Score</Name>
+										<Type>Integer</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Score</DataField>
+										<DataSource>MySessions</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormComboBoxControl">
+										<Name>MySessions_Status</Name>
+										<Type>ComboBox</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Status</DataField>
+										<DataSource>MySessions</DataSource>
+										<Items />
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MySessions_durationText</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataMethod>durationText</DataMethod>
+										<DataSource>MySessions</DataSource>
+										<Label>Play time</Label>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormInt64Control">
+										<Name>MySessions_RecId</Name>
+										<Type>Int64</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>RecId</DataField>
+										<DataSource>MySessions</DataSource>
+									</AxFormControl>
+									<AxFormControl xmlns=""
+										i:type="AxFormStringControl">
+										<Name>MySessions_Details</Name>
+										<Type>String</Type>
+										<FormControlExtension
+											i:nil="true" />
+										<DataField>Details</DataField>
+										<DataSource>MySessions</DataSource>
+									</AxFormControl>
+								</Controls>
+								<DataSource>MySessions</DataSource>
+								<Style>SimpleReadOnly</Style>
+							</AxFormControl>
+						</Controls>
+						<Caption>My sessions</Caption>
+					</AxFormControl>
+				</Controls>
+			</AxFormControl>
+		</Controls>
+	</Design>
+	<Parts />
+</AxForm>
