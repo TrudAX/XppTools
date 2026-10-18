@@ -24,6 +24,7 @@ This repository contains 3 D365FO models:
     - [-Create ledger journals using X++](#-create-ledger-journals-using-x)
     - [-Create ledger journal from Excel file](#-create-ledger-journal-from-excel-file)
     - [-Parallel batch processing in X++](#-parallel-batch-processing-in-x)
+    - [-X++ Arcade Games](#-x-arcade-games)
   - [DEVTutorialReports submodel](#devtutorialreports-submodel)
     - [-Sales Invoice report](#-sales-invoice-report)
   - [DEVExternalIntegration submodel](#devexternalintegration-submodel)
@@ -174,6 +175,12 @@ Class [**DEVReadFromFileExampleCreateJournal**](https://github.com/TrudAX/XppToo
 Classes [DEVTutorialBatchSingleThread](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVTutorialBatchSingleThread.xml), [DEVTutorialBatchMultipleThreadBase](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVTutorialBatchMultipleThreadBase.xml),  [DEVTutorialBatchMultipleThread](https://github.com/TrudAX/XppTools/blob/master/DEVTutorial/DEVTutorial/AxClass/DEVTutorialBatchMultipleThread.xml) that demonstrates how you can convert your existing batch job to multi-threaded.
 
 [A simple way to implement a parallel batch processing in X++](https://denistrunin.com/xpptutorial-batchmultithread/)
+
+### -X++ Arcade Games
+
+Form **DEVTutorialArcadeGames** (System administration > DEV Tutorial > X++ Arcade Games): retro games and a live-data quiz in an X++ extensible control
+
+![X++ Arcade Games elements](assets/DEVTutorialArcadeGames.png)
 
 ## DEVTutorialReports submodel
 
