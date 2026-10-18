@@ -33,6 +33,7 @@
 		<d2p1:string>PersonnelCore</d2p1:string>
 		<d2p1:string>PersonnelManagement</d2p1:string>
 		<d2p1:string>Project</d2p1:string>
+		<d2p1:string>Retail</d2p1:string>
 		<d2p1:string>SourceDocumentation</d2p1:string>
 		<d2p1:string>SourceDocumentationTypes</d2p1:string>
 		<d2p1:string>Subledger</d2p1:string>

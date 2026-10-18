@@ -132,9 +132,6 @@
 			<Moniker>BPErrorMethodLabelInSingleQuotes</Moniker>
 		</Rule>
 		<Rule>
-			<Moniker>BPErrorLabelIsText</Moniker>
-		</Rule>
-		<Rule>
 			<Moniker>BPErrorUnknownLabel</Moniker>
 		</Rule>
 		<Rule>
@@ -187,9 +184,6 @@
 		</Rule>
 		<Rule>
 			<Moniker>BPCheckEmptyLoop</Moniker>
-		</Rule>
-		<Rule>
-			<Moniker>BPCheckInsertMethodInLoop</Moniker>
 		</Rule>
 		<Rule>
 			<Moniker>BPCheckNestedLoopinCode</Moniker>
@@ -457,9 +451,6 @@
 		</Rule>
 		<Rule>
 			<Moniker>BPErrorLabelAndHelpAreEqual</Moniker>
-		</Rule>
-		<Rule>
-			<Moniker>BPErrorHelpIsText</Moniker>
 		</Rule>
 		<Rule>
 			<Moniker>BPErrorEnumSameLabelAndHelp</Moniker>
