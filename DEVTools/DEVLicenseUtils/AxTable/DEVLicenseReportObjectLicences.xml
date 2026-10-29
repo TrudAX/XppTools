@@ -50,12 +50,12 @@ public class DEVLicenseReportObjectLicences extends common
         // -------------------------
         // STEP 1: Best READ SKU per EntitlementObject
         // AccessLevel IN (1,2)
-        // ORDER BY EntitlementObject, Priority, SkuName
+        // ORDER BY EntitlementObject, Priority DESC, SkuName
         // First row per EntitlementObject wins.
         // -------------------------
         while select licensingAllEntitledPermissions
             order by licensingAllEntitledPermissions.EntitlementObject,
-                        licensingAllSkus.Priority,
+                        licensingAllSkus.Priority desc,
                         licensingAllSkus.SkuName
             where licensingAllEntitledPermissions.AccessLevel == 1
                 || licensingAllEntitledPermissions.AccessLevel == 2
@@ -224,7 +224,7 @@ public class DEVLicenseReportObjectLicences extends common
 			<Name>ReadLicense</Name>
 			<ExtendedDataType>Description</ExtendedDataType>
 			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
-			<Label>Read Lisense</Label>
+			<Label>Read License</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">
