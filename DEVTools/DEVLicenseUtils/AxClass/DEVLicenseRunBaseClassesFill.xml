@@ -25,7 +25,7 @@ public class DEVLicenseRunBaseClassesFill extends RunBaseBatch implements BatchR
     {
         DialogRunbase       dialog = super();
         ;
-        dlgNameFilter  = dialog.addFieldValue(extendedtypestr(Name), nameFilter, "Name filter", "Name fileter for menu items");
+        dlgNameFilter  = dialog.addFieldValue(extendedtypestr(Name), nameFilter, "Name filter", "Name filter for menu items");
         
         return dialog;
     }

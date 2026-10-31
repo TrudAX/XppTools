@@ -182,7 +182,7 @@ public class DEVLicenseReportUser extends common
 			i:type="AxTableFieldUtcDateTime">
 			<Name>LastLogonDate</Name>
 			<ExtendedDataType>TransDateTime</ExtendedDataType>
-			<HelpText>Uset last logon date from user log</HelpText>
+			<HelpText>User last logon date from user log</HelpText>
 			<Label>Last logon date</Label>
 		</AxTableField>
 		<AxTableField xmlns=""

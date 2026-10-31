@@ -224,7 +224,7 @@ public class DEVLicenseReportObjectLicences extends common
 			<Name>ReadLicense</Name>
 			<ExtendedDataType>Description</ExtendedDataType>
 			<IgnoreEDTRelation>Yes</IgnoreEDTRelation>
-			<Label>Read Lisense</Label>
+			<Label>Read License</Label>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldString">

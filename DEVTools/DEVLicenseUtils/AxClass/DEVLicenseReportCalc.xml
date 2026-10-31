@@ -50,7 +50,7 @@ public class DEVLicenseReportCalc extends RunBaseBatch implements BatchRetryable
         ;
         dlgUserId                 = dialog.addFieldValue(extendedtypestr(UserId), userId, "User(empty for all)", "User ID filter");
         dlgIsUseWriteLogOnly      = dialog.addFieldValue(extendedtypestr(NoYesId), isUseWriteLogOnly, "Use only write log", 
-                        "For Access calculation use write log only, ignore SysDatabaseLog and Table created/modifiedBy fields. This is recomended if you have write log data");
+                        "For Access calculation use write log only, ignore SysDatabaseLog and Table created/modifiedBy fields. This is recommended if you have write log data");
         
         
         dlgIsCalcRunBase          = dialog.addFieldValue(extendedtypestr(NoYesId), isCalcRunBase, "Calc RunBase links", "Calculate RunBase links");
