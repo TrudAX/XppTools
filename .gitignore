@@ -1,0 +1,27 @@
+# D365 F&O packages
+# C:\AOSService\PackagesLocalDirectory\<Package> is a junction to <Package> in this repo,
+# so VS and the build write straight into these folders.
+# Only source goes to Git:
+#   <Package>/Descriptor/      model descriptors
+#   <Package>/<Model>/         metadata (Ax* folders)
+# Everything else in a package folder is created by the build or deployment
+# (bin, XppMetadata, Resources, Reports, BuildModelResult.*, BuildProjectResult.*, *.xref ...).
+/DEVCommon/*
+/DEVTools/*
+/DEVTutorial/*
+!/DEVCommon/Descriptor/
+!/DEVTools/Descriptor/
+!/DEVTutorial/Descriptor/
+!/DEVCommon/DEV*/
+!/DEVTools/DEV*/
+!/DEVTutorial/DEV*/
+
+# Referenced third-party assemblies are kept; the compiled package assemblies are not
+!/DEVTutorial/[Bb]in/
+/DEVTutorial/[Bb]in/*
+!/DEVTutorial/[Bb]in/Renci.SshNet.dll
+
+# Visual Studio
+.vs/
+*.user
+*.suo
