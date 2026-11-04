@@ -129,7 +129,8 @@ class DEVIntegAzureStorageConnectionHelper
         {
             ShareDirectoryClient fileDirTo = rootDir.GetSubdirectoryClient(_archDir);      
 
-            if (!fileDirTo.Exists(tokenNull))
+            boolean isExists = fileDirTo.Exists(tokenNull);
+            if (! isExists)
             {
                 throw error(strFmt("Directory '%1' doesn't exist (Type %2)", _archDir, messageTypeId));
             }
@@ -205,7 +206,8 @@ class DEVIntegAzureStorageConnectionHelper
         ShareFileClient file = fileDir.GetFileClient(_fileRef.FileName);
 
         // Ensure that the file exists.
-        if (file.Exists(tokenNull))
+        boolean isExists = file.Exists(tokenNull);
+        if (isExists)
         {
             memoryStream = new System.IO.MemoryStream();
             ShareFileDownloadInfo download = file.Download(objNull, tokenNull);
@@ -265,7 +267,8 @@ class DEVIntegAzureStorageConnectionHelper
             {
                 ShareFileClient fileClient = fileDir.GetFileClient(item.Name);
                         
-                if (fileClient.Exists(tokenNull))
+                boolean isExists = fileClient.Exists(tokenNull);
+                if (isExists)
                 {
                     fileList.FileName    = fileClient.Name;
                     fileList.FolderName  = _folderName;

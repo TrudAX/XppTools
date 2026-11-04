@@ -183,7 +183,8 @@ class DEVIntegAzureBlobConnectionHelper
         BlobClient blobClient = blobContainer.GetBlobClient(blobName);
 
         // Ensure that the blob exists.
-        if (blobClient.Exists(tokenNull))
+        boolean isExists = blobClient.Exists(tokenNull);
+        if (isExists)
         {
             memoryStream = new System.IO.MemoryStream();
             BlobDownloadInfo download = blobClient.Download(tokenNull);
