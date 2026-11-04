@@ -3,16 +3,18 @@
 	<Name>DEVDocuExpImpJournalAzureConnector</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.File;
+using Azure.Storage.Files.Shares;
+using Azure.Storage.Files.Shares.Models;
 
 class DEVDocuExpImpJournalAzureConnector
 {
     DEVDocuExpImpJournalTable  journalTable;
-    CloudFileShare             share;
-    CloudFileDirectory         rootDir;
-    CloudFileDirectory         currentDir;
+    ShareClient                share;
+    ShareDirectoryClient       rootDir;
+    ShareDirectoryClient       currentDir;
 
+    System.Threading.CancellationToken  tokenNull;
+    System.Object                       objNull;
 }
 ]]></Declaration>
 		<Methods>
@@ -25,18 +27,18 @@ class DEVDocuExpImpJournalAzureConnector
 
         try
         {
-            CloudStorageAccount storageAccount    = CloudStorageAccount::Parse(journalName.AzureConnectionString);
-            CloudFileClient     fileClient        = storageAccount.CreateCloudFileClient();
-
-            share = fileClient.GetShareReference(journalName.AzureShareReference);
-            if (! share.Exists(null, null))
+            share = new ShareClient(journalName.AzureConnectionString, journalName.AzureShareReference);
+            boolean isExists;
+            isExists = share.Exists(tokenNull);
+            if (! isExists)
             {
                 throw error(strFmt("Share '%1' doesn't exists", journalName.AzureShareReference));
             }
-            rootDir = share.GetRootDirectoryReference();
-            if (! rootDir.Exists(null, null))
+            rootDir = share.GetRootDirectoryClient();
+            isExists = rootDir.Exists(tokenNull);
+            if (! isExists)
             {
-                throw error(strFmt("Root directory '%1' doesn't exists (Type %2)", journalName.AzureShareReference));
+                throw error(strFmt("Root directory '%1' doesn't exists", journalName.AzureShareReference));
             }
         }
         catch( Exception::CLRError )
@@ -82,11 +84,12 @@ class DEVDocuExpImpJournalAzureConnector
 			<Method>
 				<Name>getDirectory</Name>
 				<Source><![CDATA[
-    public CloudFileDirectory  getDirectory(FolderName  _folderName)
+    public ShareDirectoryClient  getDirectory(FolderName  _folderName)
     {
-        CloudFileDirectory fileDir = rootDir.GetDirectoryReference(_folderName);
+        ShareDirectoryClient fileDir = rootDir.GetSubdirectoryClient(_folderName);
 
-        if (! fileDir || ! fileDir.Exists(null, null))
+        boolean isExists = fileDir.Exists(tokenNull);
+        if (! isExists)
         {
             throw error(strFmt("Directory '%1' doesn't exists", _folderName));
         }
@@ -98,17 +101,21 @@ class DEVDocuExpImpJournalAzureConnector
 			<Method>
 				<Name>readFile</Name>
 				<Source><![CDATA[
-    public System.IO.MemoryStream  readFile(str _fileName,  CloudFileDirectory _fileDir = currentDir)
+    public System.IO.MemoryStream  readFile(str _fileName,  ShareDirectoryClient _fileDir = currentDir)
     {
         System.IO.MemoryStream memoryStream;
 
-        CloudFile file = _fileDir.GetFileReference(_fileName);
+        ShareFileClient file = _fileDir.GetFileClient(_fileName);
 
         // Ensure that the file exists.
-        if (file.Exists(null, null))
+        boolean isExists = file.Exists(tokenNull);
+        if (isExists)
         {
             memoryStream = new System.IO.MemoryStream();
-            file.DownloadToStream(memoryStream, null, null, null);
+            ShareFileDownloadInfo download = file.Download(objNull, tokenNull);
+            System.IO.Stream  downloadContent = download.Content;
+
+            downloadContent.CopyTo(memoryStream);
             memoryStream.Position = 0;
         }
 
