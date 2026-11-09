@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxEnum xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVSQLReaderType</Name>
+	<Help>How the query results are read from the database</Help>
+	<Label>Reader</Label>
+	<UseEnumValue>No</UseEnumValue>
+	<EnumValues>
+		<AxEnumValue>
+			<Name>ResultSet</Name>
+			<Label>ResultSet</Label>
+		</AxEnumValue>
+		<AxEnumValue>
+			<Name>NetReader</Name>
+			<Label>.NET reader</Label>
+			<Value>1</Value>
+		</AxEnumValue>
+	</EnumValues>
+</AxEnum>

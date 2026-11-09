@@ -3,17 +3,60 @@
 	<Name>DEVSQLQueryExecute</Name>
 	<SourceCode>
 		<Declaration><![CDATA[
+using System.Data.SqlClient;
+
 class DEVSQLQueryExecute
 {
+    // Without this limit ResultSet.getString cuts values at 999 characters and hangs the AOS thread on longer LOB values.
+    // Up to 100000 costs nothing, 1000000 makes every getString 8 times slower.
+    private const int ResultSetMaxFieldSize = 32000;
+    // Screen output goes through the HTML sanitizer and the browser, files don't
+    private const int ScreenMaxChars = 20000000;
+    private const int ExcelBorderMaxRows = 100000;
+    private const int ExcelMaxDataRows = 1048575;
+
+    private const int NetKindGeneral = 0;
+    private const int NetKindNumber = 1;
+    private const int NetKindDateTime = 2;
+    private const int NetKindDate = 3;
+    private const int NetKindBit = 4;
+    private const int NetKindBinary = 5;
+    private const int NetKindGuid = 6;
+    private const int NetKindDecimal = 7;
+
+    private const int MaxInfoMessages = 100;
+    // yyyy-MM-dd HH:mm:ss.fff, the text of a datetime column
+    private const int DateTimeTextLength = 23;
+    private const str DateTimeTextFormat = 'yyyy-MM-dd HH:mm:ss.fff';
+
+    private const int ColumnFormatNone = 0;
+    private const int ColumnFormatEnum = 1;
+    private const int ColumnFormatDateTime = 2;
+    private const int ColumnFormatDate = 3;
+
     DEVSQLExecuteParm        executeParm;
 
-    
-
-    boolean                 isRawOutput;
     DEVSQLQueryExecuteLog   queryExecuteLog;
 
-    TextBuffer              textBuffer;
+    System.IO.TextWriter    textWriter;
+    System.IO.StringWriter  screenWriter;
+    System.IO.MemoryStream  fileStream;
+    boolean                 isCsvOutput;
+    int                     rowsWritten;
+    int                     screenStatusPosition;
+    int                     infoMessageCount;
+    System.Diagnostics.Stopwatch executeTimer;
+
     DEVSQLFileWriterExcel   fileWriterExcel;
+    Map                     enumTypesMap;
+    Set                     enumColumnSet;
+    Set                     dateTimeColumnSet;
+    Set                     dateColumnSet;
+    container               tableNamesCon;
+
+    System.Globalization.CultureInfo invariantCulture;
+    int                     netColumnKind[];
+    int                     columnFormat[];
 
 }
 ]]></Declaration>
@@ -36,7 +79,7 @@ class DEVSQLQueryExecute
     {
         DEVSQLQueryExecute      queryExecute = new DEVSQLQueryExecute();
         queryExecute.parmExecuteParm(_executeParm);
-    
+
         return queryExecute;
     }
 
@@ -87,67 +130,12 @@ class DEVSQLQueryExecute
     public str execSQL()
     {
         str  res;
-       
-        str  resRow;
-        textBuffer = new TextBuffer();
 
         this.logBegin();
 
-        //str fileExt = conPeek(fileNameSplit(executeParm.Filename), 3);
-        //if (fileExt != '.html')
-        //{
-        //    isRawOutput = true;
-        //}
         if (executeParm.QueryExecuteMode == DEVSQLQueryExecuteMode::Select)
         {
-            if (executeParm.OutputType == DEVSQLOutputType::Excel)
-            {
-                fileWriterExcel = new DEVSQLFileWriterExcel();
-                fileWriterExcel.parmWorkSheetNameStr(executeParm.Filename);
-                this.doExecuteQueryResultExcel();
-            }
-            else
-            {
-                this.doExecuteQueryResult();
-            }
-            resRow = textBuffer.getText();
-            if ( isRawOutput)
-            {
-                res = resRow;
-            }
-            else
-            {
-                res = '<!DOCTYPE html>\n <html><body><table>' + resRow + '</table></body></html>';
-            }
-            //res = executeParm.SQLText;
-        
-            if (executeParm.OutputType == DEVSQLOutputType::HTML)
-            {
-                File::SendStringAsFileToUser(res, executeParm.getFilename());
-            }
-            if (executeParm.OutputType == DEVSQLOutputType::Excel)
-            {
-                fileWriterExcel.createExcelDocument();
-
-                fileWriterExcel.doExcelOutput('A1');
-                fileWriterExcel.excelMarkAsBorderAll();
-
-                /*
-                for(i = 1; i <= conLen(_typeCommentInfo); i++)
-                {
-                    [t, comment] = conPeek(_typeCommentInfo, i);
-                    fileWriterExcel.excelSetColumnFormat(i, t);
-                    if (comment)
-                    {
-
-                        this.excelSetCellComment(this.getStartRow(), i,
-                            comment);
-                    }
-                }
-                */
-
-                fileWriterExcel.finishOutput();
-            }
+            res = this.doExecuteSelect();
         }
         else
         {
@@ -165,7 +153,7 @@ class DEVSQLQueryExecute
                 }
 
                 this.doExecuteUpdate(executeParm.SQLText);
-                res = strFmt('Executed %1, %2', 
+                res = strFmt('Executed %1, %2',
                     DateTimeUtil::applyTimeZoneOffset(DateTimeUtil::getSystemDateTime(), DateTimeUtil::getUserPreferredTimeZone()),
                     curUserId());
 
@@ -186,6 +174,277 @@ class DEVSQLQueryExecute
 ]]></Source>
 			</Method>
 			<Method>
+				<Name>doExecuteSelect</Name>
+				<Source><![CDATA[
+    protected str doExecuteSelect()
+    {
+        boolean isNetReader = executeParm.ReaderType == DEVSQLReaderType::NetReader;
+
+        executeTimer = System.Diagnostics.Stopwatch::StartNew();
+        invariantCulture = System.Globalization.CultureInfo::InvariantCulture;
+
+        if (executeParm.OutputType == DEVSQLOutputType::Excel)
+        {
+            fileWriterExcel = new DEVSQLFileWriterExcel();
+            fileWriterExcel.parmWorkSheetNameStr(this.excelSheetName());
+
+            if (isNetReader)
+            {
+                this.doExecuteNet();
+            }
+            else
+            {
+                this.doExecuteQueryResultExcel();
+                fileWriterExcel.createExcelDocument();
+                fileWriterExcel.doExcelOutput('A1');
+            }
+
+            if (fileWriterExcel.getRowsCount() <= ExcelBorderMaxRows)
+            {
+                fileWriterExcel.excelMarkAsBorderAll();
+            }
+            rowsWritten = max(0, fileWriterExcel.getRowsCount() - 1);
+            this.sendFile(fileWriterExcel.finishOutputGetStream(), executeParm.getFilename());
+            return this.fileResultText();
+        }
+
+        this.textOutputBegin();
+        if (isNetReader)
+        {
+            this.doExecuteNet();
+        }
+        else
+        {
+            this.doExecuteQueryResult();
+        }
+        return this.textOutputEnd();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>sendFile</Name>
+				<Source><![CDATA[
+    protected void sendFile(System.IO.Stream _stream, Filename _fileName)
+    {
+        File::SendFileToUser(_stream, _fileName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fileResultText</Name>
+				<Source><![CDATA[
+    private str fileResultText()
+    {
+        return strFmt('<p>%1 rows written to %2, %3 sec</p>', rowsWritten, System.Net.WebUtility::HtmlEncode(executeParm.getFilename()), this.elapsedSeconds());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>elapsedSeconds</Name>
+				<Source><![CDATA[
+    private str elapsedSeconds()
+    {
+        int64 elapsedMs = executeTimer.ElapsedMilliseconds;
+
+        return num2Str(elapsedMs / 1000, 0, 1, 1, 0);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>excelSheetName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The file name as a valid Excel sheet name: no :\/?*[] characters and not longer than 31.
+    /// </summary>
+    private str excelSheetName()
+    {
+        str sheetName = subStr(strRem(executeParm.Filename, ':\\/?*[]'), 1, 31);
+
+        return sheetName ? sheetName : 'SQLResult';
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>textOutputBegin</Name>
+				<Source><![CDATA[
+    private void textOutputBegin()
+    {
+        isCsvOutput = executeParm.OutputType == DEVSQLOutputType::CSV;
+
+        if (executeParm.OutputType == DEVSQLOutputType::Screen)
+        {
+            screenWriter = new System.IO.StringWriter();
+            textWriter   = screenWriter;
+        }
+        else
+        {
+            fileStream = new System.IO.MemoryStream();
+            textWriter = new System.IO.StreamWriter(fileStream, System.Text.Encoding::get_UTF8());
+        }
+
+        if (! isCsvOutput)
+        {
+            textWriter.Write('<!DOCTYPE html>\n<html><head><meta charset="utf-8"></head><body>');
+            // the sanitizer of the HTML viewer removes the class attribute, on the screen the table is found by the control id
+            textWriter.Write('<style>table.devSqlResult,div[id$="_HtmlViewerResult"] table{border-collapse:collapse}');
+            textWriter.Write('table.devSqlResult td,table.devSqlResult th,div[id$="_HtmlViewerResult"] td,div[id$="_HtmlViewerResult"] th{border:1px solid gray;padding:1px}</style>');
+            if (screenWriter)
+            {
+                screenStatusPosition = screenWriter.GetStringBuilder().Length;
+            }
+            textWriter.Write('<table class="devSqlResult">');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>textOutputEnd</Name>
+				<Source><![CDATA[
+    private str textOutputEnd()
+    {
+        if (! isCsvOutput)
+        {
+            textWriter.Write('</table></body></html>');
+        }
+
+        if (screenWriter)
+        {
+            screenWriter.GetStringBuilder().Insert(screenStatusPosition, strFmt('<p>%1 rows, %2 sec</p>', rowsWritten, this.elapsedSeconds()));
+            return screenWriter.ToString();
+        }
+
+        textWriter.Flush();
+        this.sendFile(fileStream, executeParm.getFilename());
+        return this.fileResultText();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>textRowBegin</Name>
+				<Source><![CDATA[
+    private void textRowBegin()
+    {
+        if (! isCsvOutput)
+        {
+            textWriter.Write('<tr>');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>textRowEnd</Name>
+				<Source><![CDATA[
+    private void textRowEnd()
+    {
+        textWriter.Write(isCsvOutput ? '\r\n' : '</tr>');
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>textCell</Name>
+				<Source><![CDATA[
+    private void textCell(str _value, int _column, boolean _isHeader = false)
+    {
+        if (isCsvOutput)
+        {
+            System.String csvValue = _value;
+
+            if (_column > 1)
+            {
+                textWriter.Write(',');
+            }
+            textWriter.Write('"');
+            textWriter.Write(csvValue.Replace('"', '""'));
+            textWriter.Write('"');
+        }
+        else
+        {
+            textWriter.Write(_isHeader ? '<th>' : '<td>');
+            textWriter.Write(System.Net.WebUtility::HtmlEncode(_value));
+            textWriter.Write(_isHeader ? '</th>' : '</td>');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRowLimitReached</Name>
+				<Source><![CDATA[
+    private boolean isRowLimitReached(int _currentRow)
+    {
+        if (_currentRow > executeParm.MaxRows)
+        {
+            warning(strFmt("Exceeding the allowed number of lines %1", executeParm.MaxRows));
+            return true;
+        }
+
+        if (screenWriter && screenWriter.GetStringBuilder().Length > ScreenMaxChars)
+        {
+            warning(strFmt("Screen output stopped after %1 rows because of its size. Use the Excel, CSV or HTML output to get all rows", rowsWritten));
+            return true;
+        }
+
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>formatCellText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Applies the Format rules to the text of a value: enum as Label(value), datetime in the user time zone, date without time.
+    /// </summary>
+    private str formatCellText(int _column, str _text)
+    {
+        System.DateTime dateValue;
+        TransDateTime   userDateTime;
+        str             enumKey;
+
+        if (! _text)
+        {
+            return _text;
+        }
+
+        switch (columnFormat[_column])
+        {
+            case ColumnFormatEnum:
+                enumKey = strFmt('%1:%2', _column, _text);
+                return enumTypesMap.exists(enumKey) ? enumTypesMap.lookup(enumKey) : _text;
+
+            case ColumnFormatDate:
+                return subStr(_text, 1, 10);
+
+            case ColumnFormatDateTime:
+                if (strLen(_text) == DateTimeTextLength)
+                {
+                    dateValue = System.DateTime::ParseExact(_text, DateTimeTextFormat, invariantCulture);
+                    userDateTime = dateValue;
+                    if (userDateTime != utcDateTimeNull())
+                    {
+                        userDateTime = DateTimeUtil::applyTimeZoneOffset(userDateTime, DateTimeUtil::getUserPreferredTimeZone());
+                    }
+                    dateValue = userDateTime;
+                    return dateValue.ToString(DateTimeTextFormat, invariantCulture);
+                }
+                break;
+        }
+
+        return _text;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
 				<Name>doExecuteUpdate</Name>
 				<Source><![CDATA[
     public void doExecuteUpdate(str _strQuery)
@@ -193,7 +452,7 @@ class DEVSQLQueryExecute
         Connection  connection = new Connection();
         Statement   statement = connection.createStatement();
         SqlStatementExecutePermission permission;
-                     
+
         permission = new SqlStatementExecutePermission(_strQuery);
         permission.assert();
 
@@ -212,10 +471,12 @@ class DEVSQLQueryExecute
         Statement   statement = connection.createStatement();
         SqlStatementExecutePermission permission;
         ResultSet resultSet;
-          
-           
+
+
         permission = new SqlStatementExecutePermission(_strQuery);
         permission.assert();
+
+        statement.setMaxFieldSize(ResultSetMaxFieldSize);
 
         Map paramMap = SqlParams::create();
         resultSet = statement.executeQueryWithParameters(_strQuery, paramMap);
@@ -226,24 +487,67 @@ class DEVSQLQueryExecute
 ]]></Source>
 			</Method>
 			<Method>
-				<Name>addResultRow</Name>
+				<Name>initColumnFormats</Name>
 				<Source><![CDATA[
-    void  addResultRow(container _row, boolean _isHeader = false)
+    private void initColumnFormats()
     {
-        int i;
-        textBuffer.appendText('<tr style="border: 1px  solid gray; padding: 1px;">');
-        for (i = 1; i <= conLen(_row); i++)
+        enumTypesMap        = new Map(Types::String, Types::String);
+        enumColumnSet       = new Set(Types::Integer);
+        dateTimeColumnSet   = new Set(Types::Integer);
+        dateColumnSet       = new Set(Types::Integer);
+
+        if (executeParm.FormatParameters)
         {
-            if (_isHeader)
+            tableNamesCon = str2con_RU(strReplace(executeParm.FormatParameters, ' ', ''), ',');
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initColumnFormat</Name>
+				<Source><![CDATA[
+    private void initColumnFormat(int _column, str _columnName)
+    {
+        DictTable   dictTable;
+        DictField   dictField;
+        DictEnum    dictEnum;
+        int         curTab, j;
+
+        for (curTab = 1; curTab <= conLen(tableNamesCon); curTab++)
+        {
+            dictTable = new DictTable(tableName2Id(conPeek(tableNamesCon, curTab)));
+            if (dictTable)
             {
-                textBuffer.appendText(strFmt('<th style="border: 1px  solid gray; padding: 1px;">%1</th>', conPeek(_row, i)));
-            }
-            else
-            {
-                textBuffer.appendText(strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', conPeek(_row, i)));
+                FieldId  fieldId = dictTable.fieldName2Id(_columnName);
+                if (fieldId)
+                {
+                    dictField = dictTable.fieldObject(fieldId);
+                    if (dictField.baseType() == Types::Enum && dictField.enumId())
+                    {
+                        enumColumnSet.add(_column);
+                        dictEnum = new DictEnum(dictField.enumId());
+                        for (j = 0; j < dictEnum.values(); j++)  //CustInvoiceJour.SalesType starts from 0
+                        {
+                            enumTypesMap.insert(strFmt('%1:%2', _column, dictEnum.index2Value(j)),
+                                strFmt('%1(%2)', dictEnum.index2Label(j), dictEnum.index2Value(j)));
+                        }
+                        info(strFmt("Enum transformation %1.%2 is applied to %3(%4) field",
+                            dictTable.name(), dictField.name(), _columnName, _column));
+                    }
+                    if (dictField.baseType() == Types::UtcDateTime)
+                    {
+                        dateTimeColumnSet.add(_column);
+                        info(strFmt("DateTime transformation %1.%2 is applied to %3(%4) field",
+                            dictTable.name(), dictField.name(), _columnName, _column));
+                    }
+                    if (dictField.baseType() == Types::Date)
+                    {
+                        dateColumnSet.add(_column);
+                    }
+                }
             }
         }
-        textBuffer.appendText('</tr>');
     }
 
 ]]></Source>
@@ -253,7 +557,7 @@ class DEVSQLQueryExecute
 				<Source><![CDATA[
     public void doExecuteQueryResultExcel()
     {
-        int         i, j;
+        int         i;
         container   expectedSubResult;
         ResultSet   resultSet;
         ResultSetMetaData  resultSetMetaData;
@@ -261,18 +565,9 @@ class DEVSQLQueryExecute
         int         maxColumnCount;
         int         currentRow;
         Map         columnTypesMap = new Map(Types::Integer, Types::Integer);
-        Map         enumTypesMap = new Map(Types::String, Types::String);
-        Set         enumColumnSet = new Set(Types::Integer);
-        Set         dateTimeColumnSet = new Set(Types::Integer);
-        Set         dateColumnSet = new Set(Types::Integer);
-        container   tableNamesCon;
-        int curTab;
         ;
 
-        if (executeParm.FormatParameters)
-        {
-            tableNamesCon = str2con_RU(strReplace(executeParm.FormatParameters, ' ', ''), ',');
-        }
+        this.initColumnFormats();
         resultSet = this.getResultSet(executeParm.SQLText);
         resultSetMetaData = resultSet.getMetaData();
 
@@ -293,54 +588,14 @@ class DEVSQLQueryExecute
                     str  columnName = resultSetMetaData.getColumnName(i);
                     expectedSubResult += columnName;
 
-                    DictTable   dictTable;
-                    DictField   dictField;
-                    DictEnum    dictEnum;
-                    for(curTab = 1; curTab <= conLen(tableNamesCon); curTab++)
-                    {
-                        dictTable = new DictTable(tableName2Id(conPeek(tableNamesCon, curTab)));
-                        if (dictTable)
-                        {
-                            FieldId  fieldId = dictTable.fieldName2Id(columnName);
-                            if (fieldId)
-                            {
-                                dictField = dictTable.fieldObject(fieldId);
-                                if (dictField.baseType() == Types::Enum && dictField.enumId())
-                                {
-                                    enumColumnSet.add(i);
-                                    dictEnum = new DictEnum(dictField.enumId());
-                                    for (j = 0; j < dictEnum.values(); j++)  //CustInvoiceJour.SalesType starts from 0
-                                    {
-                                        enumTypesMap.insert(strFmt('%1:%2',i, dictEnum.index2Value(j)),  dictEnum.index2Label(j));
-                                    }
-                                    info(strFmt("Enum transformation %1.%2 is applied to %3(%4) field",
-                                        dictTable.name(), dictField.name(), columnName, i));
-                                }
-                                if (dictField.baseType() == Types::UtcDateTime)
-                                {
-                                    dateTimeColumnSet.add(i);
-                                    info(strFmt("DateTime transformation %1.%2 is applied to %3(%4) field",
-                                        dictTable.name(), dictField.name(), columnName, i));
-                                }
-                                if (dictField.baseType() == Types::Date)
-                                {
-                                    dateColumnSet.add(i);
-                                    //info(strFmt("DateTime transformation %1.%2 is applied to %3(%4) field",
-                                    //    dictTable.name(), dictField.name(), columnName, i));
-                                }
-                            }
-                        }
-                    }
-
-                    //info(strFmt("Name:%1, Types:%2", resultSetMetaData.getColumnName(i), resultSetMetaData.getColumnType(i)));
+                    this.initColumnFormat(i, columnName);
 
                     columnTypesMap.insert(i, resultSetMetaData.getColumnType(i));
                 }
-                this.addResultRow(expectedSubResult, true);
-                
+
                 fileWriterExcel.addContainerLine(expectedSubResult);
                 fileWriterExcel.markRowAsBold();
-                
+
                 isFirstRow = false;
 
                 maxColumnCount = resultSetMetaData.getColumnCount();
@@ -358,7 +613,14 @@ class DEVSQLQueryExecute
                         expectedSubResult += realTmp;
                         break;
                     case Types::Integer:
-                        int intTmp = resultSet.getInt(i);
+                        // date, time, xml and sql_variant columns also report Types::Integer, getInt can't read them
+                        sTmp = resultSet.getString(i);
+                        if (sTmp && sTmp != int2Str(str2Int(sTmp)))
+                        {
+                            expectedSubResult += sTmp;
+                            break;
+                        }
+                        int intTmp = str2Int(sTmp);
                         if (enumColumnSet.in(i))
                         {
                             if (enumTypesMap.exists(strFmt('%1:%2',i, intTmp)))
@@ -405,11 +667,12 @@ class DEVSQLQueryExecute
                         sTmp = resultSet.getString(i);
                         expectedSubResult += sTmp;
                 }
-                
+
             }
             fileWriterExcel.addContainerLine(expectedSubResult);
 
         }
+        resultSet.close();
     }
 
 ]]></Source>
@@ -420,73 +683,458 @@ class DEVSQLQueryExecute
     public void doExecuteQueryResult()
     {
         int         i;
-        container   expectedSubResult;
         ResultSet   resultSet;
         ResultSetMetaData  resultSetMetaData;
         boolean     isFirstRow = true;
         int         maxColumnCount;
-        int         currentRow;        
+        int         currentRow;
+        str         sTmp;
+        boolean     isValueCutWarned;
+        str         columnNameTmp;
         ;
 
+        this.initColumnFormats();
         resultSet = this.getResultSet(executeParm.SQLText);
         resultSetMetaData = resultSet.getMetaData();
 
         while(resultSet.next())
         {
             currentRow++;
-            if (currentRow > executeParm.MaxRows)
+            if (this.isRowLimitReached(currentRow))
             {
-                warning(strFmt("Exceeding the allowed number of lines %1", executeParm.MaxRows));
                 break;
             }
-            if (isRawOutput)
+            //print row headers, the metadata is empty before the first next()
+            if (isFirstRow)
             {
-                if (isFirstRow)
-                {
-                    isFirstRow = false;
-                    maxColumnCount = resultSetMetaData.getColumnCount();
-                }
-                else
-                {
-                    textBuffer.appendText('\n');
-                }
+                maxColumnCount = resultSetMetaData.getColumnCount();
+
+                this.textRowBegin();
                 for ( i = 1; i <= maxColumnCount; i++)
                 {
-                    str     sTmp = resultSet.getString(i);
-                    if (i > i)
-                    {
-                        textBuffer.appendText(',');
-                    }
-                    textBuffer.appendText(strFmt('%1', sTmp));
+                    columnNameTmp = resultSetMetaData.getColumnName(i);
+                    this.initColumnFormat(i, columnNameTmp);
+                    columnFormat[i] = this.columnFormatOf(i);
+                    this.textCell(columnNameTmp, i, true);
                 }
+                this.textRowEnd();
+
+                isFirstRow = false;
             }
-            else
+
+            this.textRowBegin();
+            for ( i = 1; i <= maxColumnCount; i++)
             {
-                //print row headers
-                if (isFirstRow)
+                sTmp = resultSet.getString(i);
+                if (! isValueCutWarned && strLen(sTmp) >= ResultSetMaxFieldSize - 1)
                 {
-                    expectedSubResult = connull();
-                    for ( i = 1; i <= resultSetMetaData.getColumnCount(); i++)
-                    {
-                        expectedSubResult += resultSetMetaData.getColumnName(i);
-                    }
-                    this.addResultRow(expectedSubResult, true);
-
-                    isFirstRow = false;
-
-                    maxColumnCount = resultSetMetaData.getColumnCount();
+                    warning(strFmt("Values longer than %1 characters are cut. Use the .NET reader to get the full values", ResultSetMaxFieldSize - 1));
+                    isValueCutWarned = true;
                 }
-                textBuffer.appendText('<tr style="border: 1px  solid gray; padding: 1px;">');
-                for ( i = 1; i <= maxColumnCount; i++)
-                {
-                    //int colType = resultSetMetaData.getColumnType(i);
-                    //Types t = colType;
-                    str     sTmp = resultSet.getString(i);
-
-                    textBuffer.appendText(strFmt('<td style="border: 1px  solid gray; padding: 1px;">%1</td>', sTmp));
-                }
-                textBuffer.appendText('</tr>');
+                this.textCell(columnFormat[i] ? this.formatCellText(i, sTmp) : sTmp, i);
             }
+            this.textRowEnd();
+            rowsWritten++;
+        }
+        resultSet.close();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>netConnectionString</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The connection string of the application database, primary replica.
+    /// </summary>
+    /// <remarks>
+    /// SqlSystem::managedConnectionString() is marked InternalUseOnly outside of the Microsoft models, DMFParameters is public.
+    /// It can point to a read-only replica, ReadWrite gives the same data as ResultSet.
+    /// </remarks>
+    private str netConnectionString()
+    {
+        SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder(DMFParameters::getReadOnlyConnectionString());
+
+        builder.ApplicationIntent = ApplicationIntent::ReadWrite;
+
+        return builder.ConnectionString;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>doExecuteNet</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Reads the query with SqlDataReader. It is a separate session, outside of the current ttsbegin.
+    /// </summary>
+    private void doExecuteNet()
+    {
+        SqlException sqlException;
+
+        try
+        {
+            using (SqlConnection connection = new SqlConnection(this.netConnectionString()))
+            {
+                connection.Open();
+                connection.InfoMessage += eventhandler(this.onNetInfoMessage);
+                using (SqlCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = executeParm.SQLText;
+                    command.CommandTimeout = max(0, executeParm.QueryTimeout);
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (executeParm.OutputType == DEVSQLOutputType::Excel)
+                        {
+                            this.initNetColumns(reader);
+                            if (this.writeNetExcel(command, reader) && reader.NextResult())
+                            {
+                                warning("The query returned more than one result. The Excel output contains only the first one, use the Screen, CSV or HTML output to get all of them");
+                            }
+                        }
+                        else
+                        {
+                            this.writeNetResults(command, reader);
+                        }
+                    }
+                }
+            }
+        }
+        catch (sqlException)
+        {
+            throw error(sqlException.Message);
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>onNetInfoMessage</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// PRINT statements and informational messages of the SQL server.
+    /// </summary>
+    private void onNetInfoMessage(System.Object _sender, SqlInfoMessageEventArgs _args)
+    {
+        infoMessageCount++;
+
+        if (infoMessageCount <= MaxInfoMessages)
+        {
+            info(_args.Message);
+        }
+        else if (infoMessageCount == MaxInfoMessages + 1)
+        {
+            info(strFmt("Only the first %1 SQL messages are shown", MaxInfoMessages));
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeNetResults</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Writes all results of the query, one after another.
+    /// </summary>
+    private void writeNetResults(SqlCommand _command, SqlDataReader _reader)
+    {
+        boolean isFirstResult = true;
+
+        do
+        {
+            if (_reader.FieldCount)
+            {
+                if (! isFirstResult)
+                {
+                    textWriter.Write(isCsvOutput ? '\r\n' : '</table><br/><table class="devSqlResult">');
+                }
+                isFirstResult = false;
+
+                this.initNetColumns(_reader);
+                if (! this.writeNetText(_command, _reader))
+                {
+                    return;
+                }
+            }
+        }
+        while (_reader.NextResult());
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initNetColumns</Name>
+				<Source><![CDATA[
+    private void initNetColumns(SqlDataReader _reader)
+    {
+        int columnCount = _reader.FieldCount;
+        int i;
+        str typeName;
+
+        for (i = 1; i <= columnCount; i++)
+        {
+            typeName = strLwr(_reader.GetDataTypeName(i - 1));
+            switch (typeName)
+            {
+                case 'tinyint', 'smallint', 'int', 'money', 'smallmoney', 'float', 'real':
+                    netColumnKind[i] = NetKindNumber;
+                    break;
+                case 'decimal', 'numeric':
+                    netColumnKind[i] = NetKindDecimal;
+                    break;
+                case 'datetime', 'datetime2', 'smalldatetime':
+                    netColumnKind[i] = NetKindDateTime;
+                    break;
+                case 'date':
+                    netColumnKind[i] = NetKindDate;
+                    break;
+                case 'bit':
+                    netColumnKind[i] = NetKindBit;
+                    break;
+                case 'binary', 'varbinary', 'image', 'timestamp':
+                    netColumnKind[i] = NetKindBinary;
+                    break;
+                case 'uniqueidentifier':
+                    netColumnKind[i] = NetKindGuid;
+                    break;
+                default:
+                    netColumnKind[i] = NetKindGeneral;
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>netCellText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The value as text, in the same format as ResultSet.getString.
+    /// </summary>
+    private str netCellText(SqlDataReader _reader, int _ordinal)
+    {
+        System.Object   value;
+        System.DateTime dateValue;
+        System.String   textValue;
+
+        if (_reader.IsDBNull(_ordinal))
+        {
+            return '';
+        }
+
+        switch (netColumnKind[_ordinal + 1])
+        {
+            case NetKindDecimal:
+                // numeric(38,x) values can be too large for System.Decimal
+                System.Data.SqlTypes.SqlDecimal decimalValue = _reader.GetSqlDecimal(_ordinal);
+                return decimalValue.ToString();
+
+            case NetKindDateTime:
+                dateValue = _reader.GetDateTime(_ordinal);
+                return dateValue.ToString(DateTimeTextFormat, invariantCulture);
+
+            case NetKindDate:
+                dateValue = _reader.GetDateTime(_ordinal);
+                return dateValue.ToString('yyyy-MM-dd', invariantCulture);
+
+            case NetKindBit:
+                return _reader.GetBoolean(_ordinal) ? '1' : '0';
+
+            case NetKindBinary:
+                System.Byte[] bytes = _reader.GetValue(_ordinal);
+                textValue = System.BitConverter::ToString(bytes);
+                return textValue.Replace('-', '');
+
+            case NetKindGuid:
+                value = _reader.GetValue(_ordinal);
+                textValue = value.ToString();
+                return textValue.ToUpperInvariant();
+        }
+
+        value = _reader.GetValue(_ordinal);
+        return System.Convert::ToString(value, invariantCulture);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeNetText</Name>
+				<Source><![CDATA[
+    /// <returns>false if the output was stopped by a limit.</returns>
+    private boolean writeNetText(SqlCommand _command, SqlDataReader _reader)
+    {
+        int columnCount = _reader.FieldCount;
+        int i;
+        int currentRow;
+        str columnName;
+        str cellText;
+
+        this.initColumnFormats();
+
+        this.textRowBegin();
+        for (i = 1; i <= columnCount; i++)
+        {
+            columnName = _reader.GetName(i - 1);
+            this.initColumnFormat(i, columnName);
+            columnFormat[i] = this.columnFormatOf(i);
+            this.textCell(columnName, i, true);
+        }
+        this.textRowEnd();
+
+        while (_reader.Read())
+        {
+            currentRow++;
+            if (this.isRowLimitReached(currentRow))
+            {
+                // without Cancel the reader reads all remaining rows when it is closed
+                _command.Cancel();
+                return false;
+            }
+
+            this.textRowBegin();
+            for (i = 1; i <= columnCount; i++)
+            {
+                cellText = this.netCellText(_reader, i - 1);
+                this.textCell(columnFormat[i] ? this.formatCellText(i, cellText) : cellText, i);
+            }
+            this.textRowEnd();
+            rowsWritten++;
+        }
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeNetExcel</Name>
+				<Source><![CDATA[
+    /// <returns>false if the output was stopped by a limit.</returns>
+    private boolean writeNetExcel(SqlCommand _command, SqlDataReader _reader)
+    {
+        int columnCount = _reader.FieldCount;
+        int i;
+        int currentRow;
+        str columnName;
+        boolean isStopped;
+
+        this.initColumnFormats();
+        fileWriterExcel.beginDirectOutput();
+
+        fileWriterExcel.addDirectRow();
+        for (i = 1; i <= columnCount; i++)
+        {
+            columnName = _reader.GetName(i - 1);
+            this.initColumnFormat(i, columnName);
+            columnFormat[i] = this.columnFormatOf(i);
+            fileWriterExcel.setDirectCell(i, columnName);
+        }
+        fileWriterExcel.markRowAsBold();
+
+        while (_reader.Read())
+        {
+            currentRow++;
+            if (currentRow > ExcelMaxDataRows)
+            {
+                warning(strFmt("Excel output stopped after %1 rows, the maximum for a worksheet. Use the CSV output to get all rows", ExcelMaxDataRows));
+                isStopped = true;
+                break;
+            }
+            if (this.isRowLimitReached(currentRow))
+            {
+                isStopped = true;
+                break;
+            }
+
+            fileWriterExcel.addDirectRow();
+            for (i = 1; i <= columnCount; i++)
+            {
+                this.writeNetExcelCell(_reader, i);
+            }
+        }
+
+        if (isStopped)
+        {
+            _command.Cancel();
+        }
+
+        fileWriterExcel.endDirectOutput();
+
+        return ! isStopped;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>columnFormatOf</Name>
+				<Source><![CDATA[
+    private int columnFormatOf(int _column)
+    {
+        if (enumColumnSet.in(_column))
+        {
+            return ColumnFormatEnum;
+        }
+        if (dateTimeColumnSet.in(_column))
+        {
+            return ColumnFormatDateTime;
+        }
+        if (dateColumnSet.in(_column))
+        {
+            return ColumnFormatDate;
+        }
+        return ColumnFormatNone;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeNetExcelCell</Name>
+				<Source><![CDATA[
+    private void writeNetExcelCell(SqlDataReader _reader, int _column)
+    {
+        int ordinal = _column - 1;
+
+        if (_reader.IsDBNull(ordinal))
+        {
+            return;
+        }
+
+        switch (columnFormat[_column])
+        {
+            case ColumnFormatEnum:
+                str enumKey = strFmt('%1:%2', _column, System.Convert::ToInt32(_reader.GetValue(ordinal)));
+                fileWriterExcel.setDirectCell(_column, enumTypesMap.exists(enumKey) ? enumTypesMap.lookup(enumKey) : this.netCellText(_reader, ordinal));
+                return;
+
+            case ColumnFormatDateTime:
+                TransDateTime  tdt = _reader.GetDateTime(ordinal);
+                if (tdt != utcDateTimeNull())
+                {
+                    tdt = DateTimeUtil::applyTimeZoneOffset(tdt, DateTimeUtil::getUserPreferredTimeZone());
+                }
+                fileWriterExcel.setDirectCell(_column, tdt);
+                return;
+
+            case ColumnFormatDate:
+                TransDateTime  dateAsDateTime = _reader.GetDateTime(ordinal);
+                fileWriterExcel.setDirectCell(_column, DateTimeUtil::date(dateAsDateTime));
+                return;
+        }
+
+        if (netColumnKind[_column] == NetKindDecimal)
+        {
+            System.Data.SqlTypes.SqlDecimal decimalValue = _reader.GetSqlDecimal(ordinal);
+            System.Object doubleValue = decimalValue.ToDouble();
+
+            fileWriterExcel.setDirectCellObject(_column, doubleValue);
+        }
+        else if (netColumnKind[_column] == NetKindNumber)
+        {
+            fileWriterExcel.setDirectCellObject(_column, _reader.GetValue(ordinal));
+        }
+        else
+        {
+            fileWriterExcel.setDirectCell(_column, this.netCellText(_reader, ordinal));
         }
     }
 

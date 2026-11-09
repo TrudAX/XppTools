@@ -10,6 +10,9 @@ using OfficeOpenXml.Table;
 class DEVSQLFileWriterExcel
 {
     public const str ExcelFileMimeType = 'application/vnd.ms-excel';
+    // Excel can't open a file with a longer value in a cell
+    private const int CellMaxLength = 32767;
+    private const int AutoFitMaxRows = 1000;
 
     container       data;
     ExcelPackage    package;
@@ -17,6 +20,7 @@ class DEVSQLFileWriterExcel
 
     int                 columnsColum;
     int                 rowsCount;
+    int                 truncatedCells;
 
     container           boldRows;
 
@@ -278,26 +282,6 @@ class DEVSQLFileWriterExcel
         int                         i, j;
         container                   dataLine;
 
-        void fillCellData(anytype _value)
-        {
-            int dataRow = i + startRow - 1;
-            int dataCol = j + startColumn - 1;
-            OfficeOpenXml.ExcelRange    currCell;
-            ;
-            currCell = excelWorksheet.Cells.get_Item(dataRow, dataCol);
-
-            currCell.Value = CLRInterop::getObjectForAnyType(_value);
-            
-            switch(typeOf(_value))
-            {
-                case Types::Date:
-                case Types::UtcDateTime:
-                    this.excelSetRangeFormat(currCell, typeOf(_value));
-                    break;
-            }
-            
-        }
-
         startRow       = startCell.Start.Row;
         startColumn    = startCell.Start.Column;
 
@@ -306,10 +290,102 @@ class DEVSQLFileWriterExcel
             dataLine = conPeek(data, i);
             for(j = 1; j <= conLen(dataLine); j++)
             {
-                fillCellData(conPeek(dataLine, j));
-                
+                this.writeCell(i + startRow - 1, j + startColumn - 1, conPeek(dataLine, j));
             }
         }
+        this.formatRows();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>writeCell</Name>
+				<Source><![CDATA[
+    private void writeCell(int _row, int _column, anytype _value)
+    {
+        OfficeOpenXml.ExcelRange    currCell = excelWorksheet.Cells.get_Item(_row, _column);
+        Types                       valueType = typeOf(_value);
+
+        if (valueType == Types::String)
+        {
+            str textValue = _value;
+
+            if (strLen(textValue) > CellMaxLength)
+            {
+                textValue = subStr(textValue, 1, CellMaxLength);
+                truncatedCells++;
+            }
+            currCell.Value = textValue;
+            return;
+        }
+
+        currCell.Value = CLRInterop::getObjectForAnyType(_value);
+
+        switch (valueType)
+        {
+            case Types::Date:
+            case Types::UtcDateTime:
+                this.excelSetRangeFormat(currCell, valueType);
+                break;
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>beginDirectOutput</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Starts the output that writes cells to the sheet directly instead of collecting the rows in a container.
+    /// </summary>
+    public void beginDirectOutput()
+    {
+        this.createExcelDocument();
+        startRow    = 1;
+        startColumn = 1;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>addDirectRow</Name>
+				<Source><![CDATA[
+    public void addDirectRow()
+    {
+        rowsCount++;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDirectCell</Name>
+				<Source><![CDATA[
+    public void setDirectCell(int _column, anytype _value)
+    {
+        columnsColum = max(columnsColum, _column);
+        this.writeCell(rowsCount, _column, _value);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setDirectCellObject</Name>
+				<Source><![CDATA[
+    public void setDirectCellObject(int _column, System.Object _value)
+    {
+        OfficeOpenXml.ExcelRange    currCell = excelWorksheet.Cells.get_Item(rowsCount, _column);
+
+        columnsColum   = max(columnsColum, _column);
+        currCell.Value = _value;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>endDirectOutput</Name>
+				<Source><![CDATA[
+    public void endDirectOutput()
+    {
         this.formatRows();
     }
 
@@ -350,7 +426,14 @@ class DEVSQLFileWriterExcel
     {
         OfficeOpenXml.ExcelRange                rngCell;
 
-        rngCell = excelWorksheet.Cells;
+        if (columnsColum && rowsCount > AutoFitMaxRows)
+        {
+            rngCell = excelWorksheet.Cells.get_Item(startRow, startColumn, startRow + AutoFitMaxRows - 1, startColumn + columnsColum - 1);
+        }
+        else
+        {
+            rngCell = excelWorksheet.Cells;
+        }
         rngCell.AutoFitColumns();
     }
 
@@ -362,6 +445,10 @@ class DEVSQLFileWriterExcel
     public System.IO.MemoryStream finishOutputGetStream()
     {
         this.formatColumWidth();
+        if (truncatedCells)
+        {
+            warning(strFmt("%1 values were cut to %2 characters, the maximum for an Excel cell. Use the CSV output to get the full values", truncatedCells, CellMaxLength));
+        }
         //DocuFileSaveResult saveResult = DocuFileSave::promptForSaveLocation("@ApplicationPlatform:OfficeDefaultWorkbookFileName", "xlsx", null, "Testing excel export");
         System.IO.MemoryStream memoryStream = new System.IO.MemoryStream();
         package.SaveAs(memoryStream);

@@ -72,7 +72,8 @@ public class DEVSQLQueryExecute extends FormRun
         helpText += '\n\n';
         helpText += 'Use qs.plan_handle to get "plan ID" value\n';
 
-        helpText += '\n--Use Format field to specify tables(separated by ,) to format the Excel output(Enum, DateTime conversion) for all fields in this table\n';
+        helpText += '\n--Reader: ResultSet is the default, it cuts values longer than 31999 characters. The .NET reader is much faster, reads the full values and also returns all results and PRINT messages. Use it for large outputs. Timeout is used only by the .NET reader\n';
+        helpText += '\n--Use Format field to specify tables(separated by ,) to format the output(Enum as Label(value), DateTime in the user time zone) for all fields in this table\n';
 
         helpText += '\n--Database size\n';
         helpText += 'select o.name, max(s.row_count) AS \'Rows\',\n';
@@ -237,6 +238,12 @@ public class DEVSQLQueryExecute extends FormRun
 					<DataField>RecId</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
+					<DataField>QueryTimeout</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
+					<DataField>ReaderType</DataField>
+				</AxFormDataSourceField>
+				<AxFormDataSourceField>
 					<DataField>SQLResults</DataField>
 				</AxFormDataSourceField>
 				<AxFormDataSourceField>
@@ -381,6 +388,16 @@ public class DEVSQLQueryExecute extends FormRun
 													</AxFormControl>
 													<AxFormControl xmlns=""
 														i:type="AxFormComboBoxControl">
+														<Name>Parameters_ReaderType</Name>
+														<Type>ComboBox</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>ReaderType</DataField>
+														<DataSource>ExecuteParm</DataSource>
+														<Items />
+													</AxFormControl>
+													<AxFormControl xmlns=""
+														i:type="AxFormComboBoxControl">
 														<Name>Parameters_OutputType</Name>
 														<Type>ComboBox</Type>
 														<FormControlExtension
@@ -399,6 +416,15 @@ public class DEVSQLQueryExecute extends FormRun
 														<DataSource>ExecuteParm</DataSource>
 													</AxFormControl>
 													<AxFormControl xmlns=""
+														i:type="AxFormIntegerControl">
+														<Name>Parameters_QueryTimeout</Name>
+														<Type>Integer</Type>
+														<FormControlExtension
+															i:nil="true" />
+														<DataField>QueryTimeout</DataField>
+														<DataSource>ExecuteParm</DataSource>
+													</AxFormControl>
+													<AxFormControl xmlns=""
 														i:type="AxFormStringControl">
 														<Name>Parameters_FormatParameters</Name>
 														<Type>String</Type>
@@ -408,7 +434,7 @@ public class DEVSQLQueryExecute extends FormRun
 														<DataSource>ExecuteParm</DataSource>
 													</AxFormControl>
 												</Controls>
-												<Columns>5</Columns>
+												<Columns>7</Columns>
 												<Caption>Parameters</Caption>
 												<DataGroup>ParametersGroup</DataGroup>
 												<DataSource>ExecuteParm</DataSource>

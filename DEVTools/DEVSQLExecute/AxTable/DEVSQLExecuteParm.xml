@@ -42,6 +42,12 @@ public class DEVSQLExecuteParm extends common
                     res += '.html';
                 }
                 break;
+            case DEVSQLOutputType::CSV:
+                if (strScan(res, '.', 1, strLen(res)) == 0)
+                {
+                    res += '.csv';
+                }
+                break;
             case DEVSQLOutputType::Excel:
                 res += '.xlsx';
                 break;
@@ -106,6 +112,12 @@ public class DEVSQLExecuteParm extends common
 					<DataField>MaxRows</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
+					<DataField>QueryTimeout</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
+					<DataField>ReaderType</DataField>
+				</AxTableFieldGroupField>
+				<AxTableFieldGroupField>
 					<DataField>OutputType</DataField>
 				</AxTableFieldGroupField>
 				<AxTableFieldGroupField>
@@ -143,6 +155,13 @@ public class DEVSQLExecuteParm extends common
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldInt">
+			<Name>QueryTimeout</Name>
+			<ExtendedDataType>Seconds</ExtendedDataType>
+			<HelpText>Maximum wait for the SQL server in seconds, 0 means no limit. It is used only by the .NET reader</HelpText>
+			<Label>Timeout</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldInt">
 			<Name>MaxRows</Name>
 			<ExtendedDataType>PositiveNumber</ExtendedDataType>
 			<HelpText>Maximum rows in output</HelpText>
@@ -170,6 +189,12 @@ public class DEVSQLExecuteParm extends common
 			<Name>SQLResults</Name>
 			<ExtendedDataType>Notes</ExtendedDataType>
 			<Label>Filed for storing SQL results</Label>
+		</AxTableField>
+		<AxTableField xmlns=""
+			i:type="AxTableFieldEnum">
+			<Name>ReaderType</Name>
+			<HelpText>ResultSet is the standard X++ reader. Use the .NET reader for large outputs, it is much faster</HelpText>
+			<EnumType>DEVSQLReaderType</EnumType>
 		</AxTableField>
 		<AxTableField xmlns=""
 			i:type="AxTableFieldEnum">

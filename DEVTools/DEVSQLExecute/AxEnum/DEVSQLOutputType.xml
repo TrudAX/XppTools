@@ -19,5 +19,10 @@
 			<Label>Excel</Label>
 			<Value>2</Value>
 		</AxEnumValue>
+		<AxEnumValue>
+			<Name>CSV</Name>
+			<Label>CSV</Label>
+			<Value>3</Value>
+		</AxEnumValue>
 	</EnumValues>
 </AxEnum>
