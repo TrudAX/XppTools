@@ -201,8 +201,8 @@ public class DEVSysTableBrowser
                         formBuildRealControl = _formBuildGridControl.addDataField(_formBuildDataSource.id(), _fieldId, j);
                         formBuildRealControl.autoDeclaration(true);
                         formBuildRealControl.label(dictField.name());
-                        
-                        formBuildControl = formBuildComboBoxControl;
+
+                        formBuildControl = formBuildRealControl;
 
                         break;
 
@@ -274,6 +274,9 @@ public class DEVSysTableBrowser
         ;
         select firstonly RecId from securityUserRole
             where  securityUserRole.User    == curUserId()
+                && (securityUserRole.ValidFrom < DateTimeUtil::utcNow() || securityUserRole.ValidFrom == utcDateTimeNull())
+                && (securityUserRole.ValidTo > DateTimeUtil::utcNow() || securityUserRole.ValidTo == utcDateTimeNull())
+                && securityUserRole.AssignmentStatus == RoleAssignmentStatus::Enabled
             join RecId from securityRole
                 where  securityRole.RecId == securityUserRole.SecurityRole
                     && (   securityRole.AotName == _roleName
