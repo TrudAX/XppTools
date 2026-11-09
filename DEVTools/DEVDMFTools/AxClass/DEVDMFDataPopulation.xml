@@ -17,6 +17,7 @@ class DEVDMFDataPopulation
     public static void createDefaultMappingNoConfigValidation(str _targetEntityName)
     {
         boolean              dataPopulationEnded;
+        boolean              entityRefreshed;
         SysGlobalobjectCache sgoc = new SysGlobalObjectCache();
         
         boolean isEntityListRefreshing;
@@ -27,18 +28,25 @@ class DEVDMFDataPopulation
             sgoc.insert(DMFConstants::DataPopulationGlobalCacheScope, [DMFConstants::DataPopulationKey], [true]);
             unchecked(Uncheck::XDS)
             {
-                DEVDMFDataPopulation::createEntity(_targetEntityName);
+                entityRefreshed = DEVDMFDataPopulation::createEntity(_targetEntityName);
             }
 
             dataPopulationEnded = true;
         }
-        
+        else
+        {
+            warning(strFmt("%1 was not refreshed: another data entity refresh is running. Try again when it has finished.", _targetEntityName));
+        }
+
         if (dataPopulationEnded)
         {
             sgoc.clear(DMFConstants::DataPopulationGlobalCacheScope);
         }
 
-        Info(strFmt("%1 refreshed", _targetEntityName));
+        if (entityRefreshed)
+        {
+            Info(strFmt("%1 refreshed", _targetEntityName));
+        }
     }
 
 ]]></Source>
@@ -46,9 +54,8 @@ class DEVDMFDataPopulation
 			<Method>
 				<Name>createEntity</Name>
 				<Source><![CDATA[
-    public static void createEntity(str _targetEntityName)
+    public static boolean createEntity(str _targetEntityName)
     {
-        #define.EnLanguageId('en-us')
         DMFTmpEntityList            dmfTmpEntityList;
         DictDataEntity              dataEntity;
         DMFTargetXML                dmfTargetXML;
@@ -60,78 +67,65 @@ class DEVDMFDataPopulation
         DMFObsoleteFieldsTmp        dmfObsoleteFieldsTmp;
         DictEnum                    de;
         System.Exception            ex;
+        AxDataEntityView            entityView;
         DMFEntityName               entityName;
 
         de = new DictEnum(enumNum(DMFModule));
-        
+
+        dataEntity = new DictDataEntity(tablename2id(_targetEntityName));
+        if (dataEntity && dataEntity.dataManagementEnabled())
+        {
+            entityView = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetDataEntityView(dataEntity.name());
+        }
+
+        if (!entityView)
+        {
+            return checkFailed(strFmt("%1 was not refreshed: it is not a data entity enabled for data management.", _targetEntityName));
+        }
+
         try
         {
             ttsbegin;
 
             using (var task = PerformanceEventsAsIDisposable::DIXFRuntime_DMFEntityRefresh('BulkCreation: Temp list generation'))
             {
-                dataEntity = new DictDataEntity(tablename2id(_targetEntityName));
-                    entityName = SysLabel::labelId2String2(dataEntity.labelDefined(), #EnLanguageId);
-                    if (!entityName)
+                entityName = DEVDMFDataPopulation::resolveEntityName(dataEntity);
+                dmfTmpEntityList.EntityName = entityName;
+                dmfTmpEntityList.TargetEntity = dataEntity.name();
+                dmfTmpEntityList.TargetTableId = tableName2Id(dmfTmpEntityList.TargetEntity);
+                dmfTmpEntityList.EntityTable = dataEntity.dataManagementStagingTable();
+                dmfTmpEntityList.EntityTableId = tableName2Id(dmfTmpEntityList.EntityTable);
+                dmfTmpEntityList.TargetIsSetBased = DMFDelegates::isTargetSetBasedByDefault(dmfTmpEntityList.TargetEntity);
+                dmfTmpEntityList.Type = dmfTmpEntityList.TargetEntity;
+                dmfTmpEntityList.HasExtensionDataFields = dataEntity.hasExtensionFields();
+                dmfTmpEntityList.HasExtensionDataSources = dataEntity.hasExtensionDataSources();
+                dmfTmpEntityList.DataSourceTableCount = DEVDMFEntityTableCount::analyzeEntity(dataEntity.name());
+
+                dmfTmpEntityList.SysModule = de.symbol2Value(entityView.Modules);
+                dmfTmpEntityList.Tags = entityView.Tags;
+                dmfTmpEntityList.EntityCategory = entityView.EntityCategory;
+                dmfTmpEntityList.IsObsolete = entityView.IsObsolete;
+
+                var fields = entityView.Fields;
+
+                if (fields)
+                {
+                    for (int i = 0; i < fields.count; ++i)
                     {
-                        entityName = dataEntity.name();
-                    }
-
-                    if (dataEntity && dataEntity.dataManagementEnabled())
-                    {
-                        select firstonly RecId from dmfTmpEntityList
-                        where dmfTmpEntityList.EntityName == entityName;
-                                                
-                        if (!dmfTmpEntityList.RecId)
+                        var field = fields.getObject(i);
+                        if (field.IsObsolete == Microsoft.Dynamics.AX.Metadata.Core.MetaModel.NoYes::Yes)
                         {
-                            dmfTmpEntityList.EntityName = entityName;
-                        }
-                        else
-                        {
-                            //Existing Entity Information in temp entity list before refresh
-                            dmfTmpEntityList.EntityName = dataEntity.name();
-                        }
-                        dmfTmpEntityList.TargetEntity = dataEntity.name();
-                        dmfTmpEntityList.TargetTableId = tableName2Id(dmfTmpEntityList.TargetEntity);
-                        dmfTmpEntityList.EntityTable = dataEntity.dataManagementStagingTable();
-                        dmfTmpEntityList.EntityTableId = tableName2Id(dmfTmpEntityList.EntityTable);
-                        dmfTmpEntityList.TargetIsSetBased = DMFDelegates::isTargetSetBasedByDefault(dmfTmpEntityList.TargetEntity);
-                        dmfTmpEntityList.Type = dmfTmpEntityList.TargetEntity;
-                        dmfTmpEntityList.HasExtensionDataFields = dataEntity.hasExtensionFields();
-                        dmfTmpEntityList.HasExtensionDataSources = dataEntity.hasExtensionDataSources();
-                        dmfTmpEntityList.DataSourceTableCount = DEVDMFEntityTableCount::analyzeEntity(dataEntity.name());
-                        
-                        var entityView = Microsoft.Dynamics.Ax.Xpp.MetadataSupport::GetDataEntityView(dataEntity.name());
-                        if (entityView)
-                        {
-                            dmfTmpEntityList.SysModule = de.symbol2Value(entityView.Modules);
-                            dmfTmpEntityList.Tags = entityView.Tags;
-                            dmfTmpEntityList.EntityCategory = entityView.EntityCategory;
-                            dmfTmpEntityList.IsObsolete = entityView.IsObsolete;
-
-                            var fields = entityView.Fields;
-
-                            if (fields)
-                            {
-                                for (int i = 0; i < fields.count; ++i)
-                                {
-                                    var field = fields.getObject(i);
-                                    if (field.IsObsolete == Microsoft.Dynamics.AX.Metadata.Core.MetaModel.NoYes::Yes)
-                                    {
-                                        dmfObsoleteFieldsTmp.clear();
-                                        dmfObsoleteFieldsTmp.FieldName = field.Name;
-                                        dmfObsoleteFieldsTmp.EntityName = dataEntity.name();
-                                        dmfObsoleteFieldsTmp.insert();
-                                    }
-                                }
-                            }
-                        
-                            dmfTmpEntityList.IsEntityConfigKeyEnabled = NoYes::Yes;
-                            dmfTmpEntityList.isEntityEnabled = NoYes::Yes;
-                            //Existing Entity Information in temp entity list before refresh
-                            dmfTmpEntityList.insert();
+                            dmfObsoleteFieldsTmp.clear();
+                            dmfObsoleteFieldsTmp.FieldName = field.Name;
+                            dmfObsoleteFieldsTmp.EntityName = dataEntity.name();
+                            dmfObsoleteFieldsTmp.insert();
                         }
                     }
+                }
+
+                dmfTmpEntityList.IsEntityConfigKeyEnabled = NoYes::Yes;
+                dmfTmpEntityList.isEntityEnabled = NoYes::Yes;
+                dmfTmpEntityList.insert();
             }
 
             DEVDMFDataPopulation::updateExistingEntities(dmfTmpEntityList);
@@ -320,13 +314,222 @@ class DEVDMFDataPopulation
                     level++;
                 }
             }
+
+            DEVDMFDataPopulation::setConfigurationKeys(entityName, dataEntity.configurationKeyId());
+
             ttscommit;
         }
         catch(ex)
         {
-            exceptionTextFallThrough();
+            // The transaction is already rolled back. An X++ error has already written its own text to the infolog.
+            str errorText = "unknown error";
+            if (ex != null)
+            {
+                errorText = ex.Message;
+            }
+            error(strFmt("%1 was not refreshed: %2", _targetEntityName, errorText));
+
+            return false;
         }
 
+        DEVDMFDataPopulation::markProjectEntitiesWithChangeTracking(dataEntity.name());
+
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>resolveEntityName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Finds the DMFEntity name to refresh, so that an entity never takes over the name of another entity
+    /// and a later standard entity list refresh does not conflict with the name given here.
+    /// </summary>
+    /// <param name = "_dataEntity">The data entity to refresh</param>
+    /// <returns>The existing name of the entity, otherwise the standard name if it is free, otherwise its AOT name</returns>
+    private static DMFEntityName resolveEntityName(DictDataEntity _dataEntity)
+    {
+        DMFEntity       existingEntity;
+        str             targetEntityName = _dataEntity.name();
+        DMFEntityName   standardName     = DEVDMFDataPopulation::standardEntityName(_dataEntity);
+
+        // An entity can have two rows when its label changed, or when another entity held its name in a standard refresh
+        select firstonly EntityName from existingEntity
+            where existingEntity.TargetEntity     == targetEntityName
+               && existingEntity.ParentEntityName == ''
+               && existingEntity.EntityName       == standardName;
+
+        if (!existingEntity.EntityName)
+        {
+            select firstonly EntityName from existingEntity
+                where existingEntity.TargetEntity     == targetEntityName
+                   && existingEntity.ParentEntityName == '';
+        }
+
+        if (existingEntity.EntityName)
+        {
+            return existingEntity.EntityName;
+        }
+
+        select firstonly RecId from existingEntity
+            where existingEntity.EntityName == standardName;
+
+        return existingEntity.RecId ? targetEntityName : standardName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>standardEntityName</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Gets the name that the standard entity list refresh gives an entity. Standard processes the entities in
+    /// metadata list order: the first entity with a label gets it, later entities with the same label get their AOT name.
+    /// </summary>
+    /// <param name = "_dataEntity">The data entity</param>
+    /// <returns>The name of the entity after a standard entity list refresh</returns>
+    private static DMFEntityName standardEntityName(DictDataEntity _dataEntity)
+    {
+        DMFEntityName   entityName       = DEVDMFDataPopulation::labelOrName(_dataEntity);
+        str             targetEntityName = _dataEntity.name();
+        ListEnumerator  enumerator       = DictDataEntity::listOfDataEntities().getEnumerator();
+
+        while (enumerator.moveNext() && enumerator.current() != targetEntityName)
+        {
+            DictDataEntity earlierEntity = new DictDataEntity(tablename2id(enumerator.current()));
+
+            if (earlierEntity
+                && earlierEntity.dataManagementEnabled()
+                && DEVDMFDataPopulation::labelOrName(earlierEntity) == entityName)
+            {
+                return targetEntityName;
+            }
+        }
+
+        return entityName;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>labelOrName</Name>
+				<Source><![CDATA[
+    private static DMFEntityName labelOrName(DictDataEntity _dataEntity)
+    {
+        #define.EnLanguageId('en-us')
+        DMFEntityName entityName = SysLabel::labelId2String2(_dataEntity.labelDefined(), #EnLanguageId);
+
+        return entityName ? entityName : _dataEntity.name();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>markProjectEntitiesWithChangeTracking</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Turns on change tracking for the Project entities, as the standard entity list refresh does in
+    /// ProjDMFDataPopulation_Extension.createDefaultMapping.
+    /// </summary>
+    /// <param name = "_targetEntityName">The refreshed data entity</param>
+    /// <remarks>Uses the names at runtime, because this package does not reference the Application Suite package.</remarks>
+    private static void markProjectEntitiesWithChangeTracking(str _targetEntityName)
+    {
+        System.Exception    ex;
+        ConfigurationKeyId  projectKeyId = configurationkeyName2Id('Project');
+        DictClass           projectClass = new DictClass(className2Id('ProjectAppSuite_Extension'));
+
+        if (projectClass && projectKeyId && isConfigurationkeyEnabled(projectKeyId)
+            && conFind(['ProjCDSActualsImportEntity', 'ProjCDSCategoryEntity', 'ProjCDSTransactionRelationshipImportEntity'], _targetEntityName))
+        {
+            try
+            {
+                projectClass.callStatic('MarkEntitiesWithChangeTracking');
+            }
+            catch (ex)
+            {
+                warning(strFmt("%1 was refreshed, but its change tracking could not be turned on.", _targetEntityName));
+            }
+        }
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>setConfigurationKeys</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Sets the configuration key status of the entity and its fields. This is the last step of the standard
+    /// entity list refresh, see DMFDataPopulation::setConfigurationKeys. Its per-entity methods are internal.
+    /// </summary>
+    /// <param name = "_entityName">The name of the refreshed DMFEntity record</param>
+    /// <param name = "_configKeyId">The configuration key of the data entity</param>
+    private static void setConfigurationKeys(DMFEntityName _entityName, ConfigurationKeyId _configKeyId)
+    {
+        DMFEntity       entity;
+        DMFTargetXML    targetXML;
+        boolean         wasEnabled;
+
+        select firstonly forupdate entity
+            where entity.EntityName == _entityName;
+
+        wasEnabled = entity.EntityIsEnabled;
+
+        entity.IsEntityConfigKeyEnabled = NoYes::Yes;
+
+        if (_configKeyId)
+        {
+            entity.EntityConfigKeyName      = configurationkeyId2Name(_configKeyId);
+            entity.IsEntityConfigKeyEnabled = entity.EntityConfigKeyName != '' && isConfigurationkeyEnabled(_configKeyId);
+        }
+
+        entity.EntityIsEnabled = entity.EntityConfigKeyName == '' || entity.IsEntityConfigKeyEnabled;
+
+        if (entity.EntityIsEnabled)
+        {
+            entity.EntityConfigKeyName = '';
+        }
+
+        if (entity.EntityIsEnabled != wasEnabled)
+        {
+            entity.doUpdate();
+        }
+
+        while select forupdate targetXML
+            where targetXML.Entity == _entityName
+        {
+            wasEnabled = targetXML.isFieldEnabled;
+
+            if (_configKeyId && !entity.IsEntityConfigKeyEnabled)
+            {
+                targetXML.TableConfigKeyName      = '';
+                targetXML.IsTableConfigKeyEnabled = NoYes::Yes;
+                targetXML.FieldConfigKeyName      = '';
+                targetXML.IsFieldConfigKeyEnabled = NoYes::Yes;
+                targetXML.isFieldEnabled          = NoYes::No;
+            }
+            else
+            {
+                [targetXML.TableConfigKeyName,
+                 targetXML.IsTableConfigKeyEnabled,
+                 targetXML.FieldConfigKeyName,
+                 targetXML.IsFieldConfigKeyEnabled,
+                 targetXML.isFieldEnabled]
+                = DMFEntityBase::getConfigurationKeyInfoForEntity(tableName2Id(targetXML.TargetTable), targetXML.TargetField);
+            }
+
+            if (targetXML.isFieldEnabled)
+            {
+                targetXML.TableConfigKeyName = '';
+                targetXML.FieldConfigKeyName = '';
+            }
+
+            if (targetXML.isFieldEnabled != wasEnabled)
+            {
+                targetXML.doUpdate();
+            }
+        }
     }
 
 ]]></Source>

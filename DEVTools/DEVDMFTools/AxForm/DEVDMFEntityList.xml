@@ -24,11 +24,14 @@ public class DEVDMFEntityList extends FormRun
         while (e.moveNext())
         {
             dataEntity = new DictDataEntity(tablename2id(e.current()));
-            
-            DEVDMFTmpEntityList.EntityName = dataEntity.name();
-            DEVDMFTmpEntityList.EntityLabel = dataEntity.label();
-            DEVDMFTmpEntityList.EntityModules = dataEntity.modules();
-            DEVDMFTmpEntityList.insert();
+
+            if (dataEntity && dataEntity.dataManagementEnabled())
+            {
+                DEVDMFTmpEntityList.EntityName = dataEntity.name();
+                DEVDMFTmpEntityList.EntityLabel = dataEntity.label();
+                DEVDMFTmpEntityList.EntityModules = dataEntity.modules();
+                DEVDMFTmpEntityList.insert();
+            }
         }
     }
 
