@@ -120,7 +120,7 @@ class DEVCustomScriptExecuteStaticMethod extends RunBase
             }
             if (dm.parameterCnt() !=0)
             {
-                throw error("Method with parameters can't executed");
+                throw error("Methods with parameters can't be executed");
             }
             if (dm.returnType() == Types::void)
             {
@@ -143,7 +143,7 @@ class DEVCustomScriptExecuteStaticMethod extends RunBase
                 }
                 if (dm.parameterCnt() !=0)
                 {
-                    throw error("Method with parameters can't executed");
+                    throw error("Methods with parameters can't be executed");
                 }
                 if (dm.returnType() == Types::void)
                 {

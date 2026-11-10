@@ -5,30 +5,22 @@
 		<Declaration><![CDATA[
 class DEVCustomScriptUploadStrategy extends FileUploadTemporaryStorageStrategy
 {
-    /*
-    public FileUploadResultBase uploadFile(System.IO.Stream _stream, str _fileName, str _contentType = null, str _fileExtension = null, str _metaData = null)
-    {
-        FileUploadResultBase ret = super(_stream, _fileName, _contentType, _fileExtension, _metaData);
-        if (ret)
-        {
-            ret.useAntiMalwareScanner(true);
-        }
-        return ret;
-    }
-
-    public FileUploadResultBase addBlobMetadata(str _fileName, str _fileId = null, str _contentType = null, str _fileExtension = null, str _metaData = null)
-    {
-        FileUploadResultBase ret = super(_fileName, _fileId, _contentType, _fileExtension, _metaData);
-        if (ret)
-        {
-            ret.useAntiMalwareScanner(true);
-        }
-
-        return ret;
-    }
-    */
 }
 ]]></Declaration>
-		<Methods />
+		<Methods>
+			<Method>
+				<Name>getBlobExpirationTimeSpanInMinutes</Name>
+				<Source><![CDATA[
+    protected System.Double getBlobExpirationTimeSpanInMinutes()
+    {
+        // the default is 7 days, but packages stay in the list and can be run again later
+        System.Double minutes = 365 * 24 * 60;
+
+        return minutes;
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
 	</SourceCode>
 </AxClass>

@@ -9,12 +9,10 @@ using System.Reflection;
 
 public class DEVCustomScriptFile implements System.IDisposable
 {
-    //private static DEVCustomScriptInstrumentationLogger logger = DEVCustomScriptInstrumentationLogger::createLogger(classStr(DEVCustomScriptFile));
-
     const private MethodName MainMethodName = 'main';
     const private str AXNameSpace = 'Dynamics.AX.Application';
     const str ScriptFolder = 'CustomScripts';
-    
+
     private Filename pathContainingAssembly;
     private Set classNames;
     private Assembly assembly;
@@ -76,7 +74,23 @@ public class DEVCustomScriptFile implements System.IDisposable
 
         System.Object[] parametersArray = new System.Object[1]();
         parametersArray.Set(0, new Args());
-        methodInfo.Invoke(null, parametersArray);
+
+        System.Reflection.TargetInvocationException invocationEx;
+        try
+        {
+            methodInfo.Invoke(null, parametersArray);
+        }
+        catch (invocationEx)
+        {
+            System.Exception scriptEx = invocationEx.InnerException;
+
+            // an X++ "throw error" has already written its text to the infolog
+            if (scriptEx is Microsoft.Dynamics.Ax.Xpp.ErrorException)
+            {
+                throw Exception::Error;
+            }
+            throw error(scriptEx.ToString());
+        }
     }
 
 ]]></Source>
@@ -87,7 +101,19 @@ public class DEVCustomScriptFile implements System.IDisposable
     private void initialize(SharedServiceUnitFileID _fileId)
     {
         Filename assemblyFileName = this.downloadAndExtractFile(_fileId);
-        this.loadAssembly(assemblyFileName);        
+        this.loadAssembly(assemblyFileName);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>fileHash</Name>
+				<Source><![CDATA[
+    private str fileHash(str _filename)
+    {
+        System.Byte[] content = System.IO.File::ReadAllBytes(_filename);
+
+        return System.Convert::ToBase64String(System.Security.Cryptography.SHA256::Create().ComputeHash(content));
     }
 
 ]]></Source>
@@ -97,24 +123,36 @@ public class DEVCustomScriptFile implements System.IDisposable
 				<Source><![CDATA[
     private void loadAssembly(Filename _filename)
     {
-        //using (SysInstrumentationActivityContext activityContext = logger.scriptExecutionActivities().loadAssembly(_filename))
-        //{
-            System.Exception ex;
-            try
+        System.Exception ex;
+        boolean isDifferentAssemblyLoaded;
+
+        try
+        {
+            assembly = Assembly::LoadFrom(_filename);
+
+            if (assembly)
             {
-                assembly = Assembly::LoadFrom(_filename);
-            
-                if (assembly)
+                // LoadFrom returns an already loaded assembly with the same identity, even from another path.
+                // X++ assemblies are always version 0.0.0.0, so the identity is just the module name.
+                // Every upload and run extracts to a new folder, so the content is compared, not the path.
+                isDifferentAssemblyLoaded = this.fileHash(assembly.Location) != this.fileHash(_filename);
+
+                if (!isDifferentAssemblyLoaded)
                 {
                     classNames = this.findInvokableClasses();
                 }
             }
-            catch (ex)
-            {
-                error(ex.Message);
-                throw Error("The assemmbly in the deployable package could't loaded");
-            }
-        //}
+        }
+        catch (ex)
+        {
+            error(ex.Message);
+            throw Error("The assembly in the deployable package couldn't be loaded");
+        }
+
+        if (isDifferentAssemblyLoaded)
+        {
+            throw error(strFmt("A different version of %1 is already loaded in this AOS. Build the script under a new module name, or restart the AOS.", assembly.GetName().Name));
+        }
     }
 
 ]]></Source>
@@ -148,10 +186,7 @@ public class DEVCustomScriptFile implements System.IDisposable
 				<Source><![CDATA[
     private void deleteFile(Filename _filename)
     {
-        //using (SysInstrumentationActivityContext activityContext = logger.scriptExecutionActivities().deleteFile(_filename))
-        {
-            System.IO.File::Delete(_filename);
-        }
+        System.IO.File::Delete(_filename);
     }
 
 ]]></Source>
@@ -161,66 +196,62 @@ public class DEVCustomScriptFile implements System.IDisposable
 				<Source><![CDATA[
     private Filename downloadAndExtractFile(SharedServiceUnitFileID _fileId)
     {
-       //using (SysInstrumentationActivityContext activityContext = logger.scriptExecutionActivities().prepareOnAOS())
+        System.Exception ex;
+        System.String[] files;
+        Filename localOrNetworkFile, localPathToExtractDeployablePackageTo, pathToBin;
+
+        const str pathToFiles = 'AOSService\\Packages\\files';
+        const str pathToBinFiles = 'bin';
+        const str postfixToFolderName = 'Assembly';
+        const str assemblyFileMatch = '*.dll';
+
+        try
         {
-            System.Exception ex;
-            System.String[] files;
-            Filename localOrNetworkFile, localPathToExtractDeployablePackageTo, pathToBin;
+            localOrNetworkFile = DMFStagingWriter::getSharedFilePath(_fileId);
 
-            const str pathToFiles = 'AOSService\\Packages\\files';
-            const str pathToBinFiles = 'bin';
-            const str postfixToFolderName = 'Assembly';
-            const str assemblyFileMatch = '*.dll';
+            localPathToExtractDeployablePackageTo = Path::Combine(Path::GetTempPath(), scriptFolder, Path::GetFileNameWithoutExtension(localOrNetworkFile));
+            ZipFile::ExtractToDirectory(localOrNetworkFile, localPathToExtractDeployablePackageTo);
 
-            try
+            Filename pathToEmbeddedZip = Path::Combine(localPathToExtractDeployablePackageTo, pathToFiles);
+            files = Directory::GetFiles(pathToEmbeddedZip);
+            Filename embeddedZip = files.Get(0);
+            pathContainingAssembly = System.String::Concat(localPathToExtractDeployablePackageTo, postfixToFolderName);
+            ZipFile::ExtractToDirectory(embeddedZip, pathContainingAssembly);
+
+            pathToBin = Path::Combine(pathContainingAssembly, pathToBinFiles);
+
+            files = Directory::GetFiles(pathToBin, assemblyFileMatch);
+            if (files.Length != 1)
             {
-                localOrNetworkFile = DMFStagingWriter::getSharedFilePath(_fileId);
-                //logger.logInformation(DEVCustomScriptInstrumentationActivities::File, localOrNetworkFile);
-                
-                localPathToExtractDeployablePackageTo = Path::Combine(Path::GetTempPath(), scriptFolder, Path::GetFileNameWithoutExtension(localOrNetworkFile));
-                ZipFile::ExtractToDirectory(localOrNetworkFile, localPathToExtractDeployablePackageTo);
-            
-                Filename pathToEmbeddedZip = Path::Combine(localPathToExtractDeployablePackageTo, pathToFiles);
-                files = Directory::GetFiles(pathToEmbeddedZip);
-                Filename embeddedZip = files.Get(0);
-                pathContainingAssembly = System.String::Concat(localPathToExtractDeployablePackageTo, postfixToFolderName);
-                ZipFile::ExtractToDirectory(embeddedZip, pathContainingAssembly);
-
-                pathToBin = Path::Combine(pathContainingAssembly, pathToBinFiles);                
-
-                files = Directory::GetFiles(pathToBin, assemblyFileMatch);
-                if (files.Length != 1)
-                {
-                    throw Error("The upload failed because the deployable package did't contain one DLL file");
-                }
+                throw Error("The upload failed because the deployable package didn't contain one DLL file");
             }
-            catch (ex)
-            {
-                error(ex.Message);
-                throw Error("The uploaded deployable package uses an unsopported format");
-            }
-            finally
-            {
-                if (localOrNetworkFile &&
-                    System.IO.File::Exists(localOrNetworkFile))
-                {
-                    this.deleteFile(localOrNetworkFile);
-                }
-
-                if (localPathToExtractDeployablePackageTo &&
-                    Directory::Exists(localPathToExtractDeployablePackageTo))
-                {
-                    DEVCustomScriptFile::deleteDirectory(localPathToExtractDeployablePackageTo);
-                }
-
-                if (pathToBin &&
-                    Directory::Exists(pathToBin))
-                {
-                    this.scrubDirectoryForNonAssemblyFiles(pathToBin);
-                }
-            }
-            return files.Get(0);
         }
+        catch (ex)
+        {
+            error(ex.Message);
+            throw Error("The uploaded deployable package uses an unsupported format");
+        }
+        finally
+        {
+            if (localOrNetworkFile &&
+                System.IO.File::Exists(localOrNetworkFile))
+            {
+                this.deleteFile(localOrNetworkFile);
+            }
+
+            if (localPathToExtractDeployablePackageTo &&
+                Directory::Exists(localPathToExtractDeployablePackageTo))
+            {
+                DEVCustomScriptFile::deleteDirectory(localPathToExtractDeployablePackageTo);
+            }
+
+            if (pathToBin &&
+                Directory::Exists(pathToBin))
+            {
+                this.scrubDirectoryForNonAssemblyFiles(pathToBin);
+            }
+        }
+        return files.Get(0);
     }
 
 ]]></Source>
@@ -252,7 +283,7 @@ public class DEVCustomScriptFile implements System.IDisposable
             _methodInfo.IsStatic &&
             _methodInfo.IsPublic &&
             _methodInfo.GetParameters().Length == 1)
-        {            
+        {
             return true;
         }
         return false;
@@ -305,19 +336,16 @@ public class DEVCustomScriptFile implements System.IDisposable
 				<Name>deleteDirectory</Name>
 				<Source><![CDATA[
     private static void deleteDirectory(str _directory)
-    {    
+    {
         System.Exception ex;
         try
         {
-            //using (SysInstrumentationActivityContext activityContext = logger.scriptExecutionActivities().deleteFolder(_directory))
-            {
-                const boolean recursive = true;
-                Directory::Delete(_directory, recursive);
-            }
+            const boolean recursive = true;
+            Directory::Delete(_directory, recursive);
         }
         catch (ex)
         {
-        }    
+        }
     }
 
 ]]></Source>
@@ -331,7 +359,7 @@ public class DEVCustomScriptFile implements System.IDisposable
 
         try
         {
-            str folder = Path::Combine(DMFParameters::find().SharedFolderPath, ScriptFolder);        
+            str folder = Path::Combine(Path::GetTempPath(), ScriptFolder);
             System.String[] directories = Directory::GetDirectories(folder);
 
             for (int i = 0; i<directories.Length; i++)
@@ -342,7 +370,7 @@ public class DEVCustomScriptFile implements System.IDisposable
         }
         catch (ex)
         {
-        }     
+        }
     }
 
 ]]></Source>

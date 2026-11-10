@@ -13,67 +13,31 @@ public class DEVCustomScriptPackageTable extends common
 				<Source><![CDATA[
     public static void create(Description _description, SharedServiceUnitFileID _fileId)
     {
-        
         DEVCustomScriptPackageTable newPackage;
 
         using (DEVCustomScriptFile file = DEVCustomScriptFile::newFromFileId(_fileId))
         {
-            //newScript.Status = AppConsistencyCustomScriptStatus::Uploaded;
             newPackage.Description = _description;
             newPackage.ServerFileId = _fileId;
-            //newPackage.ClassName = file.parmClassName();
             newPackage.AssemblyName = file.parmAssemblyName();
 
-            if (newPackage.checkForConflicts())
+            ttsbegin;
+            newPackage.insert();
+
+            DEVCustomScriptTable newScript;
+            SetEnumerator e = file.parmClassNames().getEnumerator();
+
+            while (e.moveNext())
             {
-                ttsbegin;
-                newPackage.insert();
-
-                DEVCustomScriptTable newScript;
-                SetEnumerator e = file.parmClassNames().getEnumerator();
-
-                while (e.moveNext())
-                {
-                    newScript.clear();
-                    newScript.initValue();
-                    newScript.Package = newPackage.RecId;
-                    newScript.ClassName = e.current();
-                    newScript.insert();
-                }
-
-
-                ttscommit;
+                newScript.clear();
+                newScript.initValue();
+                newScript.Package = newPackage.RecId;
+                newScript.ClassName = e.current();
+                newScript.insert();
             }
+
+            ttscommit;
         }
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>checkForConflicts</Name>
-				<Source><![CDATA[
-    public boolean checkForConflicts()
-    {
-        if (this.isConflictingWithExistingAssemblies())
-        {
-            return Box::okCancel(strFmt("A deployable package with the assembly signature '%1' already exists. The system will reuse the implementation from the existing package. Do you want to continue?", this.AssemblyName), DialogButton::Cancel) == DialogButton::Ok;
-        }
-        return true;
-    }
-
-]]></Source>
-			</Method>
-			<Method>
-				<Name>isConflictingWithExistingAssemblies</Name>
-				<Source><![CDATA[
-    public boolean isConflictingWithExistingAssemblies()
-    {
-        DEVCustomScriptPackageTable package;
-
-        select firstonly crosscompany RecId from package
-            where package.AssemblyName == this.AssemblyName;
-
-        return package.RecId != 0;
     }
 
 ]]></Source>

@@ -15,6 +15,7 @@ This repository contains 3 D365FO models:
     - [-SQL reports](#-sql-reports)
     - [-D365FO Infolog call stack](#-d365fo-infolog-call-stack)
     - [-D365FO DFM Tools](#-d365fo-dfm-tools)
+    - [-Custom X++ scripts](#-custom-x-scripts)
   - [DEVCommon model](#devcommon-model)
     - [-DEV class](#-dev-class)
     - [-DEVDimensionHelper class](#-devdimensionhelper-class)
@@ -125,6 +126,16 @@ Full description: [How to Refresh Data Entities Faster in D365FO.](https://www.l
 Sub-model name: DEVDMFTools
 
 ![DEV DMF Tools](assets/DEVDMFTools.png)
+
+### -Custom X++ scripts
+
+Write an X++ class on your development VM, build a deployable package and run it straight away. It is the standard Custom scripts feature without the approval and test steps, and one package can hold several scripts. Only System administrators can use it. The form is 'Custom scripts deployable packages' in System administration.
+
+- A script is a class with a `public static void main(Args _args)` method.
+- The package must contain one module, so one DLL.
+- Every changed version must be built under a **new module name** (for example `DEVScript_20261109_01`), or the AOS must be restarted. An AOS keeps the first assembly it loaded for a module, and X++ assemblies have no version number. Changing the model version does not help. If a different version is already loaded, the upload or run stops with an error.
+
+Sub-model name: DEVCustomScripts
 
 **[⬆ back to top](#XppTools)**
 
