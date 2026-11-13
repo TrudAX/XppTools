@@ -49,10 +49,6 @@ class DEVCSXppBatchCallStackHandler
                         }
                     }
                 }
-                else
-                {
-                    DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled = UnknownNoYes::No;
-                }
             }
         }
         catch
@@ -71,13 +67,21 @@ class DEVCSXppBatchCallStackHandler
         DEVCSXppCallStackTable  callStackTable;
         UserConnection          userConnection = new UserConnection();
 
-        callStackTable.setConnection(userConnection);
-        callStackTable.clear();
-        callStackTable.initValue();
-        callStackTable.Exception    = Exception::Info;
-        callStackTable.InfologStr   = strFmt("%1 class",_dpClassName);
-        callStackTable.CallStack    = xSession::xppCallStack();
-        callStackTable.insert();
+        try
+        {
+            callStackTable.setConnection(userConnection);
+            callStackTable.clear();
+            callStackTable.initValue();
+            callStackTable.Exception    = Exception::Info;
+            callStackTable.InfologStr   = strFmt("%1 class",_dpClassName);
+            callStackTable.CallStack    = xSession::xppCallStack();
+            callStackTable.insert();
+        }
+        finally
+        {
+            // otherwise the SQL connection stays open until the garbage collection
+            userConnection.finalize();
+        }
     }
 
 ]]></Source>

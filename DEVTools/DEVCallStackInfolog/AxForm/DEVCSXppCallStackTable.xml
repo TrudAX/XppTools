@@ -320,6 +320,18 @@ public class DEVCSXppCallStackTable extends FormRun
 								<MenuItemName>DEVCSXppExceptionGenerate</MenuItemName>
 								<MenuItemType>Action</MenuItemType>
 							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormMenuFunctionButtonControl">
+								<Name>DEVCSXppCallStackCleanup</Name>
+								<NeededPermission>Manual</NeededPermission>
+								<Type>MenuFunctionButton</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<AutoRefreshData>Yes</AutoRefreshData>
+								<DataSource>SysXppCallStackTable</DataSource>
+								<MenuItemName>DEVCSXppCallStackCleanup</MenuItemName>
+								<MenuItemType>Action</MenuItemType>
+							</AxFormControl>
 						</Controls>
 					</AxFormControl>
 				</Controls>

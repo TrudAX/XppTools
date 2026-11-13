@@ -67,22 +67,28 @@ class DEVCSXppCallStackHandler
                             break;
                     }
                 }
-                else
-                {
-                    DEVCSXppCallStackHandler::isCheckEnabled = UnknownNoYes::No;
-                }
+                // A user without an enabled setup is not remembered for the session: the setup comes from the
+                // record cache, and it can be enabled from another session at any time.
             }
 
             if (isEnabled)
             {
                 UserConnection       userConnection = new UserConnection();
-                callStackTable.setConnection(userConnection);
-                callStackTable.clear();
-                callStackTable.initValue();
-                callStackTable.Exception = _eventArgs.exception;
-                callStackTable.InfologStr = _eventArgs.message;
-                callStackTable.CallStack = xSession::xppCallStack();
-                callStackTable.insert();
+                try
+                {
+                    callStackTable.setConnection(userConnection);
+                    callStackTable.clear();
+                    callStackTable.initValue();
+                    callStackTable.Exception = _eventArgs.exception;
+                    callStackTable.InfologStr = _eventArgs.message;
+                    callStackTable.CallStack = xSession::xppCallStack();
+                    callStackTable.insert();
+                }
+                finally
+                {
+                    // otherwise the SQL connection stays open until the garbage collection
+                    userConnection.finalize();
+                }
             }
         }
         catch

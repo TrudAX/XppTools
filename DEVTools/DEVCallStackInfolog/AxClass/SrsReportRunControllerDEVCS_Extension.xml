@@ -65,10 +65,6 @@ final class SrsReportRunControllerDEVCS_Extension
                         // }
                     }
                 }
-                else
-                {
-                    DEVCSXppBatchCallStackHandler::isRunBaseTraceEnabled = UnknownNoYes::No;
-                }
 
             }
         }

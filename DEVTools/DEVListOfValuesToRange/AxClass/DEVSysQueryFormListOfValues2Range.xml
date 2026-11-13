@@ -27,6 +27,7 @@ class DEVSysQueryFormListOfValues2Range
         str         retStr;
         str         s = _source;
         int         words;
+        int         valueCount;
         int         char;
         int         len;
         int         seplen;
@@ -120,9 +121,11 @@ class DEVSysQueryFormListOfValues2Range
 
             retStr = retStr + s;
             words++;
+            valueCount++;
         }
 
-        return [retStr, stringHelper.splitElementsCount()];
+        // empty lines are not values
+        return [retStr, valueCount];
     }
 
 ]]></Source>

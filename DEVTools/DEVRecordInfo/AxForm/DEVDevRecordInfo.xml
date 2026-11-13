@@ -237,6 +237,14 @@ public class DEVDevRecordInfo extends FormRun
     
                     TmpDevRecordInfo.FieldId   = fieldid2ext(fieldId, j);
                     TmpDevRecordInfo.Different = TmpDevRecordInfo.FieldValue != TmpDevRecordInfo.FieldValue2;
+                    if (! TmpDevRecordInfo.Different
+                        && (dictField.baseType() == Types::String || dictField.baseType() == Types::VarString || dictField.baseType() == Types::RString))
+                    {
+                        // the value columns hold only the first part of a long text
+                        str longValue1 = record1.(fieldid2ext(fieldId, j));
+                        str longValue2 = record2.(fieldid2ext(fieldId, j));
+                        TmpDevRecordInfo.Different = longValue1 != longValue2;
+                    }
                     curNum++;
                     TmpDevRecordInfo.Id = curNum;
                     TmpDevRecordInfo.insert();
@@ -378,6 +386,9 @@ public class DEVDevRecordInfo extends FormRun
     
             ttsCommit;
 
+            // Refresh shows the saved copy of the current record
+            recordMap.insert(#current, buf2Con(recordLocal));
+
             TmpDevRecordInfo.FieldValue = strFmt('%1', recordLocal.(dictField.id()));
             TmpDevRecordInfo.update();
             TmpDevRecordInfo_ds.refresh();
@@ -496,6 +507,9 @@ public class DEVDevRecordInfo extends FormRun
             }
     
             ttsCommit;
+
+            // Refresh shows the saved copy of the current record
+            recordMap.insert(#current, buf2Con(recordLocal));
 
             TmpDevRecordInfo.FieldValue = strFmt('%1', recordLocal.(dictField.id()));
             TmpDevRecordInfo.update();

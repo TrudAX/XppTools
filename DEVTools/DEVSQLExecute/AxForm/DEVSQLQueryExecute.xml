@@ -115,22 +115,7 @@ public class DEVSQLQueryExecute extends FormRun
 				<Source><![CDATA[
     public boolean DEVisUserInRole(Description  _roleName)
     {
-        boolean                 res;
-        SecurityUserRole        securityUserRole;
-        SecurityRole            securityRole;
-        ;
-        select firstonly RecId from securityUserRole
-            where  securityUserRole.User    == curUserId()
-            join RecId from securityRole
-                where  securityRole.RecId == securityUserRole.SecurityRole
-                    && (   securityRole.AotName == _roleName
-                    )    ;
-        if (securityUserRole.RecId)
-        {
-            res = true;
-        }
-    
-        return res;
+        return DEVSQLQueryExecute::isUserInRole(_roleName);
     }
 
 ]]></Source>

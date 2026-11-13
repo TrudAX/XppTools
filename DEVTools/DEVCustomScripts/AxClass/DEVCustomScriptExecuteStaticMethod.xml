@@ -114,7 +114,7 @@ class DEVCustomScriptExecuteStaticMethod extends RunBase
         {
 
             dm = new DictMethod(UtilElementType::ClassStaticMethod, dictClass.id(), methodName); 
-            if (! dm)
+            if (! dm || ! dm.name())
             {
                 throw error(strFmt("Method %1 not found on class or table %2", methodName, classOrTableName));
             }
@@ -137,7 +137,7 @@ class DEVCustomScriptExecuteStaticMethod extends RunBase
             if (dictTable)
             {
                 dm = new DictMethod(UtilElementType::TableStaticMethod, dictTable.id(), methodName);
-                if (! dm)
+                if (! dm || ! dm.name())
                 {
                     throw error(strFmt("Method %1 not found on class or table %2", methodName, classOrTableName));
                 }

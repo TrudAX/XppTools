@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxClass xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+	<Name>DEVCSXppCallStackCleanup</Name>
+	<SourceCode>
+		<Declaration><![CDATA[
+/// <summary>
+/// Deletes the old records of the infolog call stack log. The log has no other limit, so schedule this in batch.
+/// </summary>
+public class DEVCSXppCallStackCleanup extends RunBaseBatch implements BatchRetryable
+{
+    Days         keepDays;
+
+    DialogField  dlgKeepDays;
+
+    #define.CurrentVersion(1)
+    #localmacro.CurrentList
+        keepDays
+    #endmacro
+
+}
+]]></Declaration>
+		<Methods>
+			<Method>
+				<Name>dialog</Name>
+				<Source><![CDATA[
+    public Object dialog()
+    {
+        DialogRunbase       dialog = super();
+
+        dlgKeepDays = dialog.addFieldValue(extendedTypeStr(Days), keepDays, "Days to keep", "Call stack records older than this number of days are deleted. 0 deletes all records");
+
+        return dialog;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>getFromDialog</Name>
+				<Source><![CDATA[
+    public boolean getFromDialog()
+    {
+        keepDays = dlgKeepDays.value();
+
+        return super();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>initParmDefault</Name>
+				<Source><![CDATA[
+    public void initParmDefault()
+    {
+        super();
+
+        keepDays = 30;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>parmKeepDays</Name>
+				<Source><![CDATA[
+    public Days parmKeepDays(Days _keepDays = keepDays)
+    {
+        keepDays = _keepDays;
+        return keepDays;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>pack</Name>
+				<Source><![CDATA[
+    public container pack()
+    {
+        return [#CurrentVersion, #CurrentList];
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>unpack</Name>
+				<Source><![CDATA[
+    public boolean unpack(container _packedClass)
+    {
+        Version    version = RunBase::getVersion(_packedClass);
+        switch (version)
+        {
+            case #CurrentVersion:
+                [version,#CurrentList] = _packedClass;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>run</Name>
+				<Source><![CDATA[
+    public void run()
+    {
+        DEVCSXppCallStackTable  callStackTable;
+        utcdatetime             deleteBefore = DateTimeUtil::addDays(DateTimeUtil::utcNow(), -1 * keepDays);
+        utcdatetime             chunkBefore;
+        int64                   chunkRecords;
+        int64                   deletedRecords;
+
+        // One transaction per hour of the log, the oldest first: a large log is not deleted in one large transaction
+        while (true)
+        {
+            select firstonly RecId, CreatedDateTime from callStackTable
+                order by CreatedDateTime
+                where callStackTable.CreatedDateTime < deleteBefore;
+
+            if (! callStackTable.RecId)
+            {
+                break;
+            }
+
+            chunkBefore = DateTimeUtil::addHours(callStackTable.CreatedDateTime, 1);
+            if (chunkBefore > deleteBefore)
+            {
+                chunkBefore = deleteBefore;
+            }
+
+            ttsbegin;
+            delete_from callStackTable
+                where callStackTable.CreatedDateTime < chunkBefore;
+            chunkRecords = callStackTable.RowCount();
+            ttscommit;
+
+            if (! chunkRecords)
+            {
+                break;
+            }
+            deletedRecords += chunkRecords;
+        }
+
+        info(strFmt("%1 call stack records created before %2 were deleted", deletedRecords,
+            DateTimeUtil::applyTimeZoneOffset(deleteBefore, DateTimeUtil::getUserPreferredTimeZone())));
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canRunInNewSession</Name>
+				<Source><![CDATA[
+    public boolean canRunInNewSession()
+    {
+        return false;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>canGoBatch</Name>
+				<Source><![CDATA[
+    public boolean canGoBatch()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isRetryable</Name>
+				<Source><![CDATA[
+    public boolean isRetryable()
+    {
+        return true;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>construct</Name>
+				<Source><![CDATA[
+    public static DEVCSXppCallStackCleanup construct()
+    {
+        return new DEVCSXppCallStackCleanup();
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>description</Name>
+				<Source><![CDATA[
+    static ClassDescription description()
+    {
+        return "Clean up the infolog call stack log";
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>main</Name>
+				<Source><![CDATA[
+    public static void main(Args _args)
+    {
+        DEVCSXppCallStackCleanup    runObject = DEVCSXppCallStackCleanup::construct();
+
+        if (runObject.prompt())
+        {
+            runObject.runOperation();
+        }
+    }
+
+]]></Source>
+			</Method>
+		</Methods>
+	</SourceCode>
+</AxClass>

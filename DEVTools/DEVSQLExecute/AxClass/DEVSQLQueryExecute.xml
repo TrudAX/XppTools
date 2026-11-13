@@ -152,10 +152,14 @@ class DEVSQLQueryExecute
                     ttscommit;
                 }
 
-                this.doExecuteUpdate(executeParm.SQLText);
+                int rowsAffected = this.doExecuteUpdate(executeParm.SQLText);
                 res = strFmt('Executed %1, %2',
                     DateTimeUtil::applyTimeZoneOffset(DateTimeUtil::getSystemDateTime(), DateTimeUtil::getUserPreferredTimeZone()),
                     curUserId());
+                if (rowsAffected >= 0)
+                {
+                    res += strFmt(', rows affected: %1', rowsAffected);
+                }
 
                 if (executeParm.OutputType == DEVSQLOutputType::HTML)
                 {
@@ -447,7 +451,8 @@ class DEVSQLQueryExecute
 			<Method>
 				<Name>doExecuteUpdate</Name>
 				<Source><![CDATA[
-    public void doExecuteUpdate(str _strQuery)
+    /// <returns>The number of rows affected, as reported by the database.</returns>
+    public int doExecuteUpdate(str _strQuery)
     {
         Connection  connection = new Connection();
         Statement   statement = connection.createStatement();
@@ -457,7 +462,32 @@ class DEVSQLQueryExecute
         permission.assert();
 
         Map paramMap = SqlParams::create();
-        statement.executeUpdateWithParameters(_strQuery, paramMap);
+        return statement.executeUpdateWithParameters(_strQuery, paramMap);
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>isUserInRole</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// Checks that the current user has the role, ignoring disabled and expired assignments.
+    /// </summary>
+    public static boolean isUserInRole(Description _roleName)
+    {
+        SecurityUserRole    securityUserRole;
+        SecurityRole        securityRole;
+
+        select firstonly RecId from securityUserRole
+            where  securityUserRole.User    == curUserId()
+                && (securityUserRole.ValidFrom < DateTimeUtil::utcNow() || securityUserRole.ValidFrom == utcDateTimeNull())
+                && (securityUserRole.ValidTo > DateTimeUtil::utcNow() || securityUserRole.ValidTo == utcDateTimeNull())
+                && securityUserRole.AssignmentStatus == RoleAssignmentStatus::Enabled
+            join RecId from securityRole
+                where  securityRole.RecId == securityUserRole.SecurityRole
+                    && securityRole.AotName == _roleName;
+
+        return securityUserRole.RecId != 0;
     }
 
 ]]></Source>

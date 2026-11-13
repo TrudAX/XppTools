@@ -5,6 +5,9 @@
 		<Declaration><![CDATA[
 class DEVSQLReportsProcessor
 {
+    // Without this limit ResultSet.getString cuts values at 999 characters, see DEVSQLQueryExecute
+    private const int ResultSetMaxFieldSize = 32000;
+
     DEVSQLReports   SQLReports;
 
     DEVSQLReportExecutionLog  reportExecutionLog;
@@ -23,6 +26,7 @@ class DEVSQLReportsProcessor
 
     container               savedParmsCon;
     DEVSQLFileWriterExcel   fileWriterExcelGlobal;
+    boolean                 isValueCutWarned;
 
 }
 ]]></Declaration>
@@ -122,7 +126,8 @@ class DEVSQLReportsProcessor
         permission = new SqlStatementExecutePermission(_strQuery);
         permission.assert();
 
-        
+        statement.setMaxFieldSize(ResultSetMaxFieldSize);
+
         Map paramMap = SqlParams::create();
         
         int     i;
@@ -157,7 +162,8 @@ class DEVSQLReportsProcessor
         {
             #File
 
-            ioData = TextStreamIo::constructForWrite(0);//65001);
+            // UTF-8: with the default code page of the server every character outside of it became a question mark
+            ioData = TextStreamIo::constructForWrite(65001);
             ioData.inFieldDelimiter(reportFormat.Delimiter);
             ioData.outFieldDelimiter(reportFormat.Delimiter);
             ioData.inRecordDelimiter(#delimiterCRLF);
@@ -364,7 +370,14 @@ class DEVSQLReportsProcessor
                         expectedSubResult += realTmp;
                         break;
                     case Types::Integer:
-                        int intTmp = resultSet.getInt(i);
+                        // date, time, xml and sql_variant columns also report Types::Integer, getInt can't read them
+                        sTmp = resultSet.getString(i);
+                        if (sTmp && sTmp != int2Str(str2Int(sTmp)))
+                        {
+                            expectedSubResult += sTmp;
+                            break;
+                        }
+                        int intTmp = str2Int(sTmp);
                         if (enumColumnSet.in(i))
                         {
                             if (enumTypesMap.exists(strFmt('%1:%2',i, intTmp)))
@@ -445,10 +458,29 @@ class DEVSQLReportsProcessor
             {
                 textBuffer.appendText(reportDelimeter);
             }
-            textBuffer.appendText(cellData);
+            textBuffer.appendText(this.textValue(cellData));
         }
         textBuffer.appendText('\n');
         curCellPosition = 0;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>textValue</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The value as it is written to the text file. A value that contains the delimiter, a quote or a line break
+    /// is put in quotes, so it stays in one column. Other values are written as they are.
+    /// </summary>
+    private str textValue(str _value)
+    {
+        if (strFind(_value, reportDelimeter + '"\r\n', 1, strLen(_value)))
+        {
+            return '"' + strReplace(_value, '"', '""') + '"';
+        }
+
+        return _value;
     }
 
 ]]></Source>
@@ -510,13 +542,18 @@ class DEVSQLReportsProcessor
             for ( i = 1; i <= maxColumnCount; i++)
             {
                 sTmp = resultSet.getString(i);
+                if (! isValueCutWarned && strLen(sTmp) >= ResultSetMaxFieldSize - 1)
+                {
+                    warning(strFmt("Values longer than %1 characters are cut", ResultSetMaxFieldSize - 1));
+                    isValueCutWarned = true;
+                }
 
                 curCellPosition++;
                 if (curCellPosition > 1)
                 {
                     textBuffer.appendText(reportDelimeter);
                 }
-                textBuffer.appendText(sTmp);
+                textBuffer.appendText(this.textValue(sTmp));
 
             }
 

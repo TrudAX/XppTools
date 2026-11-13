@@ -277,6 +277,7 @@ public class DEVFormQueryInfo extends FormRun
                     else
                     {
 
+                        dictField = SysDictField::findFieldById(queryBuildDataSource.table(), queryBuildFieldList.field(i));
                         if (dictField)
                         {
                             nodeText = fieldid2name(queryBuildDataSource.table(),queryBuildFieldList.field(i));
@@ -355,7 +356,7 @@ public class DEVFormQueryInfo extends FormRun
                     nodeText = strfmt('%1 == %2',fieldid2name(queryBuildDataSource.table(),queryBuildRange.field()),queryBuildRange.value());
 
                     dictField = SysDictField::findFieldById(queryBuildDataSource.table(), queryBuildRange.field());
-                    imageNo = imagelist.findFieldImage(dictField.baseType());
+                    imageNo = imagelist.findFieldImage(dictField ? dictField.baseType() : Types::AnyType);
 
                     // BP deviation documented
                     formTreeItem = new FormTreeItem(nodeText,imageNo,-1,null);
@@ -761,6 +762,69 @@ public class DEVFormQueryInfo extends FormRun
 
 ]]></Source>
 			</Method>
+			<Method>
+				<Name>sqlStatementText</Name>
+				<Source><![CDATA[
+    /// <summary>
+    /// The X++ and the SQL statement of every form data source that has its own query.
+    /// </summary>
+    public str sqlStatementText()
+    {
+        FormRun             sourceFormRun = FormDataUtil::getFormDataSource(this.args().record()).formRun();
+        FormDataSource      formRunDataSource;
+        Query               query;
+        System.Exception    ex;
+        str                 res;
+        int                 dataSourceNo;
+
+        for (dataSourceNo = 1; dataSourceNo <= sourceFormRun.form().dataSourceCount(); dataSourceNo++)
+        {
+            formRunDataSource = sourceFormRun.dataSource(dataSourceNo);
+
+            if (formRunDataSource.equal(formRunDataSource.masterObjectSet()) && formRunDataSource.queryRun())
+            {
+                query = formRunDataSource.queryRun().query();
+
+                res += strFmt('-- %1\n', formRunDataSource.name());
+                try
+                {
+                    if (query.dataSourceCount())
+                    {
+                        res += strFmt('X++: %1\n', query.dataSourceNo(1).toString());
+                    }
+                    // the values of the ranges are parameters, shown as ?
+                    res += strFmt('SQL: %1\n', query.getSQLStatement());
+                }
+                catch (ex)
+                {
+                    res += strFmt('The statement is not available: %1\n', ex.Message);
+                }
+                res += '\n';
+            }
+        }
+
+        return res;
+    }
+
+]]></Source>
+			</Method>
+			<Method>
+				<Name>toggleBtnShowSql</Name>
+				<Source><![CDATA[
+    public void toggleBtnShowSql()
+    {
+        boolean isShowSql = BtnShowSql.toggleValue() != 0;
+
+        if (isShowSql)
+        {
+            SqlStatementText.text(element.sqlStatementText());
+        }
+        SqlStatementText.visible(isShowSql);
+        QueryTree.visible(!isShowSql);
+    }
+
+]]></Source>
+			</Method>
 		</Methods>
 		<DataSources xmlns="" />
 		<DataControls xmlns="">
@@ -775,6 +839,23 @@ public class DEVFormQueryInfo extends FormRun
         {
             super();
             element.toggleBtnLinkFormDStoItsRelatedNodes();
+        }
+
+]]></Source>
+					</Method>
+				</Methods>
+			</Control>
+			<Control>
+				<Name>BtnShowSql</Name>
+				<Type>Button</Type>
+				<Methods>
+					<Method>
+						<Name>clicked</Name>
+						<Source><![CDATA[
+        public void clicked()
+        {
+            super();
+            element.toggleBtnShowSql();
         }
 
 ]]></Source>
@@ -814,6 +895,17 @@ public class DEVFormQueryInfo extends FormRun
 								<Text>Link form DS to its related nodes</Text>
 								<ToggleButton>Check</ToggleButton>
 							</AxFormControl>
+							<AxFormControl xmlns=""
+								i:type="AxFormButtonControl">
+								<Name>BtnShowSql</Name>
+								<AutoDeclaration>Yes</AutoDeclaration>
+								<HelpText>Show the X++ and SQL statements of the form data sources instead of the tree</HelpText>
+								<Type>Button</Type>
+								<FormControlExtension
+									i:nil="true" />
+								<Text>SQL statement</Text>
+								<ToggleButton>Check</ToggleButton>
+							</AxFormControl>
 						</Controls>
 					</AxFormControl>
 				</Controls>
@@ -827,6 +919,20 @@ public class DEVFormQueryInfo extends FormRun
 				<Type>Tree</Type>
 				<FormControlExtension
 					i:nil="true" />
+			</AxFormControl>
+			<AxFormControl xmlns=""
+				i:type="AxFormStringControl">
+				<Name>SqlStatementText</Name>
+				<AutoDeclaration>Yes</AutoDeclaration>
+				<HeightMode>SizeToAvailable</HeightMode>
+				<Type>String</Type>
+				<Visible>No</Visible>
+				<WidthMode>SizeToAvailable</WidthMode>
+				<FormControlExtension
+					i:nil="true" />
+				<ExtendedDataType>Notes</ExtendedDataType>
+				<Label>SQL statement</Label>
+				<ViewEditMode>Edit</ViewEditMode>
 			</AxFormControl>
 		</Controls>
 	</Design>
